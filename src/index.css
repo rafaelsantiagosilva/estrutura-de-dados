@@ -5,7 +5,7 @@
 @plugin "@tailwindcss/typography";
 
 /* ───────── 🎨 Design tokens "Ink & Blue" ───────── */
-@theme {
+@theme static {
   --font-mono: "JetBrains Mono Variable", ui-monospace, monospace;
   --font-sans: "Inter Variable", system-ui, sans-serif;
 
@@ -121,4 +121,42 @@ pre [data-line] {
 }
 .collapsible-content[data-state="closed"] {
   animation: slide-up 200ms ease-out;
+}
+
+/* ───────── 🎬 Painel de código das simulações ───────── */
+.sim-code pre {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background-color: transparent !important; /* o Shiki põe fundo inline */
+  padding: 0.75rem 0;
+}
+.sim-code code {
+  display: grid;
+  counter-reset: ln;
+}
+.sim-code .line {
+  display: block;
+  min-height: 1.7em;             /* linhas vazias não podem colapsar */
+  padding: 0 1rem;
+  border-left: 2px solid transparent;
+  transition: background 0.2s;
+}
+/* número da linha (ajuda você a escrever o campo `line` dos frames) */
+.sim-code .line::before {
+  counter-increment: ln;
+  content: counter(ln);
+  display: inline-block;
+  width: 2ch;
+  margin-right: 1.5ch;
+  text-align: right;
+  color: var(--color-ink-600);
+}
+/* 🔦 a linha que a animação está executando */
+.sim-code .line[data-active] {
+  background: rgb(47 123 255 / 0.18);
+  border-left-color: var(--color-brand-500);
+}
+.sim-code .line[data-active]::before {
+  color: var(--color-brand-400);
 }

@@ -1,24 +1,28 @@
 import { useEffect, useState } from "react";
-import type { Frame } from "../../viz-data/types";
 
-export function usePlayer(frames: Frame[], speed = 1200) {
+export function usePlayer(total: number, speedMs = 1200) {
     const [i, setI] = useState(0);
     const [playing, setPlaying] = useState(false);
-    const last = frames.length - 1;
+    const last = total - 1;
 
+    // enquanto estiver tocando, avança um frame a cada `speedMs`
     useEffect(() => {
-        if (!playing) return;
-        if (i >= last) return setPlaying(false);
-        const t = setTimeout(() => setI((n) => n + 1), speed);
+        if (!playing || i >= last) return;
+        const t = setTimeout(() => setI((n) => n + 1), speedMs);
         return () => clearTimeout(t);
-    }, [playing, i, last, speed]);
+    }, [playing, i, last, speedMs]);
 
     return {
-        frame: frames[i], i, total: frames.length, playing,
-        play: () => { if (i >= last) setI(0); setPlaying(true); },
+        i,
+        playing: playing && i < last,
+        play: () => {
+            if (i >= last) setI(0); // terminou? recomeça
+            setPlaying(true);
+        },
         pause: () => setPlaying(false),
-        next: () => setI((n) => Math.min(n + 1, last)),
-        prev: () => setI((n) => Math.max(n - 1, 0)),
+        next: () => { setPlaying(false); setI((n) => Math.min(n + 1, last)); },
+        prev: () => { setPlaying(false); setI((n) => Math.max(n - 1, 0)); },
+        goTo: (n: number) => { setPlaying(false); setI(n); },
         reset: () => { setPlaying(false); setI(0); },
     };
 }

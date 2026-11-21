@@ -65,7 +65,7 @@ export const nav: Topic[] = [
         description: "Como contar operações e montar a função T(n).", sections: defaultSections
     },
     {
-        slug: "listas-encadeadas", title: "Listas Encadeadas", icon: Link2,
+        slug: "listas-ligadas", title: "Listas Ligadas", icon: Link2,
         description: "Nós ligados por ponteiros, como uma corrente.", sections: defaultSections
     },
     {

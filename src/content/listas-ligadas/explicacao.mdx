@@ -1,0 +1,127 @@
+## O que são?
+
+Listas Ligadas ou **Listas Encadeadas** (nome que faz muito mais sentido) são estruturas de dados em que elementos são formados por `structs` que contêm um **valor** (ou mais) e uma **referência** para outro elemento.
+
+> Chamamos esses elementos de **nós** (ou **nodos**)
+
+Basicamente essas listas funcionam como correntes. Cada elemento é encadeado em outro, que por sua vez é encadeado em outro... 🔗
+
+Abaixo temos a estrutura básica de uma lista.
+
+```c
+#include<stdio.h>
+#include<stdlib.h>
+
+typedef struct No {
+    int valor;
+    struct No *prox;
+} No;
+
+typedef struct Lista {
+    struct No *ini;
+} Lista;
+```
+
+A estrutura `No` possui uma referência para uma outra estrutura `No`, através do ponteiro (ou apontador) `prox`.
+
+> 🎮 **Como usar as simulações:** use **▶** para ver tudo sozinho, **⏭ / ⏮** para ir passo a passo, ou arraste a barra. A linha azul no código mostra o que está sendo executado.
+>
+> 🟢 nó novo · 🟡 nó visitado · 🔴 nó removido
+
+## Funções
+
+Para simplificar processos repetitivos, podemos criar funções para manipular melhor as listas.
+
+### Construtores
+
+#### `newNo`
+
+Cria um nó na memória, já com `prox` valendo `NULL`.
+
+<Sim name="newNo" />
+
+<ComplexityBadge>Θ(1)</ComplexityBadge>
+
+#### `newLista`
+
+Cria a lista vazia: o `ini` começa apontando para `NULL`.
+
+<Sim name="newLista" />
+
+<ComplexityBadge>Θ(1)</ComplexityBadge>
+
+### Consultas
+
+#### `estaVazia`
+
+<Sim name="estaVazia" />
+
+<ComplexityBadge>Θ(1)</ComplexityBadge>
+
+#### `size`
+
+Conta os nós andando do início até o `NULL`.
+
+<Sim name="size" />
+
+<ComplexityBadge>Θ(n)</ComplexityBadge>
+
+#### `printLista`
+
+<Sim name="printLista" />
+
+<ComplexityBadge>Θ(n)</ComplexityBadge>
+
+> 💡 Repare que o `printLista` chama `size`, que percorre a lista **de novo**. Ainda é `Θ(n)`, mas a lista é percorrida duas vezes.
+
+### Inserções
+
+#### `addInicio`
+
+<Sim name="addInicio" />
+
+<ComplexityBadge>Θ(1)</ComplexityBadge>
+
+#### `addFim`
+
+<Sim name="addFim" />
+
+<ComplexityBadge>Θ(n)</ComplexityBadge> (precisa andar até o último nó)
+
+#### `add`
+
+Insere em qualquer posição. A **ordem dos dois passos importa**:
+
+> ⚠️ Se fizéssemos `anterior->prox = no` **antes** de `no->prox = anterior->prox`, perderíamos o resto da lista: ninguém mais apontaria para ele.
+
+<Sim name="add" />
+
+<ComplexityBadge>Θ(1)</ComplexityBadge> no melhor caso (`idx = 0`) e <ComplexityBadge>O(n)</ComplexityBadge> no pior.
+
+#### `addOrdenado`
+
+<Sim name="addOrdenado" />
+
+<ComplexityBadge>Θ(1)</ComplexityBadge> no melhor caso e <ComplexityBadge>Θ(n)</ComplexityBadge> no pior.
+
+### Acesso e alteração
+
+#### `get`
+
+<Sim name="get" />
+
+<ComplexityBadge>Θ(1)</ComplexityBadge> no melhor caso (`idx = 0`) e <ComplexityBadge>O(n)</ComplexityBadge> no pior.
+
+#### `set`
+
+<Sim name="set" />
+
+### Remoção e busca
+
+#### `remover`
+
+<Sim name="remover" />
+
+#### `busca`
+
+<Sim name="busca" />
