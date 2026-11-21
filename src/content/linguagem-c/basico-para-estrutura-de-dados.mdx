@@ -1,0 +1,173 @@
+Abaixo seguem algumas das principais funcionalidades da linguagem C para a disciplina da estrutura de dados, além do básico (variáveis, `if`s, `for`s, `while`s...).
+
+## Structs
+
+As `structs` são variáveis que agrupam dados, de forma similar a objetos em linguagens orientadas a objetos.
+
+```c
+typedef struct Personagem 
+{
+    char nome[30];
+    int nivel;
+} Personagem;
+
+int main()
+{
+    // sem o typedef lá em cima, a palarva struct é necessária na declaração
+    /* struct */ Personagem heroi, vilao;
+
+    heroi = {"Batman", 4};
+    vilao = {"Coringa", 5};
+
+    printf("%s Vs. %s\n");
+    if (heroi.nivel >= vilao)
+        printf("%s vence!\n", heroi.nome);
+    else
+        printf("%s vence!\n", vilao.nome);
+
+    return 0;
+}
+```
+
+Podemos usar **structs aninhadas**, ou seja, `structs` dentro de outras `structs`:
+
+```c
+int main()
+{
+    struct Pessoa {
+        char nome[50];
+        char genero;
+    };
+
+    struct Veiculo {
+        char modelo[100];
+        float peso;
+        struct Pessoa motorista;
+    };
+
+    struct Pessoa bat = {"Batman", 'M'};
+    struct Veiculo batmovel = {"Batmovel", 900.0, bat};
+
+    printf("%s é dirigido por %s", batmovel.modelo, batmovel.motorista.nome);
+    
+    return 0;
+}
+```
+
+## Endereço e Ponteiros
+
+Para o sistema operacional manipular as variáveis, ele atribui a cada uma delas um **endereço na memória**. Dessa forma, ele consegue manter uma referência para quando um programa pede para ler ou manipular ela.
+
+```c
+#include<stdio.h>
+
+int main()
+{
+    int a;
+    scanf("%d", &a); // & - operador adressOf, retorna o endereço
+
+    printf("Endereço de a: %p\n", (void*)&a);
+    printf("Valor de a: %d\n", a);
+
+    return 0;
+}
+```
+
+Os **ponteiros** são variáveis que guardam **o valor de um endereço de memória**. Enquanto outras variáveis guardam números e caracteres, um ponteiro guarda **um endereço** para se manter uma **referência diretamente na memória**.
+
+A ideia do ponteiro é que ele está **apontando para seu programa uma referência na memória:**
+
+```c
+#include<stdio.h>
+
+int main()
+{
+    int a, *b;
+    b = &a;
+
+    scanf("%d", &a);
+
+    printf("Valor de b: %p\n", b); // endereço de a
+    printf("Valor que o endereço armazenado em b guarda: %d\n", *b); // valor de a
+
+    return 0;
+}
+```
+
+## Ponteiros de estruturas
+
+É tão comum utilizar ponteiros para estruturas que surgiu uma notação especial para lidar com eles:
+
+```c
+#include<stdio.h>
+
+int main()
+{
+    struct Ponto {
+        float x;
+        float y;
+    };
+
+    struct Ponto p1;
+    struct Ponto *pp = &p1;
+
+    p1.x = 10.0;
+    p1.y = 5.0;
+
+    printf("%.2f\n", (*pp).x); // como é sem a notação ->
+    printf("%.2f\n", pp->x); // como é com a notação ->
+
+    return 0;
+}
+```
+
+> **Por que isso?** Porque temos que acessar o valor que está no endereço do ponteiro para depois acessar seu valor! `*pp` acessa o valor que o endereço do ponteiro se refere.
+
+## Alocação dinâmica de memória
+
+> **Importante:** lembrar do uso da biblioteca `stdlib.h`, que contém funções para manipular dinamicamente a memória!
+
+- `malloc()`: recebe como parâmetro o **número de bytes da alocação**, retornando:
+  - o endereço em que os bytes foram alocados, caso dê certo;
+  - um endereço nulo, representado pelo valor `NULL`;
+  - o endereço retornado vem com um tipo genérico (`void*`), e por isso é feito o `cast`.
+
+Abaixo, há a criação de um vetor de 8 números inteiros. Perceba a utilização de um ponteiro para poder manipular o endereço:
+
+```c
+int tam = 8;
+int *v = (int*)malloc(n*sizeof(int));
+
+if (v == NULL)
+{
+    printf("Memória insuficiente\n");
+    return 1;
+}
+
+free(v); // Libera o espaço alocado para o vetor
+```
+
+O que ocorre, do mais interno para o externo, é:
+
+- o cálculo do tamanho de um `int` em bytes
+- a multiplicação pelo número de elementos que quero em meu vetor: se eu quero 8 `int`s, preciso alocar `8 * tamanho_de_um_int` em bytes
+- a alocação pela `malloc`
+- a conversão de tipo (`cast`) de `void*` para `int*`
+
+## Por quê usamos alocação dinâmica?
+
+Quando criamos variáveis normalmente, elas acabam assim que seu escopo de bloco de código termina. 
+
+Dessa forma, não conseguimos manter uma referência para essas variáveis fora de seu bloco de código.
+
+Quando alocamos dinamicamente, criamos a referência na `heap` de memória, e não na **pilha de execução**, que desfaz cada referência a partir do momento que uma função acaba.
+
+Abaixo temos o exemplo de uma função que retorna um ponteiro, ou seja, **uma referência para a memória**, podendo ser utilizada fora da função, diferente de uma declaração convencional.
+
+```c
+int *newVetorInt(int tam) 
+{
+    int *vetor = (int*)malloc(tam * sizeof(int));
+    return vetor;
+}
+```
