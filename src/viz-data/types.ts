@@ -16,8 +16,20 @@ export type Frame = {
     caption: string;                       // explicação (`crases` viram código)
 };
 
-export type Sim = {
-    title: string;
-    code: string;
-    frames: Frame[];
+export type Cell = { value: number | string; state?: NodeState };
+
+export type ArrayFrame = {
+    cells: (Cell | null)[];          // null = posição vazia
+    ptrs?: Record<string, number>;   // índice para onde cada marcador aponta: { topo: 2 } (-1 = vazia)
+    vars?: Record<string, string | number>;
+    line?: number;
+    caption: string;
 };
+
+export type ListSimData = { kind?: "list"; title: string; code: string; frames: Frame[] };
+export type ArraySimData = {
+    kind: "array"; title: string; code: string; frames: ArrayFrame[];
+    capacity: number; orientation: "vertical" | "horizontal"
+};
+
+export type Sim = ListSimData | ArraySimData;

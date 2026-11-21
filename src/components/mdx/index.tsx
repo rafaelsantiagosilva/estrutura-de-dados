@@ -4,6 +4,11 @@ import Pre from "./Pre";
 import Table from "./Table";
 import ComplexityBadge from "./ComplexityBadge";
 import Sim from "../viz/Sim";
+import Tex from "../math/Tex";
+import Derivation from "../math/Derivation";
+import CostTable from "../math/CostTable";
+import GrowthChart from "../viz/GrowthChart";
+import BigOExplorer from "../viz/BigOExplorer";
 
 export const mdxComponents: MDXComponents = {
   blockquote: Callout,
@@ -13,4 +18,9 @@ export const mdxComponents: MDXComponents = {
   // usáveis direto no .mdx, sem import
   ComplexityBadge,
   Sim,
+  Tex,
+  Derivation,
+  CostTable,
+  GrowthChart,
+  BigOExplorer,
 };

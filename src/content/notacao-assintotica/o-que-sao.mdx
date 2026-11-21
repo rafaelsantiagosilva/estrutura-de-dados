@@ -1,0 +1,35 @@
+## A ideia
+
+Queremos comparar algoritmos **sem depender do computador**. O que importa é como o custo **cresce** quando a entrada `n` cresce. 📈
+
+| Notação | Lê-se | Significa | Analogia |
+| --- | --- | --- | --- |
+| $O(g)$ | "O grande" | limite **superior** | "no máximo" ($\le$) |
+| $\Omega(g)$ | "ômega" | limite **inferior** | "no mínimo" ($\ge$) |
+| $\Theta(g)$ | "theta" | limite **justo** (os dois) | "exatamente" ($=$) |
+
+$$
+f(n) = \Theta(g(n)) \iff \exists\, c_1, c_2 > 0,\ n_0 : \; c_1\, g(n) \le f(n) \le c_2\, g(n) \quad \forall n \ge n_0
+$$
+
+> 🧪 Teste na prática! Mexa nos controles até os três quadros ficarem ✅.
+
+<BigOExplorer />
+
+## Comparando taxas de crescimento
+
+<GrowthChart />
+
+> 💡 Ligue a **escala log** para ver todas as curvas juntas. No modo linear, o $2^n$ sai pela parte de cima do gráfico.
+
+## Cálculo passo a passo
+
+<Derivation
+  title="Provando que 3n + 2 = O(n)"
+  steps={[
+    { tex: "f(n) = 3n + 2", note: "A função que queremos limitar." },
+    { tex: "3n + 2 \\le 3n + 2n = 5n \\quad (n \\ge 1)", note: "Trocamos o 2 por 2n, que é maior ou igual a 2 quando n ≥ 1." },
+    { tex: "f(n) \\le 5 \\cdot n \\quad \\forall\\, n \\ge 1", note: "Achamos as constantes: c = 5 e n₀ = 1." },
+    { tex: "\\therefore\\; 3n + 2 = O(n)" },
+  ]}
+/>

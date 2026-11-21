@@ -1,7 +1,7 @@
 import { useId, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Pause, Play, RotateCcw, SkipBack, SkipForward } from "lucide-react";
-import type { Frame, NodeState, Sim } from "../../viz-data/types";
+import type { Frame, ListSimData, NodeState, Sim } from "../../viz-data/types";
 import { usePlayer } from "./usePlayer";
 import CodePanel from "./CodePanel";
 
@@ -105,7 +105,7 @@ function Caption({ text }: { text: string }) {
 const btn =
   "grid size-8 place-items-center rounded-md border border-ink-600 bg-ink-800 text-ink-200 transition hover:border-brand-500 hover:text-white disabled:pointer-events-none disabled:opacity-40";
 
-export default function ListSim({ sim }: { sim: Sim }) {
+export default function ListSim({ sim }: { sim: ListSimData }) {
   const { frames } = sim;
   const [mult, setMult] = useState(1);
   const p = usePlayer(frames.length, 1400 / mult);
