@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
 import { nav } from "../lib/nav";
 
 export default function HomePage() {
