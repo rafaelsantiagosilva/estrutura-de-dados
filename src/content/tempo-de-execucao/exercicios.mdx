@@ -1,0 +1,745 @@
+## 🧪 Como usar esta página
+
+Tente resolver **sozinho** primeiro! 💪 Cada questão mostra o enunciado e deixa a resposta **escondida**: clique em **Ver resposta** só quando estiver pronto.
+
+> 🕰️ **Convenções de tempo (as mesmas da apostila):** cada operação gasta `10⁻⁶ s` (um microssegundo), a menos que a questão diga outra coisa. Um **mês** tem 30 dias, um **ano** tem 365,25 dias e um **século** tem 100 anos.
+
+> 🎮 **Convenções das simulações:** 🟢 posição já contada · 🟡 posição examinada agora. Os marcadores (como o `i`) aparecem sobre a célula, e as variáveis do programa aparecem ao lado.
+
+---
+
+<Exercicio numero={20} titulo="Maior n que cabe em um tempo t">
+
+(Tempo de execução) Este exercício foi extraído de Cormen et al., 2002, Problema 1.1. Para cada função `f(n)` e cada tempo `t`, determine o maior tamanho de `n` de um problema que pode ser resolvido no tempo `t`, supondo que o algoritmo para resolver o problema demore `f(n)` microsegundos.
+
+| `f(n)` | 1 segundo | 1 minuto | 1 hora | 1 dia | 1 mês | 1 ano | 1 século |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `lg n` | | | | | | | |
+| `√n` | | | | | | | |
+| `n` | | | | | | | |
+| `n lg n` | | | | | | | |
+| `n²` | | | | | | | |
+| `n³` | | | | | | | |
+| `2^n` | | | | | | | |
+| `3^n` | | | | | | | |
+| `n!` | | | | | | | |
+
+<Resposta>
+
+#### 💡 A ideia
+
+Até agora fazíamos a conta "para um `n` dado, quanto tempo demora?". Aqui é o **contrário**: o tempo está dado e queremos o `n`. Pense no **tanque de combustível** ⛽: o tempo `t` é o combustível que você tem, e a função `f(n)` é o quanto o algoritmo "bebe" para um problema de tamanho `n`. A pergunta é: qual o maior problema que o tanque aguenta?
+
+São três passos:
+
+1. **Converter** o tempo `t` para segundos e depois para **microssegundos**, multiplicando por `10⁶`. Chame esse total de `L`.
+2. **Montar** a desigualdade `f(n) ≤ L` (o algoritmo gasta `f(n)` microssegundos).
+3. **Inverter** `f` para isolar o `n`.
+
+| Tempo | Em segundos | `L` (em microssegundos) |
+| --- | --- | --- |
+| 1 segundo | `1` | `10⁶` |
+| 1 minuto | `60` | `6·10⁷` |
+| 1 hora | `3.600` | `3,6·10⁹` |
+| 1 dia | `86.400` | `8,64·10¹⁰` |
+| 1 mês | `2.592.000` | `2,592·10¹²` |
+| 1 ano | `31.557.600` | `3,15576·10¹³` |
+| 1 século | `3.155.760.000` | `3,15576·10¹⁵` |
+
+E cada função tem a sua inversa:
+
+| `f(n)` | Maior `n` com `f(n) ≤ L` |
+| --- | --- |
+| `lg n` | `n = 2^L` |
+| `√n` | `n = L²` |
+| `n` | `n = L` |
+| `n lg n` | sem fórmula simples: se resolve por tentativa (busca binária) |
+| `n²` | `n = √L` |
+| `n³` | `n = ∛L` |
+| `2^n` | `n = lg L` |
+| `3^n` | `n = log₃ L = lg L / lg 3` |
+| `n!` | por tentativa: o maior `n` tal que `n!` ainda cabe em `L` |
+
+Para ter uma noção de como essas funções crescem antes de olhar os números, ligue as curvas e arraste o `n máx`:
+
+<GrowthChart show={["log", "n", "nlog", "n2", "2n"]} />
+
+#### 🧮 Quatro células resolvidas (os exemplos da apostila)
+
+<Derivation
+  title="lg n em 1 segundo"
+  steps={[
+    { tex: "\\lg n \\cdot 10^{-6} = 1", note: "O algoritmo gasta lg n microssegundos, ou lg n vezes 10^(-6) segundos." },
+    { tex: "\\lg n = 10^6", note: "Passamos o 10^(-6) para o outro lado." },
+    { tex: "n = 2^{1\\,000\\,000}", note: "Desfazer o lg (log na base 2) é elevar 2 ao resultado." },
+    { tex: "n \\approx 10^{301\\,030}", note: "Convertendo para potência de 10: o número tem cerca de 301 mil dígitos. É o 1 seguido de mais de 300 mil zeros!" },
+  ]}
+/>
+
+<Derivation
+  title="n² em 1 dia"
+  steps={[
+    { tex: "n^2 \\cdot 10^{-6} = 86\\,400", note: "1 dia = 24 · 3600 = 86.400 segundos." },
+    { tex: "n^2 = 86\\,400 \\cdot 10^6", note: "Passamos o 10^(-6) para o outro lado." },
+    { tex: "n = \\sqrt{86\\,400 \\cdot 10^6} \\approx 293\\,938{,}77", note: "Tiramos a raiz quadrada." },
+    { tex: "n_{\\max} = 293\\,938", note: "n precisa ser inteiro, e o maior inteiro que cabe é 293.938." },
+  ]}
+/>
+
+<Derivation
+  title="2^n em 1 século"
+  steps={[
+    { tex: "2^n \\cdot 10^{-6} = 100 \\cdot 365{,}25 \\cdot 24 \\cdot 3600", note: "1 século = 100 anos de 365,25 dias." },
+    { tex: "2^n = 3{,}15576 \\cdot 10^{15}", note: "Efetuamos a conta e passamos o 10^(-6) para o outro lado." },
+    { tex: "n = \\lg\\left(3{,}15576 \\cdot 10^{15}\\right) \\approx 51{,}48", note: "Aplicamos o lg dos dois lados, e o lg desfaz o 2^n." },
+    { tex: "n_{\\max} = 51", note: "Em um século inteiro, só resolvemos um problema de tamanho 51! O oposto do lg n." },
+  ]}
+/>
+
+<Derivation
+  title="n³ em 1 mês"
+  steps={[
+    { tex: "n^3 \\cdot 10^{-6} = 2\\,592\\,000", note: "1 mês = 30 · 24 · 3600 = 2.592.000 segundos." },
+    { tex: "n^3 = 2{,}592 \\cdot 10^{12}", note: "Passamos o 10^(-6) para o outro lado." },
+    { tex: "n = \\sqrt[3]{2{,}592 \\cdot 10^{12}} \\approx 13\\,736{,}57", note: "Tiramos a raiz cúbica." },
+    { tex: "n_{\\max} = 13\\,736", note: "Em um mês, um algoritmo cúbico resolve um problema com n = 13.736." },
+  ]}
+/>
+
+#### 💻 Código
+
+As outras células seguem o mesmo método, mas são muitas contas. Este programa preenche a tabela inteira por **busca binária**: ele chuta um `n` no meio, vê se `f(n)` cabe em `L`, e vai fechando o intervalo. Serve também para `n lg n` e `n!`, que não têm fórmula simples.
+
+```c
+#include <stdio.h>
+#include <math.h>
+
+#define NT 7
+
+// maior n tal que f(n) <= limite, por busca binária (f é crescente)
+double maiorN(double (*f)(double), double limite)
+{
+    double ini = 1;
+    double fim = 1e40;
+
+    for (int k = 0; k < 400; k++)
+    {
+        // quando o intervalo é enorme, o "meio" é a média geométrica
+        double meio = (fim / ini > 10) ? sqrt(ini * fim) : (ini + fim) / 2;
+
+        if (f(meio) <= limite)
+        {
+            ini = meio; // cabe: o máximo está para cima
+        }
+        else
+        {
+            fim = meio; // estourou: o máximo está para baixo
+        }
+    }
+
+    return ini;
+}
+
+double inteiro(double x)
+{
+    return floor(x + 1e-6); // tira a sujeira da busca
+}
+
+double fSqrt(double n)
+{
+    return sqrt(n);
+}
+
+double fNLgN(double n)
+{
+    return n * log2(n);
+}
+
+double fN2(double n)
+{
+    return n * n;
+}
+
+double fN3(double n)
+{
+    return n * n * n;
+}
+
+double fDois(double n)
+{
+    return pow(2, n);
+}
+
+double fTres(double n)
+{
+    return pow(3, n);
+}
+
+double fFat(double n)
+{
+    return exp(lgamma(n + 1)); // n! sem estourar o double
+}
+
+int main()
+{
+    const char *nome[NT] = {"1 segundo", "1 minuto", "1 hora", "1 dia", "1 mes", "1 ano", "1 seculo"};
+    double seg[NT] = {1, 60, 3600, 86400, 30 * 86400.0, 365.25 * 86400, 100 * 365.25 * 86400};
+
+    for (int t = 0; t < NT; t++)
+    {
+        double limite = seg[t] * 1e6; // o tempo em microssegundos
+
+        printf("%-9s", nome[t]);
+        printf(" | lg n: n = 2^%.0f", limite); // grande demais para caber em um double
+        printf(" | sqrt n: %.3g", maiorN(fSqrt, limite));
+        printf(" | n: %.3g", limite);
+        printf(" | n lg n: %.3g", maiorN(fNLgN, limite));
+        printf(" | n^2: %.0f", inteiro(maiorN(fN2, limite)));
+        printf(" | n^3: %.0f", inteiro(maiorN(fN3, limite)));
+        printf(" | 2^n: %.0f", inteiro(maiorN(fDois, limite)));
+        printf(" | 3^n: %.0f", inteiro(maiorN(fTres, limite)));
+        printf(" | n!: %.0f\n", inteiro(maiorN(fFat, limite)));
+    }
+
+    return 0;
+}
+```
+
+> ⚠️ Compile com `gcc tabela.c -o tabela -lm`. O `-lm` liga a biblioteca de matemática (`sqrt`, `log2`, `pow`...).
+
+#### ✅ Resposta
+
+| `f(n)` | 1 segundo | 1 minuto | 1 hora | 1 dia | 1 mês | 1 ano | 1 século |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `lg n` | `2^(10⁶)` | `2^(6·10⁷)` | `2^(3,6·10⁹)` | `2^(8,64·10¹⁰)` | `2^(2,592·10¹²)` | `2^(3,156·10¹³)` | `2^(3,156·10¹⁵)` |
+| `√n` | `1,00·10¹²` | `3,60·10¹⁵` | `1,30·10¹⁹` | `7,46·10²¹` | `6,72·10²⁴` | `9,96·10²⁶` | `9,96·10³⁰` |
+| `n` | `1.000.000` | `6,00·10⁷` | `3,60·10⁹` | `8,64·10¹⁰` | `2,59·10¹²` | `3,16·10¹³` | `3,16·10¹⁵` |
+| `n lg n` | `62.746` | `2.801.417` | `1,33·10⁸` | `2,76·10⁹` | `7,19·10¹⁰` | `7,98·10¹¹` | `6,87·10¹³` |
+| `n²` | `1.000` | `7.745` | `60.000` | `293.938` | `1.609.968` | `5.617.615` | `56.176.151` |
+| `n³` | `100` | `391` | `1.532` | `4.420` | `13.736` | `31.601` | `146.679` |
+| `2^n` | `19` | `25` | `31` | `36` | `41` | `44` | `51` |
+| `3^n` | `12` | `16` | `20` | `22` | `26` | `28` | `32` |
+| `n!` | `9` | `11` | `12` | `13` | `15` | `16` | `17` |
+
+Leia a tabela de cima para baixo, na coluna de 1 século:
+
+- Em `lg n` e `√n`, o `n` é um número **inimaginável**: o algoritmo é tão rápido que o tempo quase não limita o problema.
+- Em `n` e `n lg n`, cabem problemas com **dezenas de trilhões** de elementos, ou mais.
+- Em `n²` e `n³`, o limite já são milhões e centenas de milhares.
+- Em `2^n`, `3^n` e `n!`, o limite é **de 17 a 51**: nem um século de processamento ajuda.
+
+> 🧠 **A lição da tabela:** com `2^n`, passar de 1 segundo para 1 século (3 bilhões de vezes mais tempo!) só muda o `n` de 19 para 51. Já com `n²`, o `n` passa de mil para 56 milhões. Por isso a ordem de grandeza do algoritmo importa **muito mais** do que o tamanho do computador.
+
+</Resposta>
+
+</Exercicio>
+
+<Exercicio numero={21} titulo="log n em 1 segundo">
+
+Suponha que `f(n) = log n`, ou seja, log na base 10. Qual o valor de `n` em 1s?
+
+<Resposta>
+
+#### 💡 A ideia
+
+É o mesmo método do `lg n` da questão 20, só que agora o log é na **base 10**. Desfazer um `log` na base 10 é elevar **10** ao resultado.
+
+#### 🧮 Complexidade
+
+<Derivation
+  title="log n em 1 segundo (base 10)"
+  steps={[
+    { tex: "\\log n \\cdot 10^{-6} = 1", note: "O algoritmo gasta log n microssegundos." },
+    { tex: "\\log n = 10^6", note: "Passamos o 10^(-6) para o outro lado." },
+    { tex: "n = 10^{10^6} = 10^{1\\,000\\,000}", note: "Desfazer o log na base 10 é elevar 10 ao resultado." },
+  ]}
+/>
+
+#### ✅ Resposta
+
+`n = 10^(10⁶)`: o número **1 seguido de 1 milhão de zeros**. É ainda maior que o da questão 20 (`2^(10⁶)`, com cerca de 301 mil dígitos), porque `10 > 2`.
+
+> 🧠 **Lembrete da apostila:** `log n` e `lg n` diferem só por uma constante (`log n = Θ(lg n)`), então para a notação assintótica tanto faz a base. Mas para calcular um **número exato**, como aqui, a base muda bastante o resultado.
+
+</Resposta>
+
+</Exercicio>
+
+<Exercicio numero={22} titulo="Computador 10 vezes mais rápido">
+
+Suponha agora um computador 10x mais rápido. Qual o valor de `n` que pode ser executado em 1 dia?
+
+<Resposta>
+
+#### 💡 A ideia
+
+Na apostila, esta questão vem logo depois do exemplo de `f(n) = n²` em 1 dia, então vamos resolver para **`n²`**. (No fim, damos a regra para todas as funções da tabela.)
+
+Um computador 10 vezes mais rápido gasta **10 vezes menos tempo** por operação. A constante de tempo cai de `10⁻⁶ s` para `10⁻⁷ s`.
+
+#### 🧮 Complexidade
+
+<Derivation
+  title="n² em 1 dia, com computador 10x mais rápido"
+  steps={[
+    { tex: "n^2 \\cdot 10^{-7} = 86\\,400", note: "A constante agora é 10^(-7) s." },
+    { tex: "n^2 = 86\\,400 \\cdot 10^7 = 8{,}64 \\cdot 10^{11}", note: "Passamos o 10^(-7) para o outro lado." },
+    { tex: "n = \\sqrt{8{,}64 \\cdot 10^{11}} \\approx 929\\,516{,}00", note: "Raiz quadrada." },
+    { tex: "n_{\\max} = 929\\,516", note: "Antes eram 293.938." },
+  ]}
+/>
+
+O computador ficou **10 vezes** mais rápido, mas o problema só cresceu `929.516 / 293.938 ≈ 3,16` vezes, que é exatamente `√10`. 🤯
+
+#### ✅ Resposta
+
+`n = 929.516` para `n²` em 1 dia.
+
+E para as outras funções da tabela? Com um computador `10x` mais rápido, o novo `n` fica assim:
+
+| `f(n)` | Como o `n` muda |
+| --- | --- |
+| `lg n` | vira `n^10` (o número é elevado a 10!) |
+| `√n` | multiplica por `100` |
+| `n` | multiplica por `10` |
+| `n²` | multiplica por `√10 ≈ 3,16` |
+| `n³` | multiplica por `∛10 ≈ 2,15` |
+| `2^n` | **soma** `lg 10 ≈ 3,32` |
+| `3^n` | **soma** `log₃ 10 ≈ 2,10` |
+| `10^n` | **soma** `1` |
+
+> 🧠 **Moral:** quanto mais "pesada" a função, **menos** adianta comprar um computador melhor. Em `2^n`, um computador 10 vezes mais rápido resolve um problema com apenas 3 elementos a mais. Para ganhar de verdade, é preciso um **algoritmo melhor**.
+
+</Resposta>
+
+</Exercicio>
+
+<Exercicio numero={23} titulo="3^n em um século">
+
+Suponha agora que `f(n) = 3^n`. Qual o valor de `n` que pode ser executado em um século?
+
+<Resposta>
+
+#### 💡 A ideia
+
+É igual ao exemplo `2^n` da questão 20, só que a base é **3**. Para desfazer um `3^n`, usamos o logaritmo **na base 3**. Como as calculadoras só têm `ln` e `log`, usamos a troca de base: `log₃ x = lg x / lg 3`.
+
+#### 🧮 Complexidade
+
+<Derivation
+  title="3^n em 1 século"
+  steps={[
+    { tex: "3^n \\cdot 10^{-6} = 100 \\cdot 365{,}25 \\cdot 24 \\cdot 3600", note: "1 século = 100 anos de 365,25 dias." },
+    { tex: "3^n = 3{,}15576 \\cdot 10^{15}", note: "Mesmo valor do lado direito da questão 20 (2^n em 1 século)." },
+    { tex: "n = \\log_3\\left(3{,}15576 \\cdot 10^{15}\\right) = \\frac{\\lg\\left(3{,}15576 \\cdot 10^{15}\\right)}{\\lg 3} = \\frac{51{,}48}{1{,}585} \\approx 32{,}48", note: "O lg do numerador é o mesmo 51,48 da questão 20. E lg 3 ≈ 1,585." },
+    { tex: "n_{\\max} = 32", note: "O maior inteiro que cabe é 32." },
+  ]}
+/>
+
+#### ✅ Resposta
+
+`n = 32`. Com a base 3, o crescimento é ainda mais rápido que com a base 2, então o `n` máximo é menor: **32** (contra **51** do `2^n`).
+
+</Resposta>
+
+</Exercicio>
+
+<Exercicio numero={24} titulo="Computador 1000 vezes mais rápido">
+
+Suponha agora um computador 1000x mais rápido. Qual o valor de `n` que pode ser executado em 1 mês?
+
+<Resposta>
+
+#### 💡 A ideia
+
+Na apostila, esta questão vem logo depois do exemplo `f(n) = n³` em 1 mês, então resolvemos para **`n³`**. Um computador 1000 vezes mais rápido tem constante `10⁻⁶ / 1000 = 10⁻⁹ s`.
+
+#### 🧮 Complexidade
+
+<Derivation
+  title="n³ em 1 mês, com computador 1000x mais rápido"
+  steps={[
+    { tex: "n^3 \\cdot 10^{-9} = 2\\,592\\,000", note: "A constante agora é 10^(-9) s (um nanossegundo)." },
+    { tex: "n^3 = 2\\,592\\,000 \\cdot 10^9 = 2{,}592 \\cdot 10^{15}", note: "Passamos o 10^(-9) para o outro lado." },
+    { tex: "n = \\sqrt[3]{2{,}592 \\cdot 10^{15}} \\approx 137\\,365{,}71", note: "Raiz cúbica." },
+    { tex: "n_{\\max} = 137\\,365", note: "Antes eram 13.736." },
+  ]}
+/>
+
+#### ✅ Resposta
+
+`n = 137.365` para `n³` em 1 mês.
+
+O computador ficou **1000 vezes** mais rápido, mas o problema só cresceu **10 vezes** (`13.736 → 137.365`). Isso não é coincidência: como `∛1000 = 10`, mil vezes mais velocidade vira dez vezes mais tamanho em um algoritmo cúbico.
+
+</Resposta>
+
+</Exercicio>
+
+<Exercicio numero={25} titulo="10^n em 1 milhão de anos">
+
+(Tempo de execução) Suponha que um algoritmo demora `T(n) = 10^n · 10⁻⁶ s`. Qual o maior valor de `n` que pode ser executado em 1 milhão de anos?
+
+<Resposta>
+
+#### 💡 A ideia
+
+Igualamos `T(n)` ao número de segundos de 1 milhão de anos e desfazemos o `10^n` com um `log` na base 10. Cuidado com as potências de 10: um milhão de anos é `10⁶` anos, e o `10⁻⁶` da constante passa para o outro lado como `10⁶`.
+
+#### 🧮 Complexidade
+
+<Derivation
+  title="10^n em 1 milhão de anos"
+  steps={[
+    { tex: "10^n \\cdot 10^{-6} = 10^6 \\cdot 365{,}25 \\cdot 24 \\cdot 3600", note: "1 milhão de anos, em segundos." },
+    { tex: "10^n = 365{,}25 \\cdot 24 \\cdot 3600 \\cdot 10^{12}", note: "Passamos o 10^(-6) para o outro lado e juntamos 10^6 com 10^6." },
+    { tex: "10^n = 3{,}15576 \\cdot 10^{19}", note: "365,25 · 24 · 3600 = 31.557.600 = 3,15576 · 10^7." },
+    { tex: "n = \\log\\left(3{,}15576 \\cdot 10^{19}\\right) = 19 + \\log 3{,}15576 \\approx 19{,}50", note: "O log de um número vezes 10^19 é 19 mais o log do número (que é cerca de 0,5)." },
+    { tex: "n_{\\max} = 19", note: "O maior inteiro que cabe é 19." },
+  ]}
+/>
+
+#### ✅ Resposta
+
+`n = 19`. Em um milhão de anos de processamento, um algoritmo `10^n` só resolve um problema de tamanho **19**.
+
+> 💡 A apostila escreve `19,49`, que é o valor truncado (o valor exato é `19,499...`). O resultado inteiro é o mesmo: **19**.
+
+</Resposta>
+
+</Exercicio>
+
+<Exercicio numero={26} titulo="Soma de matrizes">
+
+(Complexidade) Suponha que eu tenho duas matrizes `B` (`n×n`) e `C` (`n×n`) e desejo calcular `A = B + C`, também `n×n`. Qual a complexidade?
+
+<Resposta>
+
+#### 💡 A ideia
+
+Para somar duas matrizes, somamos **elemento por elemento**: `A[i][j] = B[i][j] + C[i][j]`. Para visitar todos os elementos de uma matriz quadrada, fazemos um `for` varrendo as **linhas** e, para cada linha, outro `for` varrendo as **colunas**. São **dois `for` encadeados**, ou seja, `n × n = n²` somas.
+
+#### 💻 Código
+
+```c
+#define MAX 100
+
+// A = B + C (matrizes n x n)
+void somaMatriz(double A[MAX][MAX], double B[MAX][MAX], double C[MAX][MAX], int n)
+{
+    for (int i = 0; i < n; i++)         // percorre as linhas
+    {
+        for (int j = 0; j < n; j++)     // percorre as colunas
+        {
+            A[i][j] = B[i][j] + C[i][j];
+        }
+    }
+}
+```
+
+#### 🧮 Complexidade
+
+<CostTable
+  rows={[
+    { code: "for (int i = 0; i < n; i++)", cost: "c_1", times: "n+1" },
+    { code: "    for (int j = 0; j < n; j++)", cost: "c_2", times: "n(n+1)" },
+    { code: "        A[i][j] = B[i][j] + C[i][j];", cost: "c_3", times: "n^2" },
+  ]}
+  total={"T(n) = (c_2+c_3)\\,n^2 + (c_1+c_2)\\,n + c_1"}
+  result={"\\Theta(n^2)"}
+/>
+
+#### ✅ Resposta
+
+<ComplexityBadge>Θ(n²)</ComplexityBadge>. Faz sentido: a matriz tem `n²` elementos e é preciso mexer em cada um deles pelo menos uma vez.
+
+> 🔎 **O gargalo do programa:** imagine um código grande, com centenas de linhas, cheio de trechos `Θ(n)`, `Θ(n lg n)` e `Θ(1)`, e um pequeno trecho de poucas linhas que é `Θ(n²)`. Esse pequeno trecho **domina o tempo de execução** do programa inteiro: ele é o **gargalo**. Para localizá-lo, dá para analisar o código à mão ou usar uma ferramenta chamada *profiler*, que detecta os trechos mais lentos.
+
+</Resposta>
+
+</Exercicio>
+
+<Exercicio numero={27} titulo="Multiplicação de matrizes">
+
+(Complexidade) Suponha agora que eu tenho duas matrizes `B` (`n×n`) e `C` (`n×n`) e desejo multiplicar `A = B · C`, também `n×n`. Qual a complexidade?
+
+<Resposta>
+
+#### 💡 A ideia
+
+Aqui a conta é mais complexa que a soma. Para obter **um único** elemento `a_ij` de `A`, é preciso fazer o **produto interno** da linha `i` de `B` pela coluna `j` de `C`: multiplicar os `n` pares de elementos e somar tudo.
+
+Calcular **um** `a_ij` custa `Θ(n)`. E a matriz `A` tem `n²` elementos diferentes, então:
+
+`n² elementos × Θ(n) cada = Θ(n³)`
+
+Em código, isso vira **três `for` encadeados**: `i` (linhas de `B`), `j` (colunas de `C`) e `k` (o produto interno).
+
+#### 💻 Código
+
+```c
+#define MAX 100
+
+// A = B * C (matrizes n x n)
+void multiplicaMatriz(double A[MAX][MAX], double B[MAX][MAX], double C[MAX][MAX], int n)
+{
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            A[i][j] = 0; // vai acumular o produto interno
+
+            for (int k = 0; k < n; k++)
+            {
+                A[i][j] += B[i][k] * C[k][j];
+            }
+        }
+    }
+}
+```
+
+#### 🧮 Complexidade
+
+<CostTable
+  rows={[
+    { code: "for (int i = 0; i < n; i++)", cost: "c_1", times: "n+1" },
+    { code: "    for (int j = 0; j < n; j++)", cost: "c_2", times: "n(n+1)" },
+    { code: "        A[i][j] = 0;", cost: "c_3", times: "n^2" },
+    { code: "        for (int k = 0; k < n; k++)", cost: "c_4", times: "n^2(n+1)" },
+    { code: "            A[i][j] += B[i][k] * C[k][j];", cost: "c_5", times: "n^3" },
+  ]}
+  total={"T(n) = (c_4+c_5)\\,n^3 + (c_2+c_3+c_4)\\,n^2 + (c_1+c_2)\\,n + c_1"}
+  result={"\\Theta(n^3)"}
+/>
+
+#### ✅ Resposta
+
+<ComplexityBadge>Θ(n³)</ComplexityBadge> com o algoritmo direto: cada um dos `n²` elementos de `A` é um produto interno de custo `Θ(n)`.
+
+#### 🔭 Dá para fazer melhor?
+
+Poderíamos propor algoritmos **piores**, como `Θ(n⁴)`, mas isso não faz muito sentido. A pergunta importante é: **existem algoritmos melhores que `Θ(n³)`?** A resposta é **sim**:
+
+- **Strassen (1969):** `O(n^(lg 7))`, que dá aproximadamente `O(n^2,807)`.
+- **Alman e Williams (2021):** o melhor algoritmo conhecido na data da apostila, com expoente cerca de `2,37286`.
+
+Ninguém sabe se dá para melhorar ainda mais. O que se sabe é que o expoente **não pode ficar abaixo de 2**, porque só para escrever os `n²` elementos da resposta já gastamos `Θ(n²)`. Entre `n²` e `n^2,37286` é um campo aberto de pesquisa. 🔬
+
+> ⚠️ **Correção no texto da apostila:** ela escreve `n^2,8704` para o algoritmo de Strassen, mas `lg 7 = 2,8073...`. Os dois últimos dígitos estão trocados. O valor correto é `n^2,807`.
+
+</Resposta>
+
+</Exercicio>
+
+<Exercicio numero={28} titulo="Maior matriz multiplicável em 1 hora">
+
+(Tempo de execução) Suponha um algoritmo para multiplicar matrizes com tempo de execução `T(n) = n³ · 10⁻⁶ s`. Qual a maior matriz que pode ser multiplicada em 1h?
+
+<Resposta>
+
+#### 💡 A ideia
+
+É o mesmo método da questão 20, aplicado ao algoritmo da questão 27: igualamos `T(n)` ao tempo disponível (1 hora = 3600 s) e isolamos o `n` com uma **raiz cúbica**.
+
+#### 🧮 Complexidade
+
+<Derivation
+  title="Maior matriz multiplicável em 1 hora"
+  steps={[
+    { tex: "T(n) = n^3 \\cdot 10^{-6} = 3600", note: "1 hora = 3600 segundos." },
+    { tex: "n^3 = 3600 \\cdot 10^6 = 3{,}6 \\cdot 10^9", note: "Passamos o 10^(-6) para o outro lado." },
+    { tex: "n = \\sqrt[3]{3600 \\cdot 10^6} \\approx 1532{,}61", note: "Raiz cúbica." },
+    { tex: "n_{\\max} = 1532", note: "O n precisa ser inteiro: o maior que cabe é 1532." },
+  ]}
+/>
+
+#### ✅ Resposta
+
+`n = 1532`: o maior valor inteiro tal que duas matrizes `n×n` podem ser multiplicadas em 1 hora por esse algoritmo.
+
+> 🤔 Repare como a matriz **não é tão grande**. Duas matrizes de dimensão 1532 (pouco mais de 2 milhões de elementos cada) já levam **uma hora inteira** com um algoritmo cúbico!
+
+</Resposta>
+
+</Exercicio>
+
+<Exercicio numero={29} titulo="Multiplicar matrizes em um computador 10 vezes mais rápido">
+
+(Tempo de execução) Suponha agora que o programa de multiplicar matrizes foi executado em um computador 10 vezes mais rápido. Qual o maior valor `n` pode ser resolvido neste computador?
+
+<Resposta>
+
+#### 💡 A ideia
+
+Se o computador é 10 vezes mais rápido, a constante de tempo muda de `10⁻⁶` para `10⁻⁷`. O resto da conta é igual à da questão 28.
+
+#### 🧮 Complexidade
+
+<Derivation
+  title="Maior matriz em 1 hora, computador 10x mais rápido"
+  steps={[
+    { tex: "T(n) = n^3 \\cdot 10^{-7} = 3600", note: "A constante agora é 10^(-7) s." },
+    { tex: "n^3 = 3600 \\cdot 10^7 = 3{,}6 \\cdot 10^{10}", note: "Passamos o 10^(-7) para o outro lado." },
+    { tex: "n = \\sqrt[3]{3600 \\cdot 10^7} \\approx 3301{,}93", note: "Raiz cúbica." },
+    { tex: "n_{\\max} = 3301", note: "Antes eram 1532." },
+  ]}
+/>
+
+#### ✅ Resposta
+
+`n = 3301`. É interessante notar que o computador é **10 vezes** mais rápido, mas a instância só aumentou `∛10 ≈ 2,15` vezes (`3301 / 1532 ≈ 2,15`).
+
+</Resposta>
+
+</Exercicio>
+
+<Exercicio numero={30} titulo="Índice dos salários em O(n)">
+
+Suponha que o governo do estado de São Paulo calcula um índice sobre os salários de seus funcionários. Dado um conjunto de `n` salários, toda vez que existirem dois salários `s_i`, `s_j` tais que `s_i < 2000` e `s_j > 5000`, o índice é acrescentado de `1/n²`. Veja o código abaixo:
+
+```c
+double indice(int salar[], int n)
+{
+    double idx = 0;
+
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            if (salar[i] < 2000.0 && salar[j] > 5000.0)
+            {
+                idx += 1.0;
+            }
+        }
+    }
+
+    return idx / (n * n * 1.0);
+}
+```
+
+Este código é `O(n²)`. Altere o código para que o mesmo índice seja calculado em `O(n)`.
+
+<Resposta>
+
+#### 💡 A ideia
+
+O código original testa **todos os pares** `(i, j)`: são `n × n` testes. Mas olhe o que o `if` está contando: os pares em que o primeiro salário é **baixo** (`< 2000`) e o segundo é **alto** (`> 5000`).
+
+Pense em uma festa 🎉: se há **2** pessoas de camisa azul e **3** de camisa vermelha, quantos pares "azul + vermelha" existem? `2 × 3 = 6`. Você não precisa formar os pares um por um: basta **contar** quantas há de cada cor e **multiplicar**.
+
+Aqui é igual:
+
+1. Em **uma única passada**, contamos quantos salários são **baixos** (`baixos`) e quantos são **altos** (`altos`).
+2. O número de pares é `baixos × altos`.
+
+Um mesmo salário nunca é baixo e alto ao mesmo tempo, então não existe o risco de contar um par com `i = j`.
+
+#### 💻 Código
+
+```c
+double indiceLinear(int salar[], int n)
+{
+    int baixos = 0;
+    int altos = 0;
+
+    for (int i = 0; i < n; i++)
+    {
+        if (salar[i] < 2000)
+        {
+            baixos++;
+        }
+        else if (salar[i] > 5000)
+        {
+            altos++;
+        }
+    }
+
+    double idx = (double)baixos * altos;
+    return idx / ((double)n * n);
+}
+```
+
+> ⚠️ **Detalhe do `(double)`:** no código original, `n * n * 1.0` faz primeiro `n * n` com **inteiros**, e isso estoura para `n` acima de 46.340 (`int` de 32 bits). Convertendo para `double` **antes** de multiplicar, evitamos o problema. O mesmo vale para `baixos * altos`.
+
+#### 🎬 Simulação
+
+Veja a **única passada**: os salários baixos e altos ficam verdes (são contados), e o `3000` do meio não conta para nada.
+
+<Sim name="indiceLinear" />
+
+#### 🧮 Complexidade
+
+<Derivation
+  title="Versão original: dois for encadeados"
+  steps={[
+    { tex: "T(n) = \\sum_{i=0}^{n-1} \\sum_{j=0}^{n-1} c = c \\cdot n \\cdot n", note: "O if é testado uma vez para cada par (i, j), e cada teste custa uma constante c." },
+    { tex: "T(n) = \\Theta(n^2)", note: "n vezes n." },
+  ]}
+/>
+
+<Derivation
+  title="Versão nova: um for só"
+  steps={[
+    { tex: "T(n) = c_a + n\\,(c_b + c_c) + c_d", note: "Cada volta faz no máximo um teste ou dois e um incremento (custo constante). Fora do laço, só a inicialização e a conta final." },
+    { tex: "T(n) = (c_b + c_c)\\,n + (c_a + c_d)", note: "Juntando os termos." },
+    { tex: "T(n) = \\Theta(n)", note: "Um termo linear mais uma constante." },
+  ]}
+/>
+
+#### ✅ Resposta
+
+`indiceLinear` calcula **exatamente o mesmo** índice em <ComplexityBadge>Θ(n)</ComplexityBadge>: uma passada contando `baixos` e `altos`, e depois `idx = baixos × altos`. Na simulação, `2 × 3 = 6` pares, o mesmo valor que o laço duplo contaria um a um.
+
+</Resposta>
+
+</Exercicio>
+
+<Exercicio numero={31} titulo="Quantas vezes o O(n) é mais rápido?">
+
+Ainda sobre o código da questão anterior. Suponha que os programas levam tempo `T₁(n) = n² · 10⁻⁹ s` e `T₂(n) = n · 10⁻⁹ s`. O algoritmo `O(n)` é quantas vezes mais rápido que o programa `O(n²)` para `n = 5000`? Mostre os cálculos.
+
+<Resposta>
+
+#### 💡 A ideia
+
+Calculamos o tempo de cada programa para `n = 5000` e dividimos: `T₁` (o lento, `O(n²)`) por `T₂` (o rápido, `O(n)`). O resultado diz **quantas vezes** o rápido cabe dentro do lento.
+
+#### 🧮 Complexidade
+
+<Derivation
+  title="Comparando T1 (n²) e T2 (n) para n = 5000"
+  steps={[
+    { tex: "T_1(5000) = 5000^2 \\cdot 10^{-9} = 25\\,000\\,000 \\cdot 10^{-9} = 0{,}025 \\ \\text{s}", note: "O programa O(n²): 25 milhões de operações de 1 nanossegundo." },
+    { tex: "T_2(5000) = 5000 \\cdot 10^{-9} = 5 \\cdot 10^{-6} \\ \\text{s} = 5 \\ \\mu\\text{s}", note: "O programa O(n): só 5 mil operações de 1 nanossegundo." },
+    { tex: "\\frac{T_1(5000)}{T_2(5000)} = \\frac{0{,}025}{5 \\cdot 10^{-6}} = 5000", note: "Dividimos o tempo do lento pelo tempo do rápido." },
+  ]}
+/>
+
+#### ✅ Resposta
+
+O algoritmo `O(n)` é **5000 vezes** mais rápido (`0,025 s` contra `5 µs`).
+
+> 🧠 **Não é coincidência:** como as constantes são iguais, `T₁(n) / T₂(n) = n² / n = n`. Em geral, trocar `O(n²)` por `O(n)` rende um ganho de **`n` vezes**: quanto maior o problema, maior o ganho. Para `n = 1.000.000`, seriam **1 milhão** de vezes mais rápido!
+
+</Resposta>
+
+</Exercicio>
+
+---
+
+## 🏁 Resumo dos resultados
+
+| Questão | Assunto | Resultado |
+| --- | --- | --- |
+| 20 | tabela de `n` máximo por `f(n)` e tempo `t` | ver a tabela completa na resposta |
+| 21 | `log n` em 1 s | `n = 10^(10⁶)` |
+| 22 | `n²` em 1 dia, computador 10x mais rápido | `n = 929.516` (antes `293.938`) |
+| 23 | `3^n` em 1 século | `n = 32` |
+| 24 | `n³` em 1 mês, computador 1000x mais rápido | `n = 137.365` (antes `13.736`) |
+| 25 | `10^n` em 1 milhão de anos | `n = 19` |
+| 26 | soma de matrizes | `Θ(n²)` |
+| 27 | multiplicação de matrizes | `Θ(n³)` |
+| 28 | `n³` em 1 hora | `n = 1532` |
+| 29 | `n³` em 1 hora, computador 10x mais rápido | `n = 3301` |
+| 30 | índice dos salários | `Θ(n²)` → `Θ(n)` |
+| 31 | `T₁ / T₂` para `n = 5000` | `5000` vezes |

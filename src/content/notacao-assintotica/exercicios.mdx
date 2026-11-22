@@ -1,0 +1,648 @@
+## 🧪 Como usar esta página
+
+Tente resolver **sozinho** primeiro! 💪 Cada questão mostra o enunciado e deixa a resposta **escondida**: clique em **Ver resposta** só quando estiver pronto.
+
+> 🎮 **Convenções das simulações:** 🟢 posição já visitada ou resultado final · 🟡 posição onde o marcador está agora. Os marcadores (como o `i`) aparecem sobre a célula, e as variáveis do programa aparecem ao lado.
+
+---
+
+<Exercicio numero={14} titulo="Θ é o mesmo que O e Ω juntos">
+
+Mostre que `g(n) = Θ(g(n))` se e somente se `f(n) = O(g(n))` e `f(n) = Ω(g(n))`.
+
+<Resposta>
+
+#### 💡 A ideia
+
+> ⚠️ **Atenção ao enunciado:** o texto da apostila traz `g(n) = Θ(g(n))` no começo, mas é um erro de digitação. A afirmação correta é `f(n) = Θ(g(n))`, e é essa que vamos provar. (Com `g` dos dois lados a frase seria trivial, porque toda função é Θ dela mesma.)
+
+Pense em um **sanduíche** 🥪: o pão de baixo é o limite inferior (`Ω`) e o pão de cima é o limite superior (`O`). Dizer que `f` é `Θ(g)` é dizer que `f` está **espremida entre dois pães feitos com `g`**: um múltiplo de `g` por baixo e outro por cima.
+
+As três definições, todas para `n` grande o bastante, com constantes positivas:
+
+| Notação | Definição | Em português |
+| --- | --- | --- |
+| `f(n) = O(g(n))` | existem `c` e `n_0` com `0 ≤ f(n) ≤ c·g(n)` | `g` é um **teto** para `f` |
+| `f(n) = Ω(g(n))` | existem `c` e `n_0` com `0 ≤ c·g(n) ≤ f(n)` | `g` é um **piso** para `f` |
+| `f(n) = Θ(g(n))` | existem `c_1`, `c_2` e `n_0` com `0 ≤ c_1·g(n) ≤ f(n) ≤ c_2·g(n)` | `g` é teto **e** piso |
+
+Como é um "se e somente se", provamos **os dois sentidos**.
+
+#### 🧮 Ida: Θ implica O e Ω
+
+<Derivation
+  title="Se f = Θ(g), então f = O(g) e f = Ω(g)"
+  steps={[
+    { tex: "0 \\le c_1\\,g(n) \\le f(n) \\le c_2\\,g(n) \\quad (n \\ge n_0)", note: "Hipótese: f(n) = Θ(g(n)). Existem c_1, c_2 e n_0 positivos que fazem isso valer." },
+    { tex: "f(n) \\le c_2\\,g(n) \\quad (n \\ge n_0)", note: "Olhando só o lado direito do sanduíche: é exatamente a definição de O, com c = c_2." },
+    { tex: "0 \\le c_1\\,g(n) \\le f(n) \\quad (n \\ge n_0)", note: "Olhando só o lado esquerdo: é exatamente a definição de Ω, com c = c_1." },
+    { tex: "f(n) = O(g(n)) \\ \\text{ e } \\ f(n) = \\Omega(g(n))", note: "Os dois lados do sanduíche já estavam na hipótese. Basta separá-los." },
+  ]}
+/>
+
+#### 🧮 Volta: O e Ω juntos implicam Θ
+
+<Derivation
+  title="Se f = O(g) e f = Ω(g), então f = Θ(g)"
+  steps={[
+    { tex: "f(n) = O(g(n)) \\Rightarrow 0 \\le f(n) \\le c_2\\,g(n) \\quad (n \\ge n_a)", note: "A definição de O nos dá uma constante c_2 e um ponto de partida n_a." },
+    { tex: "f(n) = \\Omega(g(n)) \\Rightarrow 0 \\le c_1\\,g(n) \\le f(n) \\quad (n \\ge n_b)", note: "A definição de Ω nos dá outra constante c_1 e outro ponto de partida n_b." },
+    { tex: "n_0 = \\max(n_a,\\, n_b)", note: "Os pontos de partida podem ser diferentes. Escolhendo o maior, a partir de n_0 as duas desigualdades valem ao mesmo tempo." },
+    { tex: "0 \\le c_1\\,g(n) \\le f(n) \\le c_2\\,g(n) \\quad (n \\ge n_0)", note: "Juntando as duas: o sanduíche está montado." },
+    { tex: "f(n) = \\Theta(g(n))", note: "É exatamente a definição de Θ." },
+  ]}
+/>
+
+#### ✅ Resposta
+
+Provamos os **dois sentidos**: `Θ` quer dizer "teto e piso ao mesmo tempo". Por isso, quando você acha o `O` e o `Ω` de um algoritmo com a **mesma** função `g`, pode afirmar `Θ(g)`.
+
+> 🧠 **Exemplo:** `3n² + 4n + 2` é `O(n²)` e também `Ω(n²)`, logo é `Θ(n²)`. Já `n²` é `Ω(n)`, mas **não** é `O(n)`: por isso `n²` não é `Θ(n)`.
+
+</Resposta>
+
+</Exercicio>
+
+<Exercicio numero={15} titulo="Tempo de execução da função ordena">
+
+Considere o programa anterior (função `ordena`) que possui tempo descrito por `T(n) = c·n²`.
+
+1. Determine a constante de tempo `c` para a função `ordena` executando o programa em seu computador. Não use compiladores online, como OnlineGDB, pois eles afetam a constante de tempo.
+2. Com base nessa constante, estime o tempo necessário para ordenar:
+   - um vetor com 1.000.000 elementos;
+   - um vetor com 10.000.000 elementos.
+
+   Note que não é preciso esperar o programa executar, pois pode demorar muito tempo. Você deve apenas estimar o tempo a partir da fórmula.
+3. Escolha entre 5 e 10 valores de `n`, bem distribuídos, de modo que a execução do programa seja viável no seu computador. Para cada `n`, meça o tempo real de execução `T(n)`.
+4. Organize os resultados em uma planilha com três colunas:
+   - `n` (tamanho do vetor);
+   - `T(n)` (tempo medido experimentalmente);
+   - `T(n) = c·n²` (tempo estimado pelo modelo teórico).
+5. Construa um gráfico de linha com dados da planilha para comparar os tempos medidos e os estimados. No eixo x deve ficar o valor de `n` e no eixo y uma linha representando o tempo medido e outra o tempo estimado.
+
+<Resposta>
+
+#### 💡 A ideia
+
+A função `ordena` é a **ordenação por seleção**: acha o maior elemento, coloca no fim e repete com o resto do vetor. Na apostila, vimos que ela faz cerca de `n²/2` operações, então o tempo tem **formato de parábola**: `T(n) = c·n²`.
+
+Só que o `c` depende da **sua máquina** (processador, compilador...). Pense em um **táxi** 🚕: a fórmula do preço é `preço = valor_por_km × km`. O formato da conta é igual para todos os táxis, mas o `valor_por_km` muda de cidade para cidade. Aqui o `c` é o "valor por km" do seu computador.
+
+O plano tem dois passos:
+
+1. **Calibrar:** medir **uma vez** um `n` grande e descobrir o `c`.
+2. **Prever:** usar esse `c` para estimar qualquer outro `n`, sem esperar o programa rodar.
+
+> ⚠️ **Erro clássico: a regra de três.** Se o programa gastou 1 s para `n`, quanto gasta para `10n`? A regra de três diz 10 s, mas isso só vale para funções **retas** (lineares). Como aqui `T` é uma **parábola**, multiplicar `n` por 10 multiplica o tempo por **100**: `T(10n) = c·(10n)² = 100·c·n² = 100·T(n)`.
+
+Veja a diferença de formato entre a reta (`n`) e a parábola (`n²`). Ligue só essas duas curvas e arraste o `n máx`:
+
+<GrowthChart show={["n", "n2"]} />
+
+#### 💻 Código
+
+O programa medido é o da apostila (seleção do maior). Repare que o tempo é medido **só em volta da `ordena`**, e não da geração do vetor:
+
+```c
+// posição do maior elemento: Θ(n)
+int maximo(int v[], int n)
+{
+    int max = 0;
+
+    for (int i = 1; i < n; i++)
+    {
+        if (v[i] > v[max])
+        {
+            max = i;
+        }
+    }
+
+    return max;
+}
+
+// ordenação por seleção: Θ(n²)
+void ordena(int v[], int n)
+{
+    while (n > 1)
+    {
+        int max = maximo(v, n);   // acha o maior do trecho atual
+
+        int aux = v[n - 1];       // troca o maior com a última posição
+        v[n - 1] = v[max];
+        v[max] = aux;
+
+        n--;                      // o último já está no lugar: ignora ele
+    }
+}
+```
+
+#### 🧮 Passo 1: descobrir a constante `c`
+
+Na apostila, o programa ordenou `n = 100.000` elementos em `10.723 ms`. Basta isolar o `c`:
+
+<Derivation
+  title="Calibrando o modelo com uma medição"
+  steps={[
+    { tex: "T(n) = c \\cdot n^2", note: "O modelo teórico: uma parábola com uma constante c desconhecida." },
+    { tex: "T(100000) = c \\cdot (10^5)^2 = 10723 \\ \\text{ms}", note: "Medimos n = 100.000 e anotamos o tempo." },
+    { tex: "c \\cdot 10^{10} = 10723 \\ \\text{ms}", note: "(10^5)^2 = 10^10." },
+    { tex: "c = \\frac{10723}{10^{10}} \\ \\text{ms} = 1{,}0723 \\cdot 10^{-6} \\ \\text{ms} \\approx 1{,}07 \\cdot 10^{-6} \\ \\text{ms}", note: "É o 'valor por km' desta máquina. No seu computador o número será outro." },
+  ]}
+/>
+
+#### 🧮 Passo 2: estimar `n = 1.000.000` e `n = 10.000.000`
+
+<Derivation
+  title="Estimando para n = 1.000.000"
+  steps={[
+    { tex: "T(10^6) = 1{,}0723 \\cdot 10^{-6} \\cdot (10^6)^2 \\ \\text{ms}", note: "Trocamos n por 10^6 no modelo." },
+    { tex: "T(10^6) = 1{,}0723 \\cdot 10^{-6} \\cdot 10^{12} \\ \\text{ms} = 1{,}0723 \\cdot 10^{6} \\ \\text{ms}", note: "10^(-6) vezes 10^12 dá 10^6." },
+    { tex: "T(10^6) \\approx 1072 \\ \\text{s} \\approx 17{,}9 \\ \\text{min}", note: "Dividindo por 1000 para ter segundos, e por 60 para ter minutos." },
+  ]}
+/>
+
+<Derivation
+  title="Estimando para n = 10.000.000"
+  steps={[
+    { tex: "T(10^7) = 1{,}0723 \\cdot 10^{-6} \\cdot (10^7)^2 \\ \\text{ms}", note: "Trocamos n por 10^7 no modelo." },
+    { tex: "T(10^7) = 1{,}0723 \\cdot 10^{8} \\ \\text{ms} = 107\\,230\\,000 \\ \\text{ms}", note: "10^(-6) vezes 10^14 dá 10^8." },
+    { tex: "T(10^7) \\approx 107\\,230 \\ \\text{s} \\approx 29{,}8 \\ \\text{h}", note: "Quase 30 horas! Repare: 10 vezes mais elementos que o caso anterior custam 100 vezes mais tempo (17,9 min contra 29,8 h)." },
+  ]}
+/>
+
+> 💡 A apostila usa `c ≈ 1,07·10⁻⁶` e chega a `29,72 h`. A diferença para `29,8 h` é só de arredondamento: usamos aqui `1,0723·10⁻⁶`, sem arredondar.
+
+#### 🧮 Passos 3 a 5: medir, montar a planilha e o gráfico
+
+Escolha `n` bem espalhados, por exemplo `10.000`, `20.000`, `30.000`, `50.000`, `70.000`, `100.000`, `150.000` e `200.000`. Rode o programa para cada um, anote o `T(n)` e preencha a coluna do modelo com `c·n²`. Com o `c` da apostila, a tabela fica assim (a coluna do meio é o que **você** mede):
+
+| `n` | `T(n)` medido (ms) | `T(n) = c·n²` estimado (ms) |
+| --- | --- | --- |
+| 10.000 | _meça aqui_ | 107,23 |
+| 20.000 | _meça aqui_ | 428,92 |
+| 30.000 | _meça aqui_ | 965,07 |
+| 50.000 | _meça aqui_ | 2.680,75 |
+| 70.000 | _meça aqui_ | 5.254,27 |
+| 100.000 | 10.723 (usado para calibrar) | 10.723 |
+| 150.000 | _meça aqui_ | 24.126,75 |
+| 200.000 | 42.734 (medido na apostila) | 42.892 |
+
+Repare em `n = 200.000`: o modelo previu `42,89 s` e o programa levou `42,73 s`. O erro é de cerca de **0,4 %**. Foi só medir **uma** vez e a parábola previu o resto. 🎯
+
+Para o **gráfico** na planilha (Excel, Google Planilhas, LibreOffice):
+
+1. Selecione as três colunas e insira um gráfico.
+2. Escolha **dispersão com linhas** (também chamado de "XY" ou "scatter"), e **não** o gráfico de linha comum. 
+3. Coloque `n` no eixo x, e as duas colunas de tempo no eixo y: uma linha para o medido, outra para o estimado.
+
+> ⚠️ **Por que dispersão?** O gráfico de linha comum trata o eixo x como **categorias igualmente espaçadas**. Como os seus `n` não são igualmente espaçados (de 10.000 até 200.000), a parábola sairia **entortada**. A dispersão respeita a distância real entre os valores.
+
+O resultado esperado são **duas curvas quase sobrepostas**, ambas com formato de parábola.
+
+#### ✅ Resposta
+
+- **Constante:** `c = T(n)/n²`. Com os dados da apostila, `c ≈ 1,07·10⁻⁶ ms` (a sua será diferente).
+- **Estimativas:** `n = 10⁶` leva cerca de `17,9 min` e `n = 10⁷` leva cerca de `29,8 h`.
+- **Gráfico:** a curva medida e a estimada quase coincidem, o que confirma que `T(n) = Θ(n²)`.
+
+</Resposta>
+
+</Exercicio>
+
+<Exercicio numero={16} titulo="Complexidade das funções f1 a f7">
+
+Descubra as complexidades das funções abaixo:
+
+```c
+#include <stdio.h>
+
+int f1(int n)
+{
+    int aux = 0;
+    for (int i = 0; i < n; i++)
+    {
+        aux++;
+    }
+    return aux;
+}
+
+int f2(int n)
+{
+    int x = 0;
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            x++;
+        }
+    }
+    return x;
+}
+
+int f3(int n)
+{
+    int aux = 0;
+    for (int i = 1; i < n; i = i * 2)
+    {
+        aux++;
+    }
+    return aux;
+}
+
+int f4(int n)
+{
+    int aux = 0;
+    for (int i = 0; i < n; i++)
+    {
+        aux += f1(i);
+    }
+    return aux;
+}
+
+int f5(int n)
+{
+    int aux = 0;
+    for (int i = 0; i < n; i++)
+    {
+        aux += f1(n);
+        aux += f2(n);
+    }
+    return aux;
+}
+
+int f6(int n)
+{
+    int x = 0;
+    for (int i = 0; i < n; i += 100)
+    {
+        x += 1;
+    }
+    return x;
+}
+
+int f7(int n)
+{
+    if (n == 0)
+    {
+        return 1;
+    }
+    else
+    {
+        int x = f7(n - 1);
+        int y = f7(n - 1);
+        return x + y;
+    }
+}
+
+int main(int argc, const char *argv[])
+{
+    int n = 10;
+
+    printf("f1=%d\n", f1(n));
+    printf("f2=%d\n", f2(n));
+    printf("f3=%d\n", f3(n));
+    printf("f4=%d\n", f4(n));
+    printf("f5=%d\n", f5(n));
+    printf("f6=%d\n", f6(n));
+    printf("f7=%d\n", f7(n));
+}
+```
+
+<Resposta>
+
+#### 💡 A ideia
+
+Duas perguntas resolvem quase tudo:
+
+1. **Quantas voltas** o laço dá?
+2. **Quanto custa cada volta?** (se ela chama outra função, o custo dessa função entra na conta)
+
+Para checar, o resultado de cada função com `n = 10` é: `f1 = 10`, `f2 = 100`, `f3 = 4`, `f4 = 45`, `f5 = 1100`, `f6 = 1` e `f7 = 1024`. Os números já dão uma pista do crescimento de cada uma. 🔎
+
+#### 🧮 f1: um laço simples
+
+<CostTable
+  rows={[
+    { code: "int aux = 0;", cost: "c_1", times: "1" },
+    { code: "for (int i = 0; i < n; i++)", cost: "c_2", times: "n+1" },
+    { code: "    aux++;", cost: "c_3", times: "n" },
+    { code: "return aux;", cost: "c_4", times: "1" },
+  ]}
+  total={"T(n) = (c_2+c_3)\\,n + (c_1+c_2+c_4)"}
+  result={"\\Theta(n)"}
+/>
+
+> 💡 Mesma conta do `addFim` da lista ligada: o teste do `for` roda `n+1` vezes (`n` verdadeiras e 1 falsa).
+
+#### 🧮 f2: laço dentro de laço
+
+O laço de dentro dá `n` voltas **a cada** volta do laço de fora, e o de fora dá `n` voltas. Contando operação por operação, como na apostila:
+
+<Derivation
+  title="Contando os passos de f2"
+  steps={[
+    { tex: "\\text{laço interno} = 1 + (n+1) + n + n = 3n + 2", note: "Inicialização do j, n+1 testes, n incrementos e n vezes o x++." },
+    { tex: "T(n) = 1 + \\big[ 1 + (n+1) + n \\big] + n\\,(3n + 2) + 1", note: "x = 0, o cabeçalho do laço de fora, as n execuções do laço interno e o return." },
+    { tex: "T(n) = 3n^2 + 4n + 4", note: "Juntando os termos." },
+    { tex: "T(n) = \\Theta(n^2)", note: "O termo de maior grau manda, e a constante 3 também é jogada fora." },
+  ]}
+/>
+
+#### 🧮 f3: o `i` dobra a cada volta
+
+Aqui o `i` **não anda de um em um**: ele pula `1, 2, 4, 8, 16...`. Veja a simulação com `n = 10`:
+
+<Sim name="lacoLog" />
+
+Depois de `k` voltas, o `i` vale `2^k`. O laço para quando `i` chega em `n`:
+
+<Derivation
+  title="Quantas voltas dá o laço que dobra?"
+  steps={[
+    { tex: "i_k = 2^k", note: "Depois de k voltas o i valeu 1, 2, 4, 8... ou seja, 2 elevado a k." },
+    { tex: "2^k = n", note: "O laço para quando o i alcança o n." },
+    { tex: "\\lg 2^k = \\lg n \\ \\Rightarrow \\ k \\cdot \\lg 2 = \\lg n \\ \\Rightarrow \\ k = \\lg n", note: "Aplicamos lg (log na base 2) dos dois lados. Como lg 2 = 1, sobra k = lg n." },
+    { tex: "T(n) = \\Theta(\\lg n)", note: "O número de voltas é k, e cada volta custa uma constante. (Na verdade são ⌈lg n⌉ voltas, mas isso não muda a ordem de grandeza.)" },
+  ]}
+/>
+
+> 🧠 Para ter ideia de como `lg n` cresce **devagar**: para `n = 1.000.000` o laço dá só uns 20 passos. Dobrar o `n` acrescenta **uma** volta!
+
+#### 🧮 f4: o custo da chamada muda a cada volta
+
+Aqui a volta `i` chama `f1(i)`, que custa `Θ(i)`. Como o argumento **cresce**, cada volta é mais cara que a anterior:
+
+<Derivation
+  title="Somando as chamadas de f1 em f4"
+  steps={[
+    { tex: "T(n) = \\sum_{i=0}^{n-1} (c_1\\,i + c_2)", note: "Na volta i, f1(i) custa proporcional a i, mais uma constante do resto da volta." },
+    { tex: "T(n) = c_1 \\cdot \\frac{(n-1)\\,n}{2} + c_2\\,n", note: "A soma 0 + 1 + ... + (n-1) é uma progressão aritmética (a mesma soma da função ordena!)." },
+    { tex: "T(n) = \\frac{c_1}{2}\\,n^2 + \\left(c_2 - \\frac{c_1}{2}\\right) n", note: "Juntando os termos." },
+    { tex: "T(n) = \\Theta(n^2)", note: "O termo de maior grau manda." },
+  ]}
+/>
+
+#### 🧮 f5: o custo da chamada NÃO muda
+
+Parece com a `f4`, mas há uma diferença decisiva: a `f5` chama `f1(n)` e `f2(n)` com o **`n` inteiro**, e não com o `i`. Então **toda** volta custa o mesmo:
+
+<Derivation
+  title="Somando as chamadas de f1 e f2 em f5"
+  steps={[
+    { tex: "T(n) = n \\cdot \\big( f_1(n) + f_2(n) \\big)", note: "O laço dá n voltas e todas custam igual: o custo de f1(n) mais o custo de f2(n)." },
+    { tex: "T(n) = n \\cdot \\big( \\Theta(n) + \\Theta(n^2) \\big)", note: "Pelos resultados anteriores: f1 é Θ(n) e f2 é Θ(n²)." },
+    { tex: "T(n) = n \\cdot \\Theta(n^2)", note: "Dentro dos parênteses, o termo de maior grau manda." },
+    { tex: "T(n) = \\Theta(n^3)", note: "n voltas vezes n² por volta." },
+  ]}
+/>
+
+> ⚠️ **Compare `f4` e `f5`:** ambas têm um laço de `n` voltas chamando outras funções, mas a `f4` dá `Θ(n²)` e a `f5` dá `Θ(n³)`. O que decide é **o que se passa de argumento** e o custo de cada função chamada.
+
+#### 🧮 f6: o `i` anda de 100 em 100
+
+O `i` vai de `0` até `n` em passos de `100`, então o laço dá `n/100` voltas:
+
+<Derivation
+  title="Contando as voltas de f6"
+  steps={[
+    { tex: "\\text{voltas} = \\frac{n}{100}", note: "Com n = 1000, por exemplo, o i vale 0, 100, 200, ..., 900: são 10 voltas." },
+    { tex: "T(n) = c \\cdot \\frac{n}{100} + d = \\frac{c}{100}\\,n + d", note: "Cada volta custa uma constante c, e d é o resto da função." },
+    { tex: "T(n) = \\Theta(n)", note: "A constante 1/100 é jogada fora, como qualquer constante." },
+  ]}
+/>
+
+> 🧠 Isto mostra por que a notação assintótica ignora constantes: dividir o trabalho por 100 **não muda a ordem de grandeza**. Para `n` bem grande, ainda é uma reta.
+
+#### 🧮 f7: duas chamadas recursivas
+
+Sem laço, a conta vem de uma **recorrência**. Cada chamada com `n > 0` faz **duas** chamadas com `n - 1`, mais um trabalho constante `c`. No caso base (`n = 0`) o custo é uma constante:
+
+<Derivation
+  title="Resolvendo a recorrência de f7"
+  steps={[
+    { tex: "T(n) = 2\\,T(n-1) + c", note: "Duas chamadas de tamanho n-1 e o trabalho constante da soma." },
+    { tex: "T(n) = 2\\,\\big( 2\\,T(n-2) + c \\big) + c = 4\\,T(n-2) + 3c", note: "Expandindo uma vez: substituímos T(n-1) pela própria fórmula." },
+    { tex: "T(n) = 8\\,T(n-3) + 7c", note: "Expandindo de novo. Repare no padrão: os coeficientes são 2, 4, 8 e as constantes são 1, 3, 7." },
+    { tex: "T(n) = 2^k\\,T(n-k) + (2^k - 1)\\,c", note: "Depois de k expansões." },
+    { tex: "T(n) = 2^n\\,T(0) + (2^n - 1)\\,c", note: "Expandimos até k = n, quando chegamos ao caso base T(0)." },
+    { tex: "T(n) = \\Theta(2^n)", note: "O termo 2^n domina." },
+  ]}
+/>
+
+Outro jeito de enxergar: o número de chamadas **dobra a cada nível** (1, 2, 4, 8...), e são `n + 1` níveis. O total é `1 + 2 + 4 + ... + 2^n = 2^(n+1) - 1` chamadas. E a própria `f7(n)` devolve `2^n`, a mesma conta do número de folhas. 🌳
+
+#### ✅ Resposta
+
+| Função | Complexidade | Por quê | Saída com `n = 10` |
+| --- | --- | --- | --- |
+| `f1` | <ComplexityBadge>Θ(n)</ComplexityBadge> | um laço de `n` voltas | `10` |
+| `f2` | <ComplexityBadge>Θ(n²)</ComplexityBadge> | `n` voltas, cada uma com `n` voltas dentro | `100` |
+| `f3` | <ComplexityBadge>Θ(lg n)</ComplexityBadge> | o `i` dobra a cada volta | `4` |
+| `f4` | <ComplexityBadge>Θ(n²)</ComplexityBadge> | `f1(i)` com `i` crescente: soma 0 + 1 + ... + (n-1) | `45` |
+| `f5` | <ComplexityBadge>Θ(n³)</ComplexityBadge> | `n` voltas, cada uma com `f1(n)` e `f2(n)` | `1100` |
+| `f6` | <ComplexityBadge>Θ(n)</ComplexityBadge> | `n/100` voltas (a constante some) | `1` |
+| `f7` | <ComplexityBadge>Θ(2^n)</ComplexityBadge> | duas chamadas recursivas de tamanho `n-1` | `1024` |
+
+</Resposta>
+
+</Exercicio>
+
+<Exercicio numero={17} titulo="Uma função Θ(2^n)">
+
+Proponha uma função com complexidade `Θ(2^n)`: (a) usando `for`/`while`; (b) sem usar `for`/`while`.
+
+<Resposta>
+
+#### 💡 A ideia
+
+Uma função `Θ(2^n)` precisa fazer cerca de `2^n` operações: o dobro a cada vez que o `n` sobe **uma** unidade. Há dois jeitos clássicos:
+
+- **(a) Com laço:** um `for` que dá exatamente `2^n` voltas. Em C, o jeito rápido de calcular `2^n` é o deslocamento de bits `1LL << n` (o `LL` é para o número caber em 64 bits).
+- **(b) Sem laço:** recursão com **duas chamadas** de tamanho `n-1`, como a `f7` da questão anterior. A cada nível o número de chamadas dobra.
+
+#### 💻 Código
+
+```c
+// (a) com for: dá 2^n voltas
+long long expFor(int n)
+{
+    long long aux = 0;
+    long long total = 1LL << n; // 2^n calculado uma única vez
+
+    for (long long i = 0; i < total; i++)
+    {
+        aux++;
+    }
+
+    return aux; // devolve 2^n
+}
+
+// (b) sem for/while: duas chamadas recursivas
+long long expRec(int n)
+{
+    if (n == 0)
+    {
+        return 1;
+    }
+
+    long long x = expRec(n - 1);
+    long long y = expRec(n - 1);
+
+    return x + y; // devolve 2^n
+}
+```
+
+> ⚠️ Em `expFor`, calcule o `total` **fora** do laço. Se você escrevesse `i < (1LL << n)` no teste, o cálculo se repetiria a cada volta (o mesmo erro do `media` dentro do `dvp` da apostila). Aqui seria só uma constante a mais por volta, mas é um mau hábito. Use `n` até uns 62, para o resultado caber em `long long`.
+
+#### 🧮 Complexidade
+
+<Derivation
+  title="Contando o custo das duas versões"
+  steps={[
+    { tex: "T_a(n) = c \\cdot 2^n + d", note: "Versão (a): o laço dá 2^n voltas, cada uma de custo constante c, mais um resto d." },
+    { tex: "T_b(n) = 2\\,T_b(n-1) + c", note: "Versão (b): a mesma recorrência da f7 da questão 16." },
+    { tex: "T_b(n) = 2^n\\,T_b(0) + (2^n - 1)\\,c", note: "Resolvida expandindo n vezes, como na questão 16." },
+    { tex: "T_a(n) = T_b(n) = \\Theta(2^n)", note: "As duas crescem exatamente como 2^n." },
+  ]}
+/>
+
+Veja o quanto a curva exponencial **foge** das outras. Ligue `n`, `n²` e `2ⁿ` e arraste o `n máx`:
+
+<GrowthChart show={["n", "n2", "2n"]} />
+
+> 🚨 **Por que algoritmos exponenciais são "os piores"?** Suponha `10⁻⁶ s` por operação. Para `n = 40`, `2^40` operações levam cerca de `12,7 dias`. Para `n = 60`, mais de `36 mil anos`. Eles só são viáveis para `n` muito pequeno.
+
+#### ✅ Resposta
+
+<ComplexityBadge>Θ(2^n)</ComplexityBadge> nas duas versões: **(a)** `expFor`, com um `for` de `2^n` voltas; **(b)** `expRec`, com duas chamadas recursivas de `n-1` (igual à `f7`).
+
+</Resposta>
+
+</Exercicio>
+
+<Exercicio numero={18} titulo="Descobrindo a constante de T(n) = n³·cte">
+
+Suponha que `T(n) = n³·cte` s. Se `T(10.000) = 1000 s`, qual a constante de tempo? Qual o tempo `T(10⁶)`?
+
+<Resposta>
+
+#### 💡 A ideia
+
+É o mesmo método da questão 15, só que com um **cubo** no lugar do quadrado:
+
+1. **Calibrar:** usar o par `(n, T(n))` que o enunciado dá para descobrir a constante.
+2. **Prever:** usar a constante para calcular o tempo de outro `n`.
+
+#### 🧮 Complexidade
+
+<Derivation
+  title="Passo 1: a constante de tempo"
+  steps={[
+    { tex: "T(10^4) = (10^4)^3 \\cdot cte = 1000 \\ \\text{s}", note: "Substituímos n = 10.000 = 10^4 no modelo." },
+    { tex: "10^{12} \\cdot cte = 10^3 \\ \\text{s}", note: "(10^4)^3 = 10^12 e 1000 = 10^3." },
+    { tex: "cte = \\frac{10^3}{10^{12}} = 10^{-9} \\ \\text{s}", note: "Isolamos a constante. É o tempo de uma 'operação' desta máquina: 1 nanossegundo." },
+  ]}
+/>
+
+<Derivation
+  title="Passo 2: o tempo para n = 10^6"
+  steps={[
+    { tex: "T(10^6) = (10^6)^3 \\cdot 10^{-9} \\ \\text{s}", note: "Trocamos n por 10^6, já com a constante que achamos." },
+    { tex: "T(10^6) = 10^{18} \\cdot 10^{-9} \\ \\text{s} = 10^{9} \\ \\text{s}", note: "10^18 vezes 10^(-9) dá 10^9." },
+    { tex: "T(10^6) = \\frac{10^9}{31\\,536\\,000} \\ \\text{anos} \\approx 31{,}7 \\ \\text{anos}", note: "Um ano tem 365 × 24 × 3600 = 31.536.000 segundos." },
+  ]}
+/>
+
+> 🧠 **Conferindo sem a constante:** de `n = 10⁴` para `n = 10⁶` o `n` foi multiplicado por **100**. Em um algoritmo cúbico, o tempo é multiplicado por `100³ = 10⁶`. Então `T(10⁶) = 10⁶ · 1000 s = 10⁹ s`, o mesmo resultado. 👍
+
+#### ✅ Resposta
+
+- **Constante:** `cte = 10⁻⁹ s`.
+- **Tempo:** `T(10⁶) = 10⁹ s`, ou seja, cerca de **31,7 anos**. Um algoritmo `Θ(n³)` é inviável para `n` de um milhão.
+
+</Resposta>
+
+</Exercicio>
+
+<Exercicio numero={19} titulo="Como a constante c(n) se comporta">
+
+Considere o programa de ordenação descrito a partir da página 29. Calcule a constante de tempo `c` para a função `ordena`, executando o programa em seu computador. Atenção: não utilize compiladores online, como o OnlineGDB, pois eles podem interferir na determinação da constante de tempo.
+
+A constante deve ser calculada a partir da fórmula `c = T(n) / n²`, onde `T(n)` representa o tempo de execução medido para ordenar um vetor de tamanho `n`.
+
+1. Para cada valor de `n` no conjunto `{1, 5, 10, 20, 100, 200, 500, 1000, 10000, 100000, 1000000}`, meça o tempo `T(n)` e calcule a constante correspondente `c(n)`.
+2. Analise e descreva o comportamento da constante `c(n)` à medida que `n` aumenta. Discuta se os valores de `c(n)` se estabilizam ou variam de forma significativa conforme o tamanho do vetor cresce.
+
+<Resposta>
+
+#### 💡 A ideia
+
+Na questão 15 supusemos que `T(n) = c·n²` **exatamente**. Mas o tempo real tem também termos menores. Pense na **corrida de táxi** 🚕: o preço tem uma **bandeirada** fixa mais o valor por km.
+
+- Numa corrida **curta** (poucos km), a bandeirada pesa muito. O "preço por km" (preço total ÷ km) fica **alto e bagunçado**.
+- Numa corrida **longa**, a bandeirada quase não faz diferença, e o preço por km **se estabiliza** no valor da tabela.
+
+A constante `c(n) = T(n)/n²` é o "preço por km": para `n` pequeno, os termos pequenos (a "bandeirada") dominam. Para `n` grande, eles somem.
+
+#### 🧮 Por que `c(n)` se estabiliza
+
+O tempo real da `ordena` não é só `n²`. Na apostila contamos `n²/2 + n/2 - 1` operações do `maximo`, e as demais operações são `Θ(n)`. Então o tempo tem a forma geral `A·n² + B·n + D`, com `A`, `B` e `D` constantes da máquina:
+
+<Derivation
+  title="Quem manda em c(n) quando n cresce"
+  steps={[
+    { tex: "T(n) = A\\,n^2 + B\\,n + D", note: "Um termo quadrático, um linear e uma constante (a 'bandeirada')." },
+    { tex: "c(n) = \\frac{T(n)}{n^2} = A + \\frac{B}{n} + \\frac{D}{n^2}", note: "Dividimos tudo por n²." },
+    { tex: "\\lim_{n \\to \\infty} c(n) = A", note: "Os termos B/n e D/n² tendem a zero quando n cresce. Sobra só A." },
+    { tex: "c(n) \\to A \\ \\text{(a constante do termo dominante)}", note: "Por isso a constante 'estabiliza': para n grande, c(n) é praticamente o A." },
+  ]}
+/>
+
+#### 🧮 O que esperar da tabela
+
+Com os dados reais da apostila:
+
+| `n` | `T(n)` | `c(n) = T(n) / n²` |
+| --- | --- | --- |
+| 10 | 0,003 ms | `3·10⁻⁵ ms` (quase **28 vezes** maior!) |
+| 100.000 | 10.723 ms | `1,0723·10⁻⁶ ms` |
+| 200.000 | 42.734 ms | `1,0684·10⁻⁶ ms` |
+
+Repare: entre `n = 100.000` e `n = 200.000` o `c(n)` quase não mudou (diferença de cerca de 0,4 %). Já em `n = 10` ele está muito longe. Para o conjunto pedido, o comportamento esperado é:
+
+| Faixa de `n` | O que acontece com `T(n)` e `c(n)` |
+| --- | --- |
+| `1`, `5`, `10`, `20` | `T(n)` é tão pequeno que o relógio mal consegue medir (pode dar `0`). O `c(n)` é **ruído**: não confie nele. |
+| `100` a `1.000` | O tempo ainda é muito pequeno. O `c(n)` **oscila** e tende a ficar **acima** do valor final. |
+| `10.000` a `1.000.000` | Os termos menores já são desprezíveis. O `c(n)` **se estabiliza**, perto de `10⁻⁶ ms` (o valor exato depende da sua máquina). |
+
+> 🧠 **Para `n` pequeno, o `T(n)` é "quase zero" e o relógio não tem resolução para medi-lo.** Um truque é rodar a `ordena` **muitas vezes** (gerando um vetor novo a cada vez) e dividir o tempo total pelo número de repetições. Para `n` bem grande (um milhão), o vetor de `4 MB` pode não caber no cache do processador, e o `c(n)` pode subir um pouco: é um efeito do hardware, e não da análise de complexidade.
+
+#### ✅ Resposta
+
+- **`c(n)` não é constante para `n` pequeno:** ele é alto e instável, porque a bandeirada (`D/n²`) e o termo linear (`B/n`) pesam mais, e porque o tempo é pequeno demais para medir bem.
+- **`c(n)` se estabiliza para `n` grande:** converge para `A`, a constante do termo dominante. Em `n = 100.000` e `n = 200.000`, ele varia menos de 1 %.
+- **Lição:** é por isso que se calibra a constante com um `n` **grande**, como fizemos na questão 15, e que a notação assintótica só se importa com o comportamento quando `n` cresce.
+
+</Resposta>
+
+</Exercicio>
+
+---
+
+## 🏁 Resumo dos resultados
+
+| Questão | Assunto | Resultado |
+| --- | --- | --- |
+| 14 | `Θ` ⇔ `O` e `Ω` | provado nos dois sentidos |
+| 15 | `ordena`, `T(n) = c·n²` | `c ≈ 1,07·10⁻⁶ ms`; `n = 10⁶` leva ≈ `17,9 min`; `n = 10⁷` leva ≈ `29,8 h` |
+| 16 | `f1` | `Θ(n)` |
+| 16 | `f2` | `Θ(n²)` |
+| 16 | `f3` | `Θ(lg n)` |
+| 16 | `f4` | `Θ(n²)` |
+| 16 | `f5` | `Θ(n³)` |
+| 16 | `f6` | `Θ(n)` |
+| 16 | `f7` | `Θ(2^n)` |
+| 17 | função exponencial | `Θ(2^n)` (com `for` e com recursão) |
+| 18 | `T(n) = n³·cte` | `cte = 10⁻⁹ s`; `T(10⁶) = 10⁹ s ≈ 31,7 anos` |
+| 19 | `c(n) = T(n)/n²` | instável para `n` pequeno e estável para `n` grande |
