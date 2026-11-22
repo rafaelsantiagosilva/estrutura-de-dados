@@ -1,0 +1,252 @@
+## O problema da ordenação
+
+Ordenação é um dos problemas **mais estudados** da computação (e um tema quente em processos seletivos! 💼). A entrada é um conjunto de elementos, e a saída é uma **permutação** deles em ordem crescente.
+
+| Antes | Depois |
+| --- | --- |
+| `9 8 1 2 3` | `1 2 3 8 9` |
+
+Os elementos podem ser inteiros, mas também *strings*, números decimais ou `structs` inteiras.
+
+> 📝 **"Crescente" é impreciso.** Se o vetor tem repetidos, o certo é dizer **não decrescente**: cada elemento é menor ou igual ao próximo.
+
+### Cuidado com o critério de comparação ⚠️
+
+Ordenar depende de **como comparamos**. Três armadilhas clássicas:
+
+- 🔤 **Letras:** as *strings* são comparadas pela tabela **ASCII**, e maiúsculas vêm **antes** das minúsculas. Então `"João"` vem antes de `"joão"`.
+- 🔢 **Número como texto:** como *strings*, `"100"` vem **antes** de `"2"`, porque o caractere `'1'` vem antes de `'2'`.
+- 🎓 **Estruturas:** para ordenar um `Aluno (Nome, RA, CP, CR)`, a resposta é "depende": por nome? por CR, do maior para o menor? Precisamos definir o critério e também o **desempate** (dois alunos com o mesmo CR → usamos o nome). O RA nunca empata, porque é uma chave única.
+
+> 🚗 **E com mais de um critério?** Um carro barato e confortável *domina* outro caro e desconfortável. Mas um Fiat Uno e uma Ferrari são **incomparáveis** (um é mais barato, o outro mais confortável). Esse conjunto de soluções "não dominadas" se chama **fronteira de Pareto**. Aqui trabalharemos sempre com **um** critério.
+
+## Duas famílias de algoritmos
+
+| $O(n^2)$ (simples) | $O(n \log n)$ (eficientes) |
+| --- | --- |
+| Algoritmo da Bolha | Merge Sort |
+| Ordenação por Seleção | Quick Sort |
+| Ordenação por Inserção | Heap Sort |
+
+Os $O(n^2)$ são **simples e pouco eficientes**: importantes para estudo, mas pouco usados na prática. Os $O(n \log n)$ (próxima aula) são muito mais rápidos.
+
+> 🎮 **Como usar as simulações:** use **▶** para ver tudo sozinho, **⏭ / ⏮** para ir passo a passo. A linha azul mostra o código sendo executado, e o marcador `↑ i` aponta a posição que estamos olhando.
+>
+> 🟡 sendo comparado · 🟢 já está no lugar final (ou acabou de entrar) · 🔴 buraco
+
+---
+
+## 1️⃣ Ordenação por Seleção (*Selection Sort*)
+
+A ideia é **escolher o maior** e mandá-lo para o fim:
+
+1. Descubra a posição do **maior** elemento;
+2. **Troque** o maior com o **último** elemento;
+3. **Desconsidere** o último (ele já está no lugar certo);
+4. **Repita** enquanto `n > 1`.
+
+Depois da 1ª passada, o maior está no fim. Depois da 2ª, o segundo maior está na penúltima posição. E assim por diante. 🏁
+
+### Em duas funções
+
+Primeiro, `maximo` devolve a **posição** do maior elemento:
+
+```c
+// encontra a posição do maior elemento do vetor.
+// se houver vários, devolve a posição do primeiro maior.
+int maximo(int v[], int n)
+{
+    int max = 0;
+    for (int i = 1; i < n; i++)
+    {
+        if (v[i] > v[max])
+        {
+            max = i;
+        }
+    }
+    return max;
+}
+```
+
+<ComplexityBadge>Θ(n)</ComplexityBadge>
+
+Depois, `ordena` usa `maximo` repetidamente, encolhendo o vetor:
+
+```c
+void ordena(int v[], int n)
+{
+    while (n > 1)
+    {
+        // seleciona o maior elemento
+        int max = maximo(v, n);
+
+        // coloca na última posição
+        int aux = v[n-1];
+        v[n-1] = v[max];
+        v[max] = aux;
+
+        // repete o processo desconsiderando o último
+        n--;
+    }
+}
+```
+
+### Em uma função só (com dois `for` encadeados)
+
+Esta versão deixa mais claro que há **um laço dentro de outro**. Veja a simulação:
+
+<Sim name="selecao" />
+
+> 💡 Repare que o `for` interno só **procura**. A troca acontece **uma vez por passada**, no fim. Por isso a Seleção faz poucas trocas (no máximo `n - 1`).
+
+### Versão recursiva
+
+No lugar do `while`/`for` externo, "desconsiderar o último" vira uma **chamada recursiva** com `n - 1`:
+
+```c
+void selecao_recursivo(int v[], int n)
+{
+    if (n > 1)
+    {
+        int max = 0;
+        for (int i = 1; i < n; i++)
+            if (v[i] > v[max]) max = i;
+
+        int aux = v[n-1];
+        v[n-1] = v[max];
+        v[max] = aux;
+
+        selecao_recursivo(v, n - 1); // mesmo problema, com 1 elemento a menos
+    }
+}
+```
+
+Imprimindo o vetor a cada chamada, para `[4, 8, 9, 6, 3]`:
+
+```text
+[4,8,9,6,3]  →  [4,8,3,6,9]    (colocou o 9 no fim)
+[4,8,3,6]    →  [4,6,3,8]      (colocou o 8)
+[4,6,3]      →  [4,3,6]        (colocou o 6)
+[4,3]        →  [3,4]          (colocou o 4)
+Vetor ordenado: [3,4,6,8,9]
+```
+
+### Quanto custa? 🧮
+
+O `for` interno custa `O(n)` e roda cerca de `n` vezes. Para ser mais preciso: a 1ª busca gasta `n` operações, a 2ª gasta `n-1`, a 3ª `n-2`, e assim por diante. É uma **progressão aritmética** com soma $\Theta(n^2)$. (A conta completa está na aba **Complexidades**.)
+
+<ComplexityBadge>Θ(n²)</ComplexityBadge> em **todos** os casos: mesmo com o vetor já ordenado, ela procura o máximo do mesmo jeito.
+
+---
+
+## 2️⃣ Algoritmo da Bolha (*Bubble Sort*)
+
+O nome vem das bolhas num líquido: **as maiores sobem mais rápido**. 🫧
+
+A ideia: percorra o vetor comparando **cada elemento com o seguinte**. Se estiverem fora de ordem, **troque**.
+
+Veja o 8 "subindo" na primeira passada do vetor `[8, 3, 1, 9, 2]`:
+
+1. `8 > 3`: troca → `3 8 1 9 2`
+2. `8 > 1`: troca → `3 1 8 9 2`
+3. `8 > 9`? Não. Agora quem sobe é o **9**.
+4. `9 > 2`: troca → `3 1 8 2 9`
+
+Ao fim da passada, o **maior está no fim**. Basta repetir com um elemento a menos.
+
+### Versão iterativa
+
+<Sim name="bolha" />
+
+### Versão recursiva
+
+```c
+void bolha_recursiva(int v[], int n)
+{
+    if (n > 1)
+    {
+        for (int i = 0; i < n - 1; i++)
+        {
+            if (v[i] > v[i+1])
+            {
+                int aux = v[i];
+                v[i] = v[i+1];
+                v[i+1] = aux;
+            }
+        }
+        bolha_recursiva(v, n - 1); // repete com 1 elemento a menos
+    }
+}
+```
+
+> 🔍 **Seleção × Bolha:** as duas colocam o maior no fim a cada passada. A diferença é **como**: a Seleção procura o máximo e troca **uma vez**; a Bolha vai trocando vizinhos pelo caminho, e pode fazer **muitas** trocas.
+
+<ComplexityBadge>Θ(n²)</ComplexityBadge>
+
+---
+
+## 3️⃣ Ordenação por Inserção (*Insertion Sort*)
+
+Funciona como **ordenar cartas de baralho na mão**. 🃏 Começamos com a mão esquerda vazia. Pegamos **uma carta por vez** da mesa e a **inserimos na posição certa** entre as que já seguramos, comparando da direita para a esquerda.
+
+### A ideia (o invariante)
+
+Imagine um vetor de 7 posições em que as 6 primeiras **já estão ordenadas**:
+
+```text
+v = [0, 1, 2, 4, 4, 9, 3]
+```
+
+Só falta encaixar o último (o `3`). Como fazer?
+
+1. Guardamos o `3` numa variável `chave`, o que deixa um **buraco** no fim;
+2. Todo número **maior que a chave** anda uma posição para a **direita**, e o buraco anda para a esquerda;
+3. Quando achamos um número menor ou igual, **colocamos a chave no buraco**.
+
+Na simulação, o buraco é mostrado como `-1` em vermelho (isso é só didático; o algoritmo real nem precisa dele):
+
+<Sim name="insercaoA" />
+
+### E se o vetor inteiro estiver bagunçado?
+
+Começamos com os **2 primeiros** elementos (1 elemento sozinho já está ordenado) e inserimos o terceiro, depois o quarto... Sempre mantendo o começo do vetor **ordenado**. É o mesmo processo de cima, repetido para `N = 2, 3, 4, ...`.
+
+### Versão iterativa
+
+<Sim name="insercaoIte" />
+
+### Versão recursiva
+
+```c
+void insercaoRec(int v[], int n)
+{
+    if (n > 1)
+    {
+        insercaoRec(v, n - 1); // 1º: ordena os n-1 primeiros
+        int chave = v[n-1];    // 2º: insere o último entre eles
+        int i = n - 2;
+        while (i >= 0 && v[i] > chave)
+        {
+            v[i+1] = v[i];
+            i--;
+        }
+        v[i+1] = chave;
+    }
+}
+```
+
+> 🔁 As chamadas recursivas descem até o vetor de **1 elemento** (já ordenado). Na volta, o código insere o 2º elemento, depois o 3º, e assim por diante. É o mesmo que a versão iterativa, só que de trás para frente.
+
+<ComplexityBadge>Θ(n)</ComplexityBadge> no melhor caso (vetor já ordenado: ninguém precisa andar) e <ComplexityBadge>O(n²)</ComplexityBadge> no pior (vetor em ordem inversa).
+
+---
+
+## 🏁 Resumo
+
+| Algoritmo | Ideia em uma frase | Melhor caso | Pior caso |
+| --- | --- | --- | --- |
+| **Seleção** | acha o maior e manda para o fim | `Θ(n²)` | `Θ(n²)` |
+| **Bolha** | troca vizinhos fora de ordem | `Θ(n²)` | `Θ(n²)` |
+| **Inserção** | encaixa cada elemento entre os já ordenados | `Θ(n)` | `Θ(n²)` |
+
+> 🃏 Na prática, entre os três, a **Inserção** costuma ser a melhor para vetores pequenos ou quase ordenados.

@@ -12,10 +12,14 @@ import { remover } from "./listas-ligadas/remover";
 import { add } from "./listas-ligadas/add";
 import { busca } from "./listas-ligadas/busca";
 import { addOrdenado } from "./listas-ligadas/addOrdenado";
+import { bolha } from "./ordenacao/bolha";
+import { insercaoA, insercaoIte } from "./ordenacao/insercao";
+import { selecao } from "./ordenacao/selecao";
 
 // Chave = o que você escreve em <Sim name="..." /> no MDX
 export const sims: Record<string, AnySim> = {
     // listas
     newNo, newLista, estaVazia, size, printLista,
     addInicio, addFim, get, set, remover, add, busca, addOrdenado,
+    selecao, bolha, insercaoA, insercaoIte,
 };

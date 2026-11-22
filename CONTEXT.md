@@ -40,6 +40,9 @@ Tipos: `Sim` (lista), `ArraySimData`, `AnySim` (união usada no registro `viz-da
 - `line` = nº da linha DENTRO de `code` (começa em 1). Legenda aceita `crases`.
 - Cores compartilhadas em `components/viz/colors.ts`.
 Uso no MDX: `<Sim name="push" />`
+- Ordenação: frames GERADOS por função (`build()`) que roda o algoritmo e chama `createRecorder().add(line, caption, ptrs, vars, marks)`.
+  Helpers em `viz-data/sortHelpers.ts`: `at(i, estado)`, `ptr(nome, idx)`. Verde ("achado") = posição final.
+  O `line` assume que `code` começa na 1ª linha da função (sem comentário antes).
 
 ## 7. Armadilhas conhecidas
 - Em .mdx, `{` e `<` fora de crases/blocos de código quebram a compilação.

@@ -78,7 +78,24 @@ export const nav: Topic[] = [
     },
     {
         slug: "ordenacao", title: "Ordenação", icon: ArrowDownUp,
-        description: "Inserção, seleção, merge sort e companhia.", sections: defaultSections
+        description: "Inserção, seleção, merge sort e companhia.", sections: [
+            {
+                slug: "on2",
+                title: "O(n²)"
+            },
+            {
+                slug: "exercicios-on2",
+                title: "Exercícios O(n²)"
+            },
+            {
+                slug: "onlogl",
+                title: "O(nlogn)"
+            },
+            {
+                slug: "exercicios-onlogn",
+                title: "Exercícios O(nlogn)"
+            }
+        ]
     },
     {
         slug: "buscas", title: "Buscas", icon: Search,

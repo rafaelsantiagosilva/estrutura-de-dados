@@ -15,4 +15,6 @@ export const ptrColor: Record<string, string> = {
     topo: "var(--color-brand-300)",
     ini: "var(--color-ok)",
     fim: "var(--color-warn)",
+    i: "var(--color-warn)",
+    max: "var(--color-ok)",
 };
