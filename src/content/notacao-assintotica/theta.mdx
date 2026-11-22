@@ -1,0 +1,354 @@
+Se o Big O diz "o algoritmo **não passa** daqui", o **Θ (teta)** diz "o algoritmo cresce **exatamente** assim". É a notação mais precisa da disciplina e a que mais usamos para descrever o tempo de um programa. Aqui vamos ver o que ela significa, como **provar** que uma função é `Θ(...)` e como **calcular** o `Θ` de um código. 🎯
+
+## A ideia: o sanduíche 🥪
+
+Imagine que o custo do seu algoritmo é uma função `f(n)`. Dizemos que `f(n) = Θ(g(n))` quando conseguimos **espremer** `f` entre duas cópias de `g`, uma por cima (**teto**) e outra por baixo (**piso**), mudando só as constantes:
+
+```text
+c₂ · g(n)   ──────────────────   teto  (Big O)
+f(n)        ~~~~~~~~~~~~~~~~~~   o nosso algoritmo
+c₁ · g(n)   ──────────────────   piso  (Ω)
+```
+
+Ou seja, `f` e `g` têm **a mesma forma de crescimento**. Mudam só as constantes, que dependem do computador, do compilador e de detalhes de implementação.
+
+> 💡 **Analogia:** O é `≤`, Ω é `≥` e Θ é `=`.
+
+## A definição formal
+
+O **teto** é o Big O que você já conhece. O **piso** é o **Ω** (ômega), um limitante inferior:
+
+$$
+f(n) = \Omega(g(n)) \iff \exists\, c > 0,\ n_0 > 0 \ \text{ tais que } \ 0 \le c \cdot g(n) \le f(n) \ \text{ para todo } n > n_0
+$$
+
+O Θ junta os dois, com **duas constantes**, uma para cada lado:
+
+$$
+f(n) = \Theta(g(n)) \iff \exists\, c_1, c_2 > 0,\ n_0 > 0 \ \text{ tais que } \ 0 \le c_1 \cdot g(n) \le f(n) \le c_2 \cdot g(n) \ \text{ para todo } n > n_0
+$$
+
+| Constante | Papel |
+| --- | --- |
+| `c₁` | multiplica `g` para formar o **piso** |
+| `c₂` | multiplica `g` para formar o **teto** |
+| `n₀` | o ponto **a partir do qual** o sanduíche vale (valores pequenos de `n` não importam) |
+
+> 💡 Isso quer dizer que `f(n) = Θ(g(n))` é o mesmo que `f(n) = O(g(n))` **e** `f(n) = Ω(g(n))`. Ter teto e piso da mesma forma é estar no sanduíche.
+
+## Como provar que f(n) = Θ(g(n))
+
+A receita tem **duas metades**, uma para cada lado do sanduíche:
+
+1. **Teto:** troque cada termo por algo **maior** até virar `c₂ · g(n)` (igual ao que se faz no Big O).
+2. **Piso:** troque cada termo por algo **menor** (ou descarte termos positivos) até sobrar `c₁ · g(n)`.
+3. Anote `c₁`, `c₂` e um `n₀` que sirva para os dois lados (use o **maior** entre eles).
+
+### Exemplo 1: 5n + 100 = Θ(n)
+
+- **Piso:** `5n ≤ 5n + 100` é sempre verdade, então `c₁ = 5`.
+- **Teto:** `5n + 100 ≤ 6n` acontece quando `100 ≤ n`, então `c₂ = 6` e `n₀ = 100`.
+
+$$
+5n \ \le\ 5n + 100 \ \le\ 6n \qquad \text{para todo } n \ge 100
+$$
+
+> 🧠 O `n₀` foi essencial: para `n = 10`, o termo `100` pesa mais que tudo. A partir de `n = 100`, ele vira detalhe.
+
+### Exemplo 2: 3n² + 4n + 2 = Θ(n²)
+
+- **Piso:** como `4n + 2 ≥ 0`, temos `3n² ≤ 3n² + 4n + 2`. Então `c₁ = 3`.
+- **Teto:** para `n ≥ 1`, vale `n ≤ n²` e `1 ≤ n²`, então `3n² + 4n + 2 ≤ 3n² + 4n² + 2n² = 9n²`. Então `c₂ = 9`.
+
+$$
+3n^2 \ \le\ 3n^2 + 4n + 2 \ \le\ 9n^2 \qquad \text{para todo } n \ge 1
+$$
+
+Com **c₁ = 3**, **c₂ = 9** e **n₀ = 1**, o sanduíche está montado. 🎉
+
+### ⚡ Atalho para polinômios com coeficientes positivos
+
+- **c₁** = o coeficiente do **termo dominante** (o de maior grau);
+- **c₂** = a **soma de todos os coeficientes**;
+- **n₀** = 1.
+
+Foi exatamente o que deu `3` e `9` acima, e `5` e `105` no Exemplo 1 (também vale usar `c₂ = 105` com `n₀ = 1`).
+
+### Exemplo 3: n²/2 + n/2 − 1 = Θ(n²)
+
+Essa é exatamente a conta da **ordenação por seleção**. Aqui há um termo **negativo**, então o atalho não serve e precisamos de cuidado.
+
+**Teto.** Para `n ≥ 1`, vale `n/2 ≤ n²/2` e `−1 ≤ 0`:
+
+$$
+\frac{n^2}{2} + \frac{n}{2} - 1 \ \le\ \frac{n^2}{2} + \frac{n^2}{2} \ =\ n^2
+$$
+
+**Piso.** Para `n ≥ 2`, temos `n/2 ≥ 1`, logo `n/2 − 1 ≥ 0`. Portanto:
+
+$$
+\frac{n^2}{2} + \frac{n}{2} - 1 \ \ge\ \frac{n^2}{2}
+$$
+
+Com **c₁ = 1/2**, **c₂ = 1** e **n₀ = 1** (a conta do piso vale para `n > 1`, isto é, `n ≥ 2`), conferimos com números:
+
+| n | `½ · n²` (piso) | `f(n)` | `n²` (teto) |
+| --- | --- | --- | --- |
+| 2 | 2 | 2 | 4 |
+| 10 | 50 | 54 | 100 |
+| 100 | 5.000 | 5.049 | 10.000 |
+| 1.000 | 500.000 | 500.499 | 1.000.000 |
+
+Repare que `f(n)` fica **colada no piso**: a razão `f(n) / n²` se aproxima de `1/2`.
+
+### Exemplo 4: log n = Θ(lg n)
+
+Aqui, `log n` é o logaritmo na base 10 e `lg n` é o logaritmo na base 2. Pela mudança de base:
+
+$$
+\log_{10} n = \frac{\lg n}{\lg 10} \approx 0{,}30 \cdot \lg n
+$$
+
+Os dois diferem **apenas por uma constante**, então `c₁ = c₂ ≈ 0,30` e o sanduíche fica sem folga nenhuma. Por isso, em notação assintótica **a base do logaritmo não importa**.
+
+### Quando a afirmação é falsa: n² não é Θ(n) nem Θ(n³)
+
+Para refutar um Θ, basta que **um dos lados** falhe.
+
+- **`n² = Θ(n)`?** O teto falha. Se `n² ≤ c₂ · n` para todo `n > n₀`, então `n ≤ c₂` para todo `n > n₀`, o que é absurdo (basta escolher um `n` maior que `c₂`). ❌
+- **`n² = Θ(n³)`?** O piso falha. Se `c₁ · n³ ≤ n²` para todo `n > n₀`, então `c₁ · n ≤ 1`, ou seja, `n ≤ 1/c₁` para todo `n > n₀`, o que também é absurdo. ❌
+
+## Como calcular o Θ direto do código
+
+O Θ exige **mais cuidado** que o Big O, porque precisamos do teto **e** do piso. A regra de ouro é:
+
+> 🎯 **Só dá para usar Θ quando o custo cresce do mesmo jeito para qualquer entrada de tamanho `n`.** Se o tempo varia conforme o *conteúdo* da entrada, faça o Θ **por caso**.
+
+O caminho é **contar** e **simplificar**:
+
+1. Descubra **quem é o `n`**.
+2. Conte **quantas vezes** cada trecho executa. Atenção a `if`s e `return`s antecipados, que podem mudar o custo.
+3. **Some** os custos.
+4. Fique com o **termo dominante** e jogue fora a constante.
+
+### Exemplo A: laços encadeados
+
+```c
+for (int i = 0; i < n; i++)
+{
+    for (int j = 0; j < n; j++)
+    {
+        v[i] = i + j;
+    }
+}
+```
+
+Não há `if` nem `return` no meio: o custo é **idêntico** para qualquer vetor. A contagem exata é `3n² + 4n + 2` (veja o Exemplo 2), que é <ComplexityBadge>Θ(n²)</ComplexityBadge>.
+
+### Exemplo B: variável que dobra
+
+```c
+int contaDobros(int n)
+{
+    int passos = 0;
+    for (int i = 1; i < n; i = i * 2)
+    {
+        passos++;
+    }
+    return passos;
+}
+```
+
+Depois de `k` voltas, `i` vale `2ᵏ`. O laço para quando `2ᵏ = n`:
+
+$$
+2^k = n \ \Rightarrow\ \lg 2^k = \lg n \ \Rightarrow\ k = \lg n
+$$
+
+O número de voltas é sempre da ordem de `lg n`, independente de qualquer conteúdo. Então é <ComplexityBadge>Θ(lg n)</ComplexityBadge>. 🚀
+
+### Exemplo C: desvio padrão (lento e rápido)
+
+Na versão ineficiente, o laço de `n` voltas chama `media` (que percorre `n` elementos) **em toda volta**:
+
+```c
+double dvpLento(double v[], int n)
+{
+    double soma = 0, aux;
+    for (int i = 0; i < n; i++)
+    {
+        aux = v[i] - media(v, n); // media recalculada a cada volta!
+        soma += aux * aux;
+    }
+    soma = soma / (n - 1);
+    return sqrt(soma);
+}
+```
+
+São `n × n` operações para qualquer vetor: <ComplexityBadge>Θ(n²)</ComplexityBadge>. Guardando a média em uma variável antes do laço, ficamos com `Θ(n)` (a média) mais `Θ(n)` (o laço):
+
+```c
+double dvpRapido(double v[], int n)
+{
+    double soma = 0, aux, med;
+    med = media(v, n); // calculada uma vez só
+    for (int i = 0; i < n; i++)
+    {
+        aux = v[i] - med;
+        soma += aux * aux;
+    }
+    soma = soma / (n - 1);
+    return sqrt(soma);
+}
+```
+
+Resultado: <ComplexityBadge>Θ(n)</ComplexityBadge>.
+
+### Exemplo D: ordenação por seleção
+
+```c
+int maximo(int v[], int n)
+{
+    int max = 0;
+    for (int i = 1; i < n; i++)
+    {
+        if (v[i] > v[max])
+        {
+            max = i;
+        }
+    }
+    return max;
+}
+
+void ordena(int v[], int n)
+{
+    while (n > 1)
+    {
+        int max = maximo(v, n);
+
+        int aux = v[n - 1];
+        v[n - 1] = v[max];
+        v[max] = aux;
+
+        n--;
+    }
+}
+```
+
+A função `maximo` **sempre varre o trecho inteiro**, mesmo que o vetor já esteja ordenado. As chamadas têm tamanhos `n`, `n − 1`, ..., `2`, e o total é uma soma de PA:
+
+$$
+n + (n - 1) + \cdots + 3 + 2 = \frac{(n + 2)(n - 1)}{2} = \frac{n^2}{2} + \frac{n}{2} - 1
+$$
+
+No Exemplo 3 mostramos que isso é `Θ(n²)`. As demais operações são `Θ(n)`, então o algoritmo é <ComplexityBadge>Θ(n²)</ComplexityBadge> em **todos** os casos.
+
+### Exemplo E: quando NÃO existe um único Θ
+
+```c
+int busca(int v[], int n, int x)
+{
+    for (int i = 0; i < n; i++)
+    {
+        if (v[i] == x)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+```
+
+- **Melhor caso:** `x` está em `v[0]` e o laço roda uma vez: <ComplexityBadge>Θ(1)</ComplexityBadge>.
+- **Pior caso:** `x` está no fim ou não existe e o laço roda `n` vezes: <ComplexityBadge>Θ(n)</ComplexityBadge>.
+
+Como os casos crescem de formas diferentes, **nenhuma função única** descreve o algoritmo todo com Θ. Nesse caso, dizemos que o tempo é <ComplexityBadge>O(n)</ComplexityBadge> (nunca passa disso) e `Ω(1)` (nunca é menor que isso), ou damos o Θ de **cada caso**.
+
+## Θ na prática: calculando o tempo real
+
+Se `T(n) = Θ(n²)`, então para `n` grande existem `c₁` e `c₂` tais que:
+
+$$
+c_1 \cdot n^2 \ \le\ T(n) \ \le\ c_2 \cdot n^2
+$$
+
+Dividindo por `n²`, a razão `T(n) / n²` **fica presa entre duas constantes**. É por isso que podemos modelar o programa como `T(n) = c · n²` e **prever** o tempo para outros valores de `n`.
+
+Vamos fazer isso com a ordenação por seleção. Em C, medimos o tempo assim:
+
+```c
+#include <time.h>
+
+clock_t inicio = clock();
+ordena(v, n);
+clock_t fim = clock();
+
+double ms = 1000.0 * (double)(fim - inicio) / CLOCKS_PER_SEC;
+printf("Tempo de execucao: %f milisegundos\n", ms);
+```
+
+> ⚠️ **Não use compiladores online** (como o OnlineGDB) para medir tempo: eles interferem na constante. E a constante **muda de computador para computador**.
+
+No computador do professor, `ordena` com `n = 100.000` levou **10.723 ms**. Isolando a constante:
+
+$$
+c = \frac{T(n)}{n^2} = \frac{10723}{(10^5)^2} = \frac{10723}{10^{10}} \approx 1{,}07 \times 10^{-6} \ \text{ms}
+$$
+
+Agora podemos **prever** o tempo para outros tamanhos, sem precisar esperar o programa rodar:
+
+$$
+T(200.000) = (2 \times 10^5)^2 \cdot 1{,}07 \times 10^{-6} = 4 \times 10^{10} \cdot 1{,}07 \times 10^{-6} \approx 42.800 \ \text{ms} \approx 42{,}8 \ \text{s}
+$$
+
+Ao executar de verdade, o resultado medido foi **42,734 s**. A previsão ficou muito próxima! 🎯
+
+Para `n = 10.000.000`, a mesma conta dá `1,07 × 10⁸ ms`, ou seja, cerca de **29,72 horas**. Testar isso na prática seria bem complicado, e é por isso que **estimamos** pela fórmula.
+
+### ⚠️ Cuidado com a regra de três!
+
+Se para um certo `n` o programa gastou 1 s, quanto tempo leva para `10n`?
+
+- ❌ **Raciocínio errado:** "se `n` gasta 1 s, então `10n` gasta 10 s". Isso só vale para funções **lineares**.
+- ✅ **Raciocínio correto:** a função é uma **parábola**:
+
+$$
+T(10n) = c \cdot (10n)^2 = 100 \cdot c \cdot n^2 = 100 \cdot T(n)
+$$
+
+Para `10n`, o tempo é **100 vezes maior**. Em geral, num algoritmo quadrático, **multiplicar `n` por `k` multiplica o tempo por `k²`**.
+
+## O que o Θ aceita e o que não aceita
+
+O Θ é a mais restrita das três notações. Veja `f(n) = n²`:
+
+| Afirmação | Vale? | Comentário |
+| --- | --- | --- |
+| `n² = O(n²)` | ✅ | teto justo |
+| `n² = O(n³)` | ✅ | teto verdadeiro, mas folgado |
+| `n² = Ω(n²)` | ✅ | piso justo |
+| `n² = Ω(n)` | ✅ | piso verdadeiro, mas folgado |
+| `n² = Θ(n²)` | ✅ | teto **e** piso justos |
+| `n² = Θ(n)` | ❌ | o teto `n` é baixo demais |
+| `n² = Θ(n³)` | ❌ | o piso `n³` é alto demais |
+
+> 🎯 O e Ω aceitam afirmações "verdadeiras mas frouxas". O Θ **não aceita folga**: se você escreveu Θ, o crescimento é exatamente aquele.
+
+> 🧩 **Desafio:** tente provar com as definições que `f(n) = Θ(g(n))` se e somente se `f(n) = O(g(n))` e `f(n) = Ω(g(n))`. Ela é a Questão 14 da apostila (repare que o enunciado impresso tem um errinho de digitação: o certo é `f(n) = Θ(g(n))`).
+
+## Armadilhas comuns
+
+1. **O `=` não é igualdade de verdade.** Escrevemos `f(n) = Θ(g(n))`, mas o Θ representa uma **família de funções**. Nunca escreva `Θ(n²) = 3n² + 4n + 2` (de trás para frente).
+2. **`2n` não é `2ⁿ`.** `Θ(2n)` é o mesmo que `Θ(n)` (linear), enquanto `Θ(2ⁿ)` é exponencial. Uma constante *multiplicando* some, mas uma constante no *expoente* não: `Θ(3ⁿ)` e `Θ(2ⁿ)` são classes **diferentes**.
+3. **Θ não é "mais rápido" que O.** Ele é mais **preciso**. Descreve a forma do crescimento, e não o desempenho em segundos.
+4. **Θ(n) e Θ(n²) são classes diferentes**, e nenhuma constante fecha essa distância: por maior que seja `c`, a partir de algum `n` o `n²` passa por cima.
+5. **O `n` é o tamanho da entrada**, e não os valores guardados nela.
+
+## Resumo rápido
+
+- **Θ(g)** significa "cresce **exatamente** como `g`": a função fica entre `c₁ · g` e `c₂ · g` a partir de um `n₀`.
+- `f = Θ(g)` equivale a `f = O(g)` **e** `f = Ω(g)`.
+- Para **provar**: monte o teto (troque por algo maior) **e** o piso (troque por algo menor). Em polinômios positivos, `c₁` é o coeficiente do termo dominante e `c₂` é a soma dos coeficientes.
+- Para **calcular no código**: conte, some e fique com o termo dominante, mas só use Θ se o custo for o mesmo para qualquer entrada. Senão, dê o Θ **por caso**.
+- A base do logaritmo não importa: `log n = Θ(lg n)`.
+- A razão `T(n) / n²` de um programa `Θ(n²)` fica entre duas constantes, e isso justifica estimar tempos com `T(n) = c · n²`. 🚀

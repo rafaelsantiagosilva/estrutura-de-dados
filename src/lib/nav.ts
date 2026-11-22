@@ -62,7 +62,16 @@ export const nav: Topic[] = [
     },
     {
         slug: "tempo-de-execucao", title: "Tempo de Execução", icon: Timer,
-        description: "Como contar operações e montar a função T(n).", sections: defaultSections
+        description: "Como contar operações e montar a função T(n).", sections: [
+            {
+                slug: "explicacao",
+                title: "Explicação"
+            },
+            {
+                slug: "exercicios",
+                title: "Exercícios"
+            }
+        ]
     },
     {
         slug: "listas-ligadas", title: "Listas Ligadas", icon: Link2,

@@ -1,0 +1,386 @@
+"Qual é o tempo de execução desse código?" pode significar duas perguntas diferentes:
+
+1. **Qual é a forma de crescimento?** A resposta é uma notação: `Θ(n)`, `O(n²)`, `Θ(lg n)`...
+2. **Quanto tempo vai levar de verdade?** A resposta é em segundos, minutos ou dias, para um `n` específico, no **seu** computador.
+
+Esta página mostra como responder às duas, passo a passo, com o caminho completo: ⏱️
+
+```text
+código  →  contar operações T(n)  →  simplificar (notação)  →  medir a constante c  →  prever o tempo em segundos
+```
+
+## Parte 1: do código até o T(n)
+
+### O que conta como uma operação?
+
+Chamamos de **operação** uma instrução simples: uma atribuição, uma comparação, um incremento, uma conta com acesso a vetor. Cada uma custa `1`. Para estruturas maiores, usamos estas fórmulas:
+
+| Trecho | Custo |
+| --- | --- |
+| Instrução simples | `1` |
+| Trechos em sequência | a **soma** dos custos |
+| `for` de `n` voltas, com corpo de custo `C` | `1 + (n + 1) + n + n · C` |
+| `if / else` | a condição mais o custo do **pior** ramo (ou de cada ramo, se você analisa por caso) |
+| Chamada de função | o custo da função, com os argumentos usados |
+
+No `for`, os termos vêm de: `1` da inicialização (`i = 0`), `n + 1` comparações (`i < n`, incluindo a que falha e encerra o laço), `n` incrementos (`i++`) e `n · C` do corpo. Simplificando, são `2n + 2 + n · C`.
+
+> 💡 Se você contar `v[i] = i + j` como 3 operações em vez de 1, só mudam as constantes. A **notação** que sai no final é a mesma. Por isso, não se desespere com a "contagem perfeita".
+
+### Exemplo 1: um laço simples
+
+```c
+for (int i = 0; i < n; i++)
+{
+    v[i] = i;
+}
+```
+
+O corpo custa `C = 1`. Então:
+
+$$
+T(n) = 2n + 2 + n \cdot 1 = 3n + 2
+$$
+
+### Exemplo 2: laços encadeados
+
+```c
+for (int i = 0; i < n; i++)
+{
+    for (int j = 0; j < n; j++)
+    {
+        v[i] = i + j;
+    }
+}
+```
+
+Trabalhamos de **dentro para fora**. O laço interno é o do Exemplo 1, que custa `3n + 2`. Ele é o corpo do laço externo, com `C = 3n + 2`:
+
+$$
+T(n) = 2n + 2 + n(3n + 2) = 3n^2 + 4n + 2
+$$
+
+### Exemplo 3: laços em sequência
+
+```c
+for (int i = 0; i < n; i++)
+{
+    a++;                          // custo 3n + 2
+}
+
+for (int i = 0; i < n; i++)
+{
+    for (int j = 0; j < n; j++)
+    {
+        b++;                      // custo 3n² + 4n + 2
+    }
+}
+```
+
+Em sequência, **somamos**:
+
+$$
+T(n) = (3n + 2) + (3n^2 + 4n + 2) = 3n^2 + 7n + 4
+$$
+
+### Exemplo 4: laço triangular
+
+```c
+for (int i = 0; i < n; i++)
+{
+    for (int j = 0; j < i; j++)
+    {
+        cont++;
+    }
+}
+```
+
+Agora o laço interno **depende de `i`**: para um `i` fixo, ele custa `1 + (i + 1) + i + i = 3i + 2`. O externo soma isso para cada `i` de `0` até `n − 1`:
+
+$$
+T(n) = 2n + 2 + \sum_{i=0}^{n-1} (3i + 2) = 2n + 2 + 3 \cdot \frac{n(n-1)}{2} + 2n
+$$
+
+Simplificando:
+
+$$
+T(n) = \frac{3}{2}n^2 + \frac{5}{2}n + 2
+$$
+
+> 🧪 **Conferindo com `n = 2`:** para `i = 0` o interno custa `2` e para `i = 1` custa `5`, somando `7`. O externo fica `1 + 3 + 2 + 7 = 13`. Pela fórmula: `6 + 5 + 2 = 13`. ✅
+
+### ⚡ Atalho: conte só a operação dominante
+
+Contar tudo é trabalhoso. Em vez disso, escolha a **operação que mais se repete** (quase sempre a do corpo do laço mais interno) e conte **quantas vezes ela executa**:
+
+- Exemplo 2: `v[i] = i + j` executa `n × n = n²` vezes. Resultado: `Θ(n²)`.
+- Exemplo 4: `cont++` executa `0 + 1 + ... + (n − 1) = n(n − 1)/2` vezes. Resultado: `Θ(n²)`.
+
+O resultado assintótico é o mesmo que o da contagem completa, com muito menos conta. Use a contagem completa quando precisar do `T(n)` **exato** (para checar uma fórmula, por exemplo).
+
+### E quando o custo depende da entrada?
+
+Num código com `return` ou `break` antecipado, o número de operações muda conforme o **conteúdo** dos dados. Aí analisamos **por caso**:
+
+```c
+int busca(int v[], int n, int x)
+{
+    for (int i = 0; i < n; i++)
+    {
+        if (v[i] == x)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+```
+
+| Caso | Quando acontece | Voltas | Tempo |
+| --- | --- | --- | --- |
+| **Melhor** | `x` está em `v[0]` | `1` | <ComplexityBadge>Θ(1)</ComplexityBadge> |
+| **Pior** | `x` está no fim ou não existe | `n` | <ComplexityBadge>Θ(n)</ComplexityBadge> |
+| **Médio** | `x` está no vetor, com a mesma chance em cada posição | `(n + 1) / 2` | <ComplexityBadge>Θ(n)</ComplexityBadge> |
+
+O caso médio vem da média das posições possíveis:
+
+$$
+\frac{1 + 2 + 3 + \cdots + n}{n} = \frac{1}{n} \cdot \frac{n(n+1)}{2} = \frac{n + 1}{2}
+$$
+
+> 🎯 Como os casos crescem de formas diferentes, o algoritmo todo **não tem um único Θ**. Damos o `Θ` de cada caso, ou dizemos `O(n)` para cobrir todos.
+
+### Funções recursivas simples: desdobrando
+
+```c
+int somaAte(int n)
+{
+    if (n == 0)
+    {
+        return 0;
+    }
+    return n + somaAte(n - 1);
+}
+```
+
+Chame de `c` o custo do trabalho que **não** é a chamada recursiva (o `if`, a soma, o `return`). Cada chamada faz esse trabalho e chama a próxima com `n − 1`:
+
+$$
+T(n) = T(n-1) + c = T(n-2) + 2c = T(n-3) + 3c = \cdots = T(0) + n \cdot c
+$$
+
+O resultado é uma função linear em `n`: <ComplexityBadge>Θ(n)</ComplexityBadge>. A técnica é **substituir a fórmula nela mesma** até enxergar o padrão.
+
+## Parte 2: do T(n) até a notação
+
+Com o `T(n)` em mãos, é só aplicar a receita das notações:
+
+1. **Fique com o termo dominante** (o que mais cresce quando `n` é grande).
+2. **Jogue fora a constante** que o multiplica.
+
+| T(n) exato | Termo dominante | Notação |
+| --- | --- | --- |
+| `3n + 2` | `3n` | <ComplexityBadge>Θ(n)</ComplexityBadge> |
+| `3n² + 4n + 2` | `3n²` | <ComplexityBadge>Θ(n²)</ComplexityBadge> |
+| `3n² + 7n + 4` | `3n²` | <ComplexityBadge>Θ(n²)</ComplexityBadge> |
+| `(3/2)n² + (5/2)n + 2` | `(3/2)n²` | <ComplexityBadge>Θ(n²)</ComplexityBadge> |
+| `n²/2 + n/2 − 1` | `n²/2` | <ComplexityBadge>Θ(n²)</ComplexityBadge> |
+| `n lg n + 5n` | `n lg n` | <ComplexityBadge>Θ(n lg n)</ComplexityBadge> |
+
+Para decidir quem é o termo dominante, use a ordem de crescimento: `1` < `lg n` < `n` < `n lg n` < `n²` < `n³` < `2ⁿ`.
+
+Para `n = 1.000`, o `T(n) = 3n² + 4n + 2` vale `3.004.002`. O `3n²` sozinho é `3.000.000`, um erro de apenas **0,13%**. É por isso que descartar os termos menores é seguro quando `n` é grande.
+
+## Parte 3: da notação até os segundos
+
+A notação diz **como** o tempo cresce, mas não diz **quanto** ele vale. Para chegar em segundos, usamos um **modelo**:
+
+$$
+T(n) = c \cdot f(n)
+$$
+
+onde `f(n)` é a função da notação (como `n²`) e `c` é uma constante em segundos (ou milissegundos) **por operação**. Essa constante depende do computador, do compilador e de como o código foi escrito.
+
+### Por que a constante importa pouco na comparação
+
+Dois programas: `T₁(n) = n · 10⁻⁶ s` e `T₂(n) = n² · 10⁻⁶ s`. Para `n = 1.000.000`:
+
+| Programa | Conta | Tempo |
+| --- | --- | --- |
+| 1 | `10⁶ · 10⁻⁶` | **1 s** |
+| 2 | `(10⁶)² · 10⁻⁶ = 10⁶` | **1.000.000 s ≈ 11,6 dias** |
+
+Se a constante do programa 2 passasse de `10⁻⁶` para `3 × 10⁻⁶`, ele continuaria **milhões de vezes** mais lento. Quem manda é a forma de crescimento. Mas, para **prever segundos**, a constante é indispensável. Vamos descobri-la.
+
+### Receita: descobrindo `c` e prevendo o tempo
+
+1. Descubra o `f(n)` do código (Partes 1 e 2).
+2. **Meça** o tempo `T(n₁)` para um `n₁` viável no seu computador.
+3. Calcule a constante: `c = T(n₁) / f(n₁)`.
+4. **Preveja** o tempo para outro `n` com `T(n) = c · f(n)`.
+
+#### Exemplo: ordenação por seleção
+
+A função `ordena` é `Θ(n²)`, então `T(n) = c · n²`. No computador do professor, com `n = 100.000`, o tempo medido foi **10.723 ms**:
+
+$$
+c = \frac{T(n_1)}{f(n_1)} = \frac{10723}{(10^5)^2} = \frac{10723}{10^{10}} \approx 1{,}07 \times 10^{-6} \ \text{ms}
+$$
+
+Agora a previsão para `n = 200.000`:
+
+$$
+T(200.000) = (2 \times 10^5)^2 \cdot 1{,}07 \times 10^{-6} = 4 \times 10^{10} \cdot 1{,}07 \times 10^{-6} \approx 42.800 \ \text{ms} = 42{,}8 \ \text{s}
+$$
+
+Ao executar de verdade, o resultado foi **42,734 s**. A previsão ficou muito próxima! 🎯
+
+E para `n = 10.000.000`:
+
+$$
+T(10^7) = (10^7)^2 \cdot 1{,}07 \times 10^{-6} = 1{,}07 \times 10^8 \ \text{ms} = 107.000 \ \text{s} \approx 29{,}72 \ \text{horas}
+$$
+
+Testar isso na prática seria bem complicado, e é por isso que **estimamos** pela fórmula.
+
+### Atenção às unidades
+
+O erro mais comum nessas contas é misturar unidades. Tenha esta tabela à mão:
+
+| Unidade | Em segundos |
+| --- | --- |
+| 1 milissegundo (ms) | `10⁻³ s` |
+| 1 microssegundo (µs) | `10⁻⁶ s` |
+| 1 minuto | `60 s` |
+| 1 hora | `3.600 s` |
+| 1 dia | `86.400 s` |
+| 1 ano | `31.536.000 s` (365 dias) |
+| 1 século | `3.153.600.000 s` |
+
+No exemplo acima, `c` ficou em **milissegundos**. Por isso o `T` também saiu em milissegundos, e só depois dividimos por `1000` (para segundos) e por `3600` (para horas).
+
+### Atalho: escalando sem calcular a constante
+
+Se você já mediu um tempo e só quer saber "quanto vai levar para outro `n`", **nem precisa** calcular `c`. Ela se cancela na razão:
+
+$$
+\frac{T(k \cdot n)}{T(n)} = \frac{c \cdot (kn)^2}{c \cdot n^2} = k^2
+$$
+
+Ou seja, para uma função `Θ(nᵖ)`, **multiplicar `n` por `k` multiplica o tempo por `kᵖ`**:
+
+| Notação | Se `n` for multiplicado por `k` | Se `n` for multiplicado por 10 |
+| --- | --- | --- |
+| `Θ(n)` | tempo × `k` | × 10 |
+| `Θ(n²)` | tempo × `k²` | × 100 |
+| `Θ(n³)` | tempo × `k³` | × 1.000 |
+| `Θ(lg n)` | só **soma** uma constante | soma cerca de `3,3 · c` |
+| `Θ(2ⁿ)` | com `n + 1` o tempo **dobra** | `n + 1` multiplica o tempo por 2 |
+
+**Exemplo com `Θ(n²)`:** como `n` foi de `100.000` para `1.000.000` (×10), o tempo sobe ×100:
+
+$$
+T(10^6) = 100 \cdot 10723 \ \text{ms} = 1.072.300 \ \text{ms} \approx 17{,}9 \ \text{minutos}
+$$
+
+**Exemplo com `Θ(n³)`:** um programa gastou 2 s com `n = 500`. Para `n = 1.500` (×3), o tempo fica ×27:
+
+$$
+T(1500) = 27 \cdot 2 = 54 \ \text{s}
+$$
+
+**Exemplo com `Θ(n lg n)`:** um programa gastou 2 s com `n = 10⁶`. Para `n = 10⁷`, o `lg n` também cresce, então não é exatamente ×10:
+
+$$
+T(10^7) = 2 \cdot \frac{10^7 \cdot \lg 10^7}{10^6 \cdot \lg 10^6} \approx 2 \cdot 10 \cdot \frac{23{,}25}{19{,}93} \approx 23{,}3 \ \text{s}
+$$
+
+### ⚠️ Cuidado com a regra de três!
+
+Se para um certo `n` o programa gastou 1 s, quanto tempo leva para `10n`?
+
+- ❌ **Raciocínio errado:** "se `n` gasta 1 s, então `10n` gasta 10 s". A regra de três só vale para funções **lineares**.
+- ✅ **Raciocínio correto:** num programa `Θ(n²)`, o tempo é uma **parábola**:
+
+$$
+T(10n) = c \cdot (10n)^2 = 100 \cdot c \cdot n^2 = 100 \cdot T(n)
+$$
+
+Para `10n`, o tempo é **100 vezes maior**.
+
+### O caminho inverso: qual `n` cabe no meu tempo?
+
+Às vezes a pergunta é ao contrário: "tenho um tempo limite, qual o maior `n` que consigo processar?". Basta **isolar o `n`** na fórmula.
+
+**Quadrático.** Com `T(n) = n² · 10⁻⁶ s`, em 1 hora (`3.600 s`):
+
+$$
+n^2 \cdot 10^{-6} = 3600 \ \Rightarrow\ n^2 = 3{,}6 \times 10^9 \ \Rightarrow\ n = 60.000
+$$
+
+**Ordenação por seleção** (com `c ≈ 1,07 × 10⁻⁶ ms`), em 1 minuto (`60.000 ms`):
+
+$$
+n^2 = \frac{60000}{1{,}07 \times 10^{-6}} \approx 5{,}6 \times 10^{10} \ \Rightarrow\ n \approx 237.000
+$$
+
+**Exponencial.** Com `T(n) = 10ⁿ × 10⁻⁶ s`, qual `n` cabe em 1 século (`3.153.600.000 s`)? Aqui usamos o logaritmo:
+
+$$
+10^n \times 10^{-6} = 3.153.600.000 \ \Rightarrow\ n = \log_{10}\left(3.153.600.000 \times 10^6\right) \approx 15{,}49
+$$
+
+Para `n = 15` ainda cabe em menos de um século, mas para **`n = 16` já passa de um século**. Em 1 hora, o mesmo cálculo dá `n ≈ 9,56`: só `n ≤ 9` cabe. Algoritmos exponenciais só rodam em tempo útil para valores **muito pequenos** de `n`. 😱
+
+## Parte 4: medindo na prática
+
+### Medindo o tempo em C
+
+```c
+#include <time.h>
+
+clock_t inicio = clock();
+ordena(v, n);
+clock_t fim = clock();
+
+double ms = 1000.0 * (double)(fim - inicio) / CLOCKS_PER_SEC;
+printf("Tempo de execucao: %f milisegundos\n", ms);
+```
+
+Meça **só o trecho que interessa** (aqui, a ordenação), e não a geração do vetor nem a impressão.
+
+### Cuidados ao medir
+
+- **Não use compiladores online** (como o OnlineGDB): eles interferem na constante.
+- **Use sempre as mesmas opções de compilação.** Otimizações do compilador (como `-O2`) mudam a constante e podem até eliminar código cujo resultado não é usado.
+- **Evite `n` pequeno.** Se o tempo medido for quase zero, a resolução do relógio e o "ruído" do computador dominam o resultado. Escolha `n` grande o suficiente para o tempo passar de algumas dezenas de milissegundos, e repita a medição para tirar uma média.
+- **Lembre que `c` muda de computador para computador.** Uma constante só vale para a máquina em que foi medida.
+
+### Por que a constante só se estabiliza com n grande
+
+Se `T(n) = Θ(n²)`, existem `c₁`, `c₂` e `n₀` tais que, para `n > n₀`:
+
+$$
+c_1 \ \le\ \frac{T(n)}{n^2} \ \le\ c_2
+$$
+
+Ou seja, a razão `T(n) / n²` (a "constante medida" para cada `n`) fica **presa entre duas constantes**, mas só **a partir de `n₀`**. Para `n` pequeno, os termos menores (como `4n` e `2`) e o ruído da medição fazem essa razão oscilar. À medida que `n` cresce, o termo dominante prevalece e a razão **tende a se estabilizar**. É por isso que usamos um `n` grande para calcular `c`.
+
+## Armadilhas comuns
+
+1. **Prever segundos só com a notação.** `Θ(n²)` diz a forma do crescimento, mas não o valor. Sem a constante `c`, não dá para chegar em segundos.
+2. **Aplicar regra de três em função não linear.** Use a razão `kᵖ`, como na tabela de escalas.
+3. **Misturar unidades.** Se `c` está em milissegundos, o resultado sai em milissegundos.
+4. **Medir com `n` pequeno.** O tempo mal aparece e a constante sai errada.
+5. **Esquecer o que muda com a entrada.** Se há `return` ou `break` antecipado, o tempo depende do **caso**. Analise melhor, pior e médio separadamente.
+6. **Esquecer laços escondidos em funções.** Uma função chamada dentro de um laço multiplica o custo pelo número de voltas.
+
+## Resumo rápido
+
+- **Do código ao `T(n)`:** conte as operações de dentro para fora. `for` com corpo `C` custa `2n + 2 + nC`, laços encadeados multiplicam e trechos em sequência somam.
+- **Atalho:** conte só a operação dominante (a mais repetida).
+- **Do `T(n)` à notação:** fique com o termo dominante e jogue fora a constante.
+- **Da notação aos segundos:** use `T(n) = c · f(n)`. Meça `T(n₁)`, calcule `c = T(n₁) / f(n₁)` e preveja os outros `n`.
+- **Sem calcular `c`:** em `Θ(nᵖ)`, multiplicar `n` por `k` multiplica o tempo por `kᵖ`.
+- **Inverso:** para achar o `n` que cabe em um tempo, isole o `n` (use logaritmo nos exponenciais).
+- **Nunca** use regra de três em funções não lineares, e confira sempre as **unidades**. 🚀

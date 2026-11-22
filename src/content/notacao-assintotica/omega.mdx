@@ -1,0 +1,364 @@
+Se o Big O diz "o algoritmo **não passa** daqui", o **Ω (ômega)** diz o contrário: "o algoritmo **não custa menos** que isso". É o **piso**, o limitante inferior. Aqui vamos ver o que ele significa, como **provar** que uma função é `Ω(...)` e como **calcular** o `Ω` de um código. 🛟
+
+## A ideia: o piso
+
+Imagine que o custo do seu algoritmo é uma função `f(n)`. Dizemos que `f(n) = Ω(g(n))` quando `g(n)` serve de **piso** para `f(n)`: a partir de certo ponto, `f` **nunca fica abaixo** de um múltiplo de `g`.
+
+```text
+f(n)        ~~~~~~~~~~~~~~~~~~   o nosso algoritmo
+c · g(n)    ──────────────────   piso  (Ω)
+```
+
+> 💡 **Analogia:** O é `≤`, Ω é `≥` e Θ é `=`. O Ω é o "maior ou igual" da notação assintótica.
+
+Para que serve um piso? Para dizer **quanto trabalho é inevitável**. Se um algoritmo é `Ω(n²)`, nenhuma entrada consegue fazê-lo gastar menos que algo proporcional a `n²`.
+
+## A definição formal
+
+$$
+f(n) = \Omega(g(n)) \iff \exists\, c > 0,\ n_0 > 0 \ \text{ tais que } \ 0 \le c \cdot g(n) \le f(n) \ \text{ para todo } n > n_0
+$$
+
+É quase igual à do Big O, só que a desigualdade principal **virou de lado**:
+
+| Parte | Significado |
+| --- | --- |
+| `f(n)` | o custo real do algoritmo (por exemplo, `3n² + 4n + 2`) |
+| `g(n)` | o piso que estamos testando (por exemplo, `n²`) |
+| `c` | uma **constante** que encolhe (ou estica) o piso para ele caber embaixo de `f` |
+| `n₀` | o ponto **a partir do qual** o piso vale. Valores pequenos de `n` não importam |
+
+> 💡 Para provar um `Ω`, **você escolhe** `c` e `n₀`. Basta que **exista** algum par que funcione.
+
+Lê-se `f(n) = Ω(g(n))` como "`f` é ômega de `g`". Neste caso, dizemos que `f` é **limitada inferiormente** por `g`.
+
+## Como provar que f(n) = Ω(g(n))
+
+No Big O, trocávamos cada termo por algo **maior**. No Ω fazemos o oposto:
+
+1. Escreva `f(n)` e escolha o **piso candidato** `g(n)` (o termo que mais cresce).
+2. Troque cada termo por algo **menor**, ou **descarte** os termos positivos que sobram (descartar um termo positivo só diminui o valor).
+3. O que sobrar é `c · g(n)`. Anote o `c` e o `n₀`.
+
+### Exemplo 1: 3n² + 4n + 2 = Ω(n²)
+
+Como `4n + 2 ≥ 0`, podemos descartá-los:
+
+$$
+3n^2 + 4n + 2 \ \ge\ 3n^2
+$$
+
+Portanto **c = 3** e **n₀ = 1**. 🎉
+
+### Exemplo 2: 5n + 100 = Ω(n)
+
+Descartando o `100`:
+
+$$
+5n + 100 \ \ge\ 5n
+$$
+
+Portanto **c = 5** e **n₀ = 1**.
+
+### Exemplo 3: n lg n + 5n = Ω(n lg n)
+
+Aqui `lg n` é o logaritmo na base 2. Descartando o `5n`, que é positivo:
+
+$$
+n \lg n + 5n \ \ge\ n \lg n
+$$
+
+Portanto **c = 1** e **n₀ = 1**.
+
+### Exemplo 4: n²/2 + n/2 − 1 = Ω(n²)
+
+Agora há um termo **negativo** (`−1`), então não dá para só descartar. Mas o termo `n/2` consegue "pagar" por ele: para `n ≥ 2`, temos `n/2 ≥ 1`, logo `n/2 − 1 ≥ 0`. Então:
+
+$$
+\frac{n^2}{2} + \frac{n}{2} - 1 \ \ge\ \frac{n^2}{2}
+$$
+
+Portanto **c = 1/2** e **n₀ = 1** (a conta vale para `n > 1`, isto é, `n ≥ 2`).
+
+### Exemplo 5: n³ − 50n² + 8 = Ω(n³)
+
+Esse é o exemplo mais traiçoeiro: o `−50n²` é grande e negativo. Para `n` pequeno, a função até é **negativa**! Por isso precisamos de um `n₀` bem escolhido.
+
+Para `n ≥ 100`, vale `n/2 ≥ 50`, e então `50n² ≤ n³/2`. Assim:
+
+$$
+n^3 - 50n^2 + 8 \ \ge\ n^3 - \frac{n^3}{2} + 8 \ \ge\ \frac{n^3}{2}
+$$
+
+Portanto **c = 1/2** e **n₀ = 100**. Para conferir: em `n = 100`, `f = 1.000.000 − 500.000 + 8 = 500.008`, que é `≥ 500.000`. ✅
+
+> 🧠 **Moral da história:** termos negativos exigem cuidado. Você precisa de um `n₀` grande o suficiente para o termo dominante **vencer** o negativo.
+
+### ⚡ Atalho para polinômios
+
+- Se **todos os coeficientes são positivos**: `c` = o coeficiente do **termo dominante** e `n₀ = 1`. É só descartar o resto (Exemplo 1).
+- Se **há termos negativos**: use um `c` menor que o coeficiente dominante (como `1/2`) e um `n₀` maior, até o termo dominante cobrir o negativo (Exemplos 4 e 5).
+
+### O piso também pode ser folgado
+
+Todas as afirmações abaixo são **verdadeiras** para `f(n) = n²`:
+
+- `n² = Ω(n²)`
+- `n² = Ω(n)`
+- `n² = Ω(√n)`
+- `n² = Ω(log n)`
+
+Isso acontece porque o `Ω` só promete "**não custa menos** que isso". Mas só a primeira é **informativa**. Por convenção, damos o **maior piso** que conseguimos provar.
+
+### Quando a afirmação é falsa: n não é Ω(n²)
+
+Para mostrar que algo **não** é `Ω(...)`, supomos que seja e chegamos a um absurdo. Suponha que `c · n² ≤ n` para todo `n > n₀`. Dividindo por `n`, teríamos `c · n ≤ 1`, ou seja, `n ≤ 1/c` para **todo** `n > n₀`. Mas é só escolher um `n` maior que `1/c` e maior que `n₀` para quebrar a desigualdade. Logo, `n ≠ Ω(n²)`. ❌
+
+## Como calcular o Ω direto do código
+
+O caminho é **contar** e **simplificar**, mas agora procurando o custo **mínimo garantido**:
+
+1. Descubra **quem é o `n`** (o tamanho da entrada).
+2. Veja **quantas vezes, no mínimo,** cada trecho executa, olhando também o caminho **mais barato** do código.
+3. **Some** os custos.
+4. Fique com o **termo dominante** e jogue fora a constante.
+
+> 🎯 **Regra de ouro:** para dizer `Ω(g)` do algoritmo **inteiro**, o caminho mais barato (o melhor caso) já precisa custar `g`. Se uma entrada "sortuda" faz o código gastar bem menos, o piso do algoritmo cai.
+
+### Regra 1: instruções simples custam Ω(1)
+
+Atribuições, contas e comparações levam um tempo **constante**.
+
+### Regra 2: laço de n voltas, sem saída antecipada
+
+```c
+int soma = 0;
+for (int i = 0; i < n; i++)
+{
+    soma += v[i];
+}
+```
+
+O corpo executa **sempre** `n` vezes, para qualquer vetor: **Ω(n)**.
+
+### Regra 3: laços encadeados
+
+Dois laços de `n` voltas, um dentro do outro, sem `return` nem `break`, fazem `n × n` operações em qualquer entrada: **Ω(n²)**. Foi o código com contagem exata `3n² + 4n + 2` (Exemplo 1).
+
+### Regra 4: em uma soma, o piso é o maior termo
+
+```c
+for (int i = 0; i < n; i++)
+{
+    a++;                          // n operações
+}
+
+for (int i = 0; i < n; i++)
+{
+    for (int j = 0; j < n; j++)
+    {
+        b++;                      // n * n operações
+    }
+}
+```
+
+O custo total é `n + n²`. Como `n ≥ 0`, descartamos o `n` e ficamos com `n + n² ≥ n²`. Resultado: **Ω(n²)**.
+
+### Regra 5: laço triangular
+
+```c
+for (int i = 0; i < n; i++)
+{
+    for (int j = 0; j < i; j++)
+    {
+        cont++;
+    }
+}
+```
+
+O laço interno roda `i` vezes, com `i` indo de `0` até `n − 1`. O total é uma **soma de PA**:
+
+$$
+0 + 1 + 2 + \cdots + (n - 1) = \frac{n(n-1)}{2}
+$$
+
+Para `n ≥ 2`, vale `n − 1 ≥ n/2`, e então:
+
+$$
+\frac{n(n-1)}{2} \ \ge\ \frac{n \cdot n/2}{2} \ =\ \frac{n^2}{4}
+$$
+
+Portanto **c = 1/4** e `n₀ = 1`, e o código é **Ω(n²)**.
+
+### Regra 6: variável que dobra
+
+```c
+int contaDobros(int n)
+{
+    int passos = 0;
+    for (int i = 1; i < n; i = i * 2)
+    {
+        passos++;
+    }
+    return passos;
+}
+```
+
+Depois de `k` voltas, `i` vale `2ᵏ`. O laço para quando `2ᵏ = n`:
+
+$$
+2^k = n \ \Rightarrow\ \lg 2^k = \lg n \ \Rightarrow\ k = \lg n
+$$
+
+O número de voltas é sempre da ordem de `lg n`, para qualquer `n`. Logo, **Ω(lg n)**. 🚀
+
+### Regra 7: if/else, o piso é o ramo mais barato
+
+```c
+if (n % 2 == 0)
+{
+    for (int i = 0; i < n; i++)
+    {
+        a++;                      // n operações
+    }
+}
+else
+{
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            b++;                  // n * n operações
+        }
+    }
+}
+```
+
+Só um dos ramos executa. Em **todo** `n`, o custo é **pelo menos** o do ramo mais barato, `n`. Então o código é **Ω(n)**.
+
+> 🧠 Repare na diferença: no Big O, o `if/else` valia o **ramo mais caro** (`O(n²)`); no Ω, vale o **mais barato** (`Ω(n)`). Esse código é `Ω(n)` e `O(n²)`, e **não existe** um `Θ` único para ele.
+
+### Regra 8: saída antecipada derruba o piso
+
+```c
+int busca(int v[], int n, int x)
+{
+    for (int i = 0; i < n; i++)
+    {
+        if (v[i] == x)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+```
+
+- Se `x` está em `v[0]`, o laço roda **uma vez**. Para o algoritmo todo, o piso é só <ComplexityBadge>Ω(1)</ComplexityBadge>.
+- Se `x` está no fim (ou não existe), o laço roda `n` vezes. **No pior caso**, o custo é <ComplexityBadge>Ω(n)</ComplexityBadge>.
+
+> 🎯 Por isso, sempre diga **de qual caso** você está falando: "a busca é `Ω(1)` no geral" e "é `Ω(n)` no pior caso" são duas afirmações **verdadeiras e diferentes**.
+
+### Regra 9: função dentro de um laço, multiplique
+
+Se uma função de custo `Ω(n)` é chamada **dentro** de um laço de `n` voltas (sem saída antecipada), o total é `n × n = Ω(n²)`.
+
+## Caso real 1: desvio padrão
+
+Aqui, `media` percorre os `n` elementos **sempre**, então é **Ω(n)**.
+
+```c
+double dvpLento(double v[], int n)
+{
+    double soma = 0, aux;
+    for (int i = 0; i < n; i++)
+    {
+        aux = v[i] - media(v, n); // media recalculada a cada volta!
+        soma += aux * aux;
+    }
+    soma = soma / (n - 1);
+    return sqrt(soma);
+}
+```
+
+- O laço de `n` voltas não tem saída antecipada, e cada volta chama `media`: `n × n`. Pela Regra 9, `dvpLento` é **Ω(n²)**.
+
+Guardando a média numa variável antes do laço (`dvpRapido`), ficamos com `Ω(n)` (a média) mais `Ω(n)` (o laço), ou seja, **Ω(n)**. Nesse caso o piso é `n`, e não dá para fazer melhor do que isso: para calcular o desvio padrão, **todo elemento precisa ser lido**.
+
+## Caso real 2: ordenação por seleção
+
+```c
+int maximo(int v[], int n)
+{
+    int max = 0;
+    for (int i = 1; i < n; i++)
+    {
+        if (v[i] > v[max])
+        {
+            max = i;
+        }
+    }
+    return max;
+}
+
+void ordena(int v[], int n)
+{
+    while (n > 1)
+    {
+        int max = maximo(v, n);
+
+        int aux = v[n - 1];
+        v[n - 1] = v[max];
+        v[max] = aux;
+
+        n--;
+    }
+}
+```
+
+A função `maximo` **sempre varre o trecho inteiro**, mesmo que o vetor já esteja ordenado: o `if` dentro dela só decide se `max` muda, e não encurta o laço. As chamadas têm tamanhos `n`, `n − 1`, ..., `2`, e o total é uma soma de PA:
+
+$$
+n + (n - 1) + \cdots + 3 + 2 = \frac{(n + 2)(n - 1)}{2} = \frac{n^2}{2} + \frac{n}{2} - 1
+$$
+
+Já mostramos no Exemplo 4 que isso é `Ω(n²)`. Como o custo é o mesmo para **qualquer** vetor, o algoritmo é **Ω(n²)** em todos os casos.
+
+## Ω de problema: o que é inevitável
+
+O Ω também ajuda a pensar no **problema**, e não só no código. Exemplo: achar o maior elemento de um vetor **desordenado**.
+
+Se o algoritmo deixar de olhar **algum** elemento, esse elemento poderia ser o maior, e a resposta ficaria errada. Então todo algoritmo correto precisa olhar os `n` elementos: o problema é **Ω(n)**. Por isso, nenhum truque consegue deixar `maximo` abaixo de linear.
+
+> 💡 Se você escreve um algoritmo `O(n)` para um problema `Ω(n)`, ele é **ótimo**: não há como ser assintoticamente melhor.
+
+## Ω, O e Θ juntos
+
+Veja como as três notações se combinam para `f(n) = 3n² + 4n + 2`:
+
+| Afirmação | Vale? | Comentário |
+| --- | --- | --- |
+| `f(n) = Ω(n²)` | ✅ | piso justo (Exemplo 1) |
+| `f(n) = O(n²)` | ✅ | teto justo |
+| `f(n) = Θ(n²)` | ✅ | piso **e** teto da mesma forma |
+| `f(n) = Ω(n)` | ✅ | piso verdadeiro, mas folgado |
+| `f(n) = O(n³)` | ✅ | teto verdadeiro, mas folgado |
+| `f(n) = Θ(n³)` | ❌ | o piso `n³` é alto demais |
+
+`f(n) = Θ(g(n))` é o mesmo que `f(n) = O(g(n))` **e** `f(n) = Ω(g(n))`. Se só o `Ω` vale com `g`, o `O` vale com outra função maior, e nada nos permite fechar o sanduíche. É o caso do `if/else` da Regra 7: `Ω(n)` e `O(n²)`.
+
+## Armadilhas comuns
+
+1. **Ω não é "melhor caso" e O não é "pior caso".** Melhor e pior caso são **situações** do algoritmo; `O`, `Ω` e `Θ` são formas de **limitar uma função**. Podemos dar um `Ω` do pior caso (como `Ω(n)` na busca) e um `O` do melhor caso. Na prática, "Ω" costuma ser usado para o piso do melhor caso, mas diga sempre de qual caso está falando.
+2. **O `=` não é igualdade de verdade.** Escrevemos `f(n) = Ω(g(n))`, mas o `Ω` representa uma **família de funções**. Nunca escreva `Ω(n²) = 3n² + 4n + 2` (de trás para frente).
+3. **Pisos frouxos são inúteis.** Dizer que um algoritmo é `Ω(1)` é sempre verdade e não ensina nada. Busque o **maior** piso possível.
+4. **Constante no expoente não some.** `Ω(2n)` é o mesmo que `Ω(n)`, mas `Ω(2ⁿ)` é exponencial, uma classe completamente diferente.
+5. **O `n` é o tamanho da entrada**, e não os valores guardados nela.
+
+## Resumo rápido
+
+- **Ω(g)** é um **piso**: existem `c` e `n₀` tais que `c · g(n) ≤ f(n)` para todo `n > n₀`.
+- Para **provar**: troque cada termo por algo **menor** ou descarte termos positivos até sobrar `c · g(n)`. Com termos negativos, escolha um `n₀` grande o bastante.
+- Para **calcular no código**: procure o **custo mínimo garantido**. Laços encadeados multiplicam, em soma vale o maior termo, `if/else` vale o **ramo mais barato** e saídas antecipadas derrubam o piso.
+- Dê sempre o **maior piso** que conseguir provar.
+- `Θ` = `O` **e** `Ω` com a mesma função. 🚀

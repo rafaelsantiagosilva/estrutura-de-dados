@@ -1,0 +1,417 @@
+Dois programas podem resolver o mesmo problema e, mesmo assim, um terminar em 1 segundo e o outro em 11 dias. Para comparar algoritmos sem depender do computador, usamos a **notação assintótica**. A mais famosa é o **Big O** (lê-se "ó"), e é nela que vamos focar: o que ela significa, como **provar** que uma função é `O(...)` e como **calcular** o `O` de um código. 🔍
+
+## Por que isso importa?
+
+Imagine dois programas: o primeiro gasta `T₁(n) = n · 10⁻⁶ s` e o segundo gasta `T₂(n) = n² · 10⁻⁶ s`. Para `n = 1.000.000`:
+
+| Programa | Tempo |
+| --- | --- |
+| Programa 1 (cresce como `n`) | **1 segundo** |
+| Programa 2 (cresce como `n²`) | **1.000.000 s ≈ 11 dias** 😱 |
+
+A constante `10⁻⁶` muda de computador para computador. O que decide a briga é a **forma de crescimento**, e é isso que o Big O captura.
+
+## Passo 1: contar operações
+
+Vamos contar quantas operações o código abaixo faz:
+
+```c
+for (int i = 0; i < n; i++)
+{
+    for (int j = 0; j < n; j++)
+    {
+        v[i] = i + j;
+    }
+}
+```
+
+Laço **interno**:
+
+| Instrução | Quantas vezes |
+| --- | --- |
+| `int j = 0` | 1 |
+| `j < n` | n + 1 |
+| `j++` | n |
+| `v[i] = i + j` | n |
+| **Total** | **3n + 2** |
+
+O laço **externo** tem custo parecido e repete o interno `n` vezes:
+
+$$
+T(n) = 1 + (n + 1) + n + n(3n + 2) = 3n^2 + 4n + 2
+$$
+
+Para `n = 1.000`, isso dá `3.000.000 + 4.000 + 2 = 3.004.002`. Os termos `4n` e `2` representam apenas **0,13%** do total. Só o `3n²` importa, e até a constante `3` dá para jogar fora. Esse é o espírito do Big O.
+
+## Passo 2: o que o Big O diz
+
+Dizer que `f(n) = O(g(n))` é dizer que `g(n)` funciona como um **teto** para `f(n)`: a partir de certo ponto, `f` **nunca passa** de um múltiplo de `g`.
+
+$$
+f(n) = O(g(n)) \iff \exists\, c > 0,\ n_0 > 0 \ \text{ tais que } \ 0 \le f(n) \le c \cdot g(n) \ \text{ para todo } n > n_0
+$$
+
+Destrinchando a definição:
+
+| Parte | Significado |
+| --- | --- |
+| `f(n)` | o custo real do algoritmo (por exemplo, `3n² + 4n + 2`) |
+| `g(n)` | o teto que estamos testando (por exemplo, `n²`) |
+| `c` | uma **folga**: podemos esticar o teto multiplicando por uma constante |
+| `n₀` | o ponto **a partir do qual** o teto vale. Valores pequenos de `n` não importam |
+
+> 💡 Para provar um `O`, **você escolhe** `c` e `n₀`. Basta que **exista** algum par que funcione, e não precisa ser o menor.
+
+Lê-se `f(n) = O(g(n))` como "`f` é ó de `g`".
+
+## Passo 3: como provar que f(n) = O(g(n))
+
+A receita é sempre a mesma:
+
+1. Escreva `f(n)` e escolha o **teto candidato** `g(n)` (o termo que mais cresce).
+2. Para `n` a partir de um certo valor, **troque cada termo por algo maior**, até que tudo vire um múltiplo de `g(n)`.
+3. A soma dá `c · g(n)`. Anote o `c` e o `n₀`.
+
+### Exemplo 1: 5n + 100 = O(n)
+
+Para `n ≥ 1`, vale `100 ≤ 100n`. Então:
+
+$$
+5n + 100 \ \le\ 5n + 100n \ =\ 105n
+$$
+
+Portanto **c = 105** e **n₀ = 1**. 🎉
+
+> 🧠 **Há mais de uma resposta certa.** Também funciona `c = 6` com `n₀ = 100`, pois `5n + 100 ≤ 6n` quando `n ≥ 100`. Quanto menor o `c`, maior costuma ser o `n₀`.
+
+### Exemplo 2: 3n² + 4n + 2 = O(n²)
+
+Para `n ≥ 1`, temos `n ≤ n²` e `1 ≤ n²`. Então:
+
+$$
+3n^2 + 4n + 2 \ \le\ 3n^2 + 4n^2 + 2n^2 \ =\ 9n^2
+$$
+
+Portanto **c = 9** e **n₀ = 1**.
+
+### Exemplo 3: n²/2 + n/2 − 1 = O(n²)
+
+Para `n ≥ 1`, vale `n/2 ≤ n²/2`, e o `−1` só ajuda a diminuir (`−1 ≤ 0`). Então:
+
+$$
+\frac{n^2}{2} + \frac{n}{2} - 1 \ \le\ \frac{n^2}{2} + \frac{n^2}{2} \ =\ n^2
+$$
+
+Portanto **c = 1** e **n₀ = 1**.
+
+### Exemplo 4: n³ − 50n² + 8 = O(n³)
+
+O termo `−50n²` é negativo, então ele só diminui o valor: podemos **descartá-lo** no teto. E `8 ≤ 8n³` para `n ≥ 1`:
+
+$$
+n^3 - 50n^2 + 8 \ \le\ n^3 + 8 \ \le\ n^3 + 8n^3 \ =\ 9n^3
+$$
+
+Portanto **c = 9** e **n₀ = 1**.
+
+### Exemplo 5: n lg n + 5n = O(n lg n)
+
+Aqui `lg n` é o logaritmo na base 2. Para `n ≥ 2`, temos `lg n ≥ 1`, então `n ≤ n lg n`. Logo:
+
+$$
+n \lg n + 5n \ \le\ n \lg n + 5\, n \lg n \ =\ 6\, n \lg n
+$$
+
+Portanto **c = 6** e **n₀ = 1** (a conta vale para `n > 1`, isto é, `n ≥ 2`).
+
+### ⚡ Atalho para polinômios
+
+Quando `n ≥ 1`, cada potência de `n` é menor ou igual à maior potência. Então, para um polinômio, basta fazer:
+
+- **c** = a **soma dos coeficientes positivos**;
+- **n₀** = 1;
+- os termos **negativos** são simplesmente descartados.
+
+É exatamente o que deu `105`, `9`, `1` e `9` nos exemplos acima. ✅
+
+### Quando a afirmação é falsa: n² não é O(n)
+
+Para mostrar que algo **não** é `O(...)`, supomos que seja e chegamos a um absurdo. Suponha que `n² ≤ c · n` para todo `n > n₀`. Dividindo por `n`, teríamos `n ≤ c` para **todo** `n > n₀`. Mas é só escolher um `n` maior que `c` e maior que `n₀` para quebrar a desigualdade. Logo, **nenhuma constante funciona**, e `n² ≠ O(n)`. ❌
+
+## Passo 4: como calcular o O direto do código
+
+Na prática, você raramente monta a desigualdade. O caminho é **contar** e **simplificar**:
+
+1. Descubra **quem é o `n`** (o tamanho da entrada).
+2. Veja **quantas vezes** cada trecho executa.
+3. **Some** os custos dos trechos.
+4. Fique com o **termo dominante** e jogue fora a constante.
+
+Para achar o termo dominante, lembre da ordem de crescimento: `1` < `lg n` < `n` < `n lg n` < `n²` < `n³` < `2ⁿ`.
+
+### Regra 1: instruções simples custam O(1)
+
+Atribuições, contas e comparações levam um tempo **constante**, que não depende de `n`.
+
+### Regra 2: um laço de n voltas custa O(n)
+
+```c
+int soma = 0;
+for (int i = 0; i < n; i++)
+{
+    soma += v[i];
+}
+```
+
+O corpo executa `n` vezes. **O(n)**.
+
+> 🧠 **Passo diferente de 1?** Se o laço faz `i += 2`, são `n/2` voltas. Como a constante `1/2` some, continua **O(n)**.
+
+### Regra 3: laços encadeados se multiplicam
+
+Dois laços de `n` voltas, um dentro do outro, fazem `n × n` operações: **O(n²)**. Foi o código da contagem do Passo 1.
+
+### Regra 4: trechos em sequência se somam (e vence o maior)
+
+```c
+for (int i = 0; i < n; i++)
+{
+    a++;                          // n operações
+}
+
+for (int i = 0; i < n; i++)
+{
+    for (int j = 0; j < n; j++)
+    {
+        b++;                      // n * n operações
+    }
+}
+```
+
+O custo total é `n + n²`. Para `n ≥ 1`, `n ≤ n²`, então `n + n² ≤ 2n²`. Resultado: **O(n²)**. O trecho mais caro "engole" os outros.
+
+### Regra 5: laço triangular
+
+```c
+for (int i = 0; i < n; i++)
+{
+    for (int j = 0; j < i; j++)
+    {
+        cont++;
+    }
+}
+```
+
+O laço interno roda `i` vezes, e `i` vai de `0` até `n − 1`. O total é uma **soma de PA**:
+
+$$
+0 + 1 + 2 + \cdots + (n - 1) = \frac{n(n-1)}{2} = \frac{n^2}{2} - \frac{n}{2}
+$$
+
+Isso é menor que `n²`, então o código é **O(n²)**. Repare: mesmo sendo "metade" de um quadrado, o crescimento continua quadrático.
+
+### Regra 6: variável que dobra (ou que é dividida ao meio) custa O(lg n)
+
+```c
+int contaDobros(int n)
+{
+    int passos = 0;
+    for (int i = 1; i < n; i = i * 2)
+    {
+        passos++;
+    }
+    return passos;
+}
+```
+
+A cada volta, `i` dobra: depois de `k` voltas, `i` vale `2ᵏ`. O laço para quando `2ᵏ = n`:
+
+$$
+2^k = n \ \Rightarrow\ \lg 2^k = \lg n \ \Rightarrow\ k \cdot \lg 2 = \lg n \ \Rightarrow\ k = \lg n
+$$
+
+Como `k` é o número de voltas, o código é **O(lg n)**. O mesmo vale se, em vez de dobrar `i`, você **divide `n` por 2** a cada volta (`n = n / 2`): o número de voltas até chegar a 1 também é `lg n`. 🚀
+
+### Regra 7: if/else, olhe o pior caso
+
+```c
+if (n % 2 == 0)
+{
+    for (int i = 0; i < n; i++)
+    {
+        a++;                      // O(n)
+    }
+}
+else
+{
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            b++;                  // O(n²)
+        }
+    }
+}
+```
+
+Só um dos ramos executa, mas não sabemos qual. O Big O é um **teto**, então ficamos com o ramo mais caro: **O(n²)**.
+
+### Regra 8: função dentro de um laço, multiplique
+
+Se uma função de custo `O(n)` é chamada **dentro** de um laço de `n` voltas, o total é `n × n = O(n²)`. Veremos um caso real logo abaixo, e esse é um erro muito fácil de cometer.
+
+> 🧠 Quando um laço chama uma função, pergunte: **o resultado dessa chamada muda a cada volta?** Se não muda, calcule **uma vez só**, fora do laço.
+
+## Caso real 1: desvio padrão
+
+O código abaixo está **correto**, porém intencionalmente **ineficiente**:
+
+```c
+double media(double v[], int n)
+{
+    double soma = 0;
+    for (int i = 0; i < n; i++)
+    {
+        soma += v[i];
+    }
+    return soma / n;
+}
+
+double dvpLento(double v[], int n)
+{
+    double soma = 0, aux;
+    for (int i = 0; i < n; i++)
+    {
+        aux = v[i] - media(v, n); // media recalculada a cada volta!
+        soma += aux * aux;
+    }
+    soma = soma / (n - 1);
+    return sqrt(soma);
+}
+```
+
+Aplicando a receita:
+
+- `media` tem um laço de `n` voltas: **O(n)**.
+- `dvpLento` tem um laço de `n` voltas que, **em cada volta**, chama `media` (Regra 8): `n × n`.
+
+Resultado: **O(n²)**.
+
+A correção é guardar a média em uma variável, calculada **uma única vez**:
+
+```c
+double dvpRapido(double v[], int n)
+{
+    double soma = 0, aux, med;
+    med = media(v, n); // calculada uma vez só
+    for (int i = 0; i < n; i++)
+    {
+        aux = v[i] - med;
+        soma += aux * aux;
+    }
+    soma = soma / (n - 1);
+    return sqrt(soma);
+}
+```
+
+Agora é `O(n)` (a média) mais `O(n)` (o laço). Pela Regra 4, o total é **O(n)**. 🎯
+
+> ⚠️ Esse tipo de erro é **bastante comum** entre iniciantes: uma função "escondida" dentro de um laço faz o programa passar de `O(n)` para `O(n²)` sem que a gente perceba.
+
+## Caso real 2: ordenação por seleção
+
+A ideia é achar o **maior** elemento, colocá-lo na **última** posição e repetir ignorando essa posição.
+
+```c
+// Devolve a posição do maior elemento
+int maximo(int v[], int n)
+{
+    int max = 0;
+    for (int i = 1; i < n; i++)
+    {
+        if (v[i] > v[max])
+        {
+            max = i;
+        }
+    }
+    return max;
+}
+
+// Ordenação por seleção
+void ordena(int v[], int n)
+{
+    while (n > 1)
+    {
+        // seleciona o maior elemento
+        int max = maximo(v, n);
+
+        // coloca na última posição
+        int aux = v[n - 1];
+        v[n - 1] = v[max];
+        v[max] = aux;
+
+        // repete o processo sem o último elemento
+        n--;
+    }
+}
+```
+
+Aplicando a receita:
+
+- `maximo` percorre o vetor: **O(n)**.
+- `ordena` chama `maximo` várias vezes: primeiro com `n`, depois `n − 1`, depois `n − 2`, até `2`. É uma função dentro de um laço (Regra 8), mas com tamanhos **diferentes** a cada volta, parecido com o laço triangular (Regra 5).
+
+O total de operações é uma soma de PA, com `n − 1` termos:
+
+$$
+n + (n - 1) + (n - 2) + \cdots + 3 + 2 = \frac{(n + 2)(n - 1)}{2} = \frac{n^2}{2} + \frac{n}{2} - 1
+$$
+
+Já mostramos no Exemplo 3 que isso é `O(n²)`. As demais operações do `ordena` (as trocas) são `O(n)`, então, pela Regra 4, o resultado final é **O(n²)**.
+
+## O Big O é um teto (e tetos podem ser folgados)
+
+Todas as afirmações abaixo são **verdadeiras**:
+
+- `5n + 100 = O(n)`
+- `5n + 100 = O(n²)`
+- `5n + 100 = O(n³)`
+
+Isso acontece porque o `O` só promete "**não passa** disso". Mas só a primeira é **informativa**. Por convenção, sempre damos o **teto mais justo** que conseguimos.
+
+Um exemplo clássico é a **busca sequencial**:
+
+```c
+int busca(int v[], int n, int x)
+{
+    for (int i = 0; i < n; i++)
+    {
+        if (v[i] == x)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+```
+
+Se `x` está na primeira posição, o laço roda uma vez. Se `x` está no fim (ou não existe), roda `n` vezes. Como o `O` é um teto, dizemos que a busca é <ComplexityBadge>O(n)</ComplexityBadge>, o que cobre **todos** os casos. É por isso que, quando alguém fala "Big O" de um algoritmo, quase sempre está falando do **pior caso**. 🗣️
+
+> 🎯 E se eu quiser dizer que o custo cresce **exatamente** como `n²`, sem folga? Aí entra o **Θ** (teta), que é teto **e** piso ao mesmo tempo. Veja a explicação da notação Θ.
+
+## Armadilhas comuns
+
+1. **O `=` não é igualdade de verdade.** Escrevemos `f(n) = O(g(n))`, mas o `O` representa uma **família de funções**. Nunca escreva `O(n²) = 3n² + 4n + 2` (de trás para frente).
+2. **Constantes que multiplicam somem, mas no expoente não.** `O(2n)` é o mesmo que `O(n)`, enquanto `O(2ⁿ)` é exponencial, uma classe completamente diferente.
+3. **Somar não aumenta a classe.** `O(n) + O(n)` continua `O(n)`, e `O(n) + O(n²)` é `O(n²)`.
+4. **Cuidado com laços escondidos.** Funções chamadas dentro de laços (como `media`) escondem um custo que precisa ser contado.
+5. **O `n` é o tamanho da entrada**, e não os valores guardados nela.
+
+## Resumo rápido
+
+- **O(g)** é um **teto**: existem `c` e `n₀` tais que `f(n) ≤ c · g(n)` para todo `n > n₀`.
+- Para **provar**: troque cada termo por algo maior até virar `c · g(n)`. Em polinômios, `c` é a soma dos coeficientes positivos e `n₀ = 1`.
+- Para **calcular no código**: conte, some e fique com o termo dominante.
+- **Laços encadeados multiplicam**, **trechos em sequência somam** (vence o maior), **`if/else` vale o pior ramo** e **uma variável que dobra dá `lg n`**.
+- Funções dentro de laços multiplicam. Tire do laço o que não muda a cada volta.
+- Dê sempre o **teto mais justo** possível. 🚀
