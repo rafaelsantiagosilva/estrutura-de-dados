@@ -1,4 +1,4 @@
-import type { ArrayFrame, ArraySimData, Cell, NodeState } from "./types";
+import type { ArrayFrame, ArraySimData, Cell, NodeState } from "../types";
 
 const CAP = 7; // o vetor tem 7 posições; `n` diz quantas estão em uso
 

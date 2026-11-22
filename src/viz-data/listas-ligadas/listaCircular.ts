@@ -1,4 +1,4 @@
-import type { Sim } from "./types";
+import type { Sim } from "../types";
 import { createListRecorder } from "./listRecorder";
 
 /* ───────── addFim em lista circular ───────── */
@@ -67,7 +67,7 @@ export const circAddFim: Sim = {
 function buildRemover() {
   const r = createListRecorder([8, 5, 9, 3], { circular: true }); // a b c d → (volta para a)
 
-  r.add(1, "`remover(li, 0)` em uma lista circular [8, 5, 9, 3]: vamos tirar o **primeiro** nó.", { }, { idx: 0 });
+  r.add(1, "`remover(li, 0)` em uma lista circular [8, 5, 9, 3]: vamos tirar o **primeiro** nó.", {}, { idx: 0 });
   r.add(3, "`idx < 0 || idx >= size(li)`? `0 >= 4`? Não: o índice é válido. (Numa lista circular não existe `NULL` para avisar que passamos do fim, por isso conferimos o `size`.)");
   r.add(11, "`idx == 0`? Sim: removemos o primeiro nó.");
 

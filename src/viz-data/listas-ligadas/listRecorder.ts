@@ -1,4 +1,4 @@
-import type { Frame, NodeState, VizNode } from "./types";
+import type { Frame, NodeState, VizNode } from "../types";
 
 export type Marks = Record<string, NodeState>;
 type Ptrs = Record<string, string | null>;

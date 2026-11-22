@@ -1,4 +1,4 @@
-import type { Sim } from "./types";
+import type { Sim } from "../types";
 import { createListRecorder } from "./listRecorder";
 
 /* ───────── add (Questão 75) ───────── */

@@ -37,7 +37,7 @@ const btn =
 
 export default function SimShell<F extends BaseFrame>({ title, code, frames, children }: Props<F>) {
   const [mult, setMult] = useState(1);
-  const p = usePlayer(frames.length, 1400 / mult);
+  const p = usePlayer(frames, 1400 / mult);
   const f = frames[p.i];
 
   // variáveis acumulam: o que apareceu antes continua visível

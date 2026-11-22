@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 
-export function usePlayer(total: number, speedMs = 1200) {
+export function usePlayer<T>(frames: T[], speedMs = 1200) {
     const [i, setI] = useState(0);
     const [playing, setPlaying] = useState(false);
+    const total = frames.length;
     const last = total - 1;
 
     // enquanto estiver tocando, avança um frame a cada `speedMs`
@@ -14,6 +15,8 @@ export function usePlayer(total: number, speedMs = 1200) {
 
     return {
         i,
+        total,
+        frame: frames[i],
         playing: playing && i < last,
         play: () => {
             if (i >= last) setI(0); // terminou? recomeça

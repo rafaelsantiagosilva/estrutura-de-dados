@@ -1,5 +1,5 @@
 import type { Marks } from "./listRecorder";
-import type { Sim } from "./types";
+import type { Sim } from "../types";
 import { createListRecorder } from "./listRecorder";
 
 function build() {
