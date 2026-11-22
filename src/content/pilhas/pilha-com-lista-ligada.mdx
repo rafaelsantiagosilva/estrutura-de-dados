@@ -1,0 +1,392 @@
+Na pilha com vetor, vimos um ponto fraco: a capacidade é **fixa** (`MAX`). Se o programa precisar de mais espaço, não tem jeito. Agora vamos resolver isso com uma **lista ligada**: em vez de reservar tudo de uma vez, a pilha **cresce um nó por vez**, conforme os elementos chegam, e encolhe quando eles saem. 🔗
+
+A regra continua sendo a mesma (LIFO: o último a entrar é o primeiro a sair, sempre pelo **topo**). O que muda é **como** guardamos os elementos.
+
+> 🎮 **Como ler as simulações:** a caixa `topo` à esquerda aponta para o primeiro nó da pilha, que é o topo. Os nós são os círculos, ligados por setas (`prox`). As cores indicam: 🟢 nó novo, 🟡 nó que um ponteiro está usando no momento e 🔴 nó que acabou de ser liberado com `free`. Nós que ainda não fazem parte da pilha ficam soltos, na linha de cima.
+
+## Por que uma lista ligada?
+
+Em vez de um vetor com posições vizinhas na memória, cada elemento vive em um **nó** separado. Cada nó guarda:
+
+1. o **valor** do elemento;
+2. um **ponteiro** `prox` para o nó seguinte (ou `NULL`, se for o último).
+
+```text
+topo
+  │
+  ▼
+┌────┬───┐   ┌────┬───┐   ┌────┬──────┐
+│ 8  │ •─┼──▶│ 5  │ •─┼──▶│ 7  │ NULL │
+└────┴───┘   └────┴───┘   └────┴──────┘
+ (topo da pilha)                (fundo)
+```
+
+O primeiro nó da cadeia é o **topo** da pilha. Como a pilha só se mexe no topo, ela só precisa saber onde está o primeiro nó. O fim da cadeia é marcado por `NULL`.
+
+## O nó: a struct `No`
+
+```c
+// estrutura No
+typedef struct No
+{
+    int valor;
+    struct No *prox;
+} No;
+```
+
+O `valor` pode ser qualquer coisa. No nosso exemplo é um `int`, mas poderia ser uma `string`, um aluno, uma mercadoria... O `prox` pode guardar o endereço de outro nó ou `NULL`, que indica o final da pilha.
+
+O construtor de um nó reserva memória com `malloc` e arruma os campos:
+
+```c
+// construtor
+No *newNo(int valor)
+{
+    No *no = (No *)malloc(sizeof(No));
+    no->valor = valor;
+    no->prox = NULL;
+    return no;
+}
+```
+
+<Sim name="pilhaListaNo" />
+
+> 🧠 Repare que o `prox` é inicializado com `NULL`. Sem isso, ele conteria lixo de memória, e qualquer tentativa de "seguir" esse ponteiro daria problema.
+
+## A pilha: a struct `Pilha`
+
+A pilha em si é muito pequena: só guarda o ponteiro para o nó do topo.
+
+```c
+// estrutura Pilha
+typedef struct Pilha
+{
+    No *topo;
+} Pilha;
+
+// construtor
+Pilha *newPilha()
+{
+    Pilha *p = (Pilha *)malloc(sizeof(Pilha));
+    p->topo = NULL;
+    return p;
+}
+```
+
+<Sim name="pilhaListaNew" />
+
+> 🚀 Note que `newPilha()` **não recebe tamanho máximo**. A pilha se ajusta aos dados: ela nasce vazia (`topo = NULL`) e cresce a cada `push`.
+
+## `push`: empilhando
+
+Para empilhar, precisamos de três passos, na ordem certa:
+
+```c
+// empilha
+void push(Pilha *p, int x)
+{
+    No *no = newNo(x);   // (a)
+    no->prox = p->topo;  // (b)
+    p->topo = no;        // (c)
+}
+```
+
+| Passo | O que acontece |
+| --- | --- |
+| **(a)** | cria um nó novo e solto, com o valor `x` |
+| **(b)** | faz o novo nó apontar para o **antigo topo**, para não perder o resto da pilha |
+| **(c)** | faz o `topo` da pilha apontar para o novo nó, que vira o novo topo |
+
+Acompanhe com a pilha `8, 5, 7` recebendo o valor `2`:
+
+<Sim name="pilhaListaPush" />
+
+> ⚠️ **A ordem importa!** Se você trocar o passo (b) com o (c), o que acontece com o resto da pilha? Pense nisso, e depois teste nas Questões 44 e 45 da apostila.
+
+> 💡 **Por que empilhar no começo da lista, e não no fim?** Porque o `topo` já nos dá acesso direto ao primeiro nó. Inserir no começo custa o mesmo, não importa o tamanho da pilha. Para inserir no fim, teríamos que percorrer todos os nós até chegar lá.
+
+## `pop`: desempilhando
+
+O `pop` faz o caminho contrário, mas com mais cuidado, porque precisa **devolver o valor** e **liberar a memória** do nó que sai:
+
+```c
+// desempilha
+int pop(Pilha *p)
+{
+    int valor;
+    if (p->topo == NULL)
+    {
+        printf("Pilha Vazia\n");
+        exit(1);
+    }
+    valor = p->topo->valor;
+    No *no = p->topo;
+    p->topo = p->topo->prox;
+    free(no);
+    return valor;
+}
+```
+
+| Linha | Por quê |
+| --- | --- |
+| `if (p->topo == NULL)` | não dá para desempilhar de uma pilha vazia |
+| `valor = p->topo->valor` | guarda o valor **antes** de liberar o nó, senão ele se perderia |
+| `No *no = p->topo` | guarda o endereço do nó que vai sair, para poder liberá-lo |
+| `p->topo = p->topo->prox` | o topo avança para o nó seguinte |
+| `free(no)` | devolve a memória do nó removido |
+
+<Sim name="pilhaListaPop" />
+
+E o que acontece com uma pilha **vazia**? O teste do início nos protege:
+
+<Sim name="pilhaListaPopVazia" />
+
+> 🧹 **Por que o `free`?** Cada `malloc` reserva memória, e ela só volta para o sistema se você pedir com `free`. Se o `pop` desse apenas `p->topo = p->topo->prox` e esquecesse o `free`, o nó ficaria "perdido" na memória: ninguém mais aponta para ele, mas ele continua ocupando espaço. Isso se chama **vazamento de memória**. Na Questão 46, você vai investigar um `pop` que faz isso.
+
+## Funções auxiliares
+
+### `estaVazia`
+
+A pilha está vazia quando o topo não aponta para nenhum nó:
+
+```c
+int estaVazia(Pilha *p)
+{
+    return p->topo == NULL;
+}
+```
+
+### `printPilha`: percorrendo a lista
+
+Para imprimir, precisamos **visitar** cada nó. Usamos um ponteiro auxiliar, `aux`, que começa no topo e anda de nó em nó até chegar em `NULL`:
+
+```c
+void printPilha(Pilha *p)
+{
+    printf("(");
+    No *aux = p->topo;
+    while (aux != NULL)
+    {
+        printf("%d", aux->valor);
+        aux = aux->prox;
+        if (aux != NULL)
+        {
+            printf("<-");
+        }
+    }
+    printf(")");
+    printf(" [%d]\n", size(p));
+}
+```
+
+<Sim name="pilhaListaPrint" />
+
+> 💡 Usamos o `aux` (e não o próprio `p->topo`) para andar. Se movêssemos o `p->topo`, **perderíamos** o início da pilha! O `aux` é uma "cópia de passeio": mexer nele não altera a pilha.
+
+### `size`: contando os elementos
+
+No vetor, o `size` só devolvia o `top`. Na lista ligada, **não existe** uma variável com a quantidade. Precisamos percorrer a pilha e contar:
+
+```c
+// número de elementos na pilha
+int size(Pilha *p)
+{
+    int size = 0;
+    No *aux = p->topo;
+    while (aux != NULL)
+    {
+        aux = aux->prox;
+        size++;
+    }
+    return size;
+}
+```
+
+<Sim name="pilhaListaSize" />
+
+O mesmo laço pode ser escrito com um `for`. Essa forma é sempre uma opção quando o objetivo é **percorrer uma lista ligada**:
+
+```c
+// implementação alternativa da função size
+int size2(Pilha *p)
+{
+    int size = 0;
+    for (No *aux = p->topo; aux != NULL; aux = aux->prox)
+    {
+        size++;
+    }
+    return size;
+}
+```
+
+Existe ainda uma terceira forma, usando **recursão**. A ideia: o tamanho de uma lista é `0` se ela for vazia, ou `1 +` o tamanho do resto da lista.
+
+```c
+// size recursivo
+int sizeRec(No *no)
+{
+    if (no == NULL)
+    {
+        return 0;
+    }
+    return 1 + sizeRec(no->prox);
+}
+
+// chamada do size recursivo
+int size3(Pilha *p)
+{
+    return sizeRec(p->topo);
+}
+```
+
+<Sim name="pilhaListaSizeRec" />
+
+> 🧩 A função `sizeRec` recebe um **nó** (e não a pilha), porque a recursão precisa "andar" pela lista, passando sempre o resto dela. A `size3` só serve de porta de entrada.
+
+## Aplicação: parênteses balanceados
+
+O mesmo problema que resolvemos com a pilha de vetor funciona aqui. Veja a função: ela é **praticamente idêntica**, e a única diferença está na criação da pilha (`newPilha()` em vez de `newPilha(size)`):
+
+```c
+// devolve 1 se os parênteses estão balanceados
+// 0 caso contrário
+int balanceado(char *texto)
+{
+    int size = strlen(texto);
+    Pilha *p = newPilha();
+    for (int i = 0; i < size; i++)
+    {
+        if (texto[i] == '(')
+        {
+            push(p, 1);
+        }
+        if (texto[i] == ')')
+        {
+            if (estaVazia(p))
+            {
+                return 0;
+            }
+            pop(p);
+        }
+    }
+    return estaVazia(p);
+}
+```
+
+<Sim name="pilhaListaBalanceado" />
+
+> 🏆 **Este é o conceito de Tipo Abstrato de Dados (TAD):** a implementação da pilha é totalmente diferente (vetor contra lista ligada), mas o **uso é praticamente idêntico**. Quem usa a pilha só precisa conhecer `push`, `pop`, `estaVazia` e `size`, e não precisa saber como ela foi construída por dentro. Dá para trocar a implementação sem mexer no resto do programa.
+
+## Uma variação: só com `No *`
+
+Existe uma forma alternativa de trabalhar: **dispensar** a struct `Pilha` e usar só o nó. A pilha vazia é criada assim:
+
+```c
+No *p = NULL;
+```
+
+Aqui o `p` **é** o ponteiro para o topo. Como `push` e `pop` precisam **alterar** o `p` (fazê-lo apontar para outro nó), temos que passar a pilha **por referência**, ou seja, passar o **endereço** do `p`:
+
+```c
+push(&p, 1);
+pop(&p);
+```
+
+E dentro das funções, o parâmetro vira um ponteiro para ponteiro, `No **p`. Para chegar ao ponteiro original, usamos `(*p)`:
+
+```c
+// empilha
+void push(No **p, int x)
+{
+    No *no = newNo(x);
+    no->prox = (*p);
+    (*p) = no;
+}
+
+// desempilha
+int pop(No **p)
+{
+    int valor;
+    if ((*p) == NULL)
+    {
+        printf("Pilha Vazia\n");
+        exit(1);
+    }
+    valor = (*p)->valor;
+    No *no = (*p);
+    (*p) = (*p)->prox;
+    free(no);
+    return valor;
+}
+```
+
+<Sim name="pilhaListaPushRef" />
+
+> 🧠 **Por que precisamos do `No **p`?** Em C, os parâmetros são passados por **cópia**. Se `push` recebesse só um `No *p`, ele alteraria uma **cópia** do ponteiro, e o `p` da `main` continuaria apontando para o topo antigo. Com o endereço de `p`, a função consegue mexer no ponteiro original.
+
+As demais funções ficam praticamente iguais, porque **não alteram** a pilha, só leem. Então não precisam de passagem por referência. Veja o `size`:
+
+```c
+// número de elementos na pilha
+int size(No *p)
+{
+    int size = 0;
+    No *aux = p;
+    while (aux != NULL)
+    {
+        aux = aux->prox;
+        size++;
+    }
+    return size;
+}
+```
+
+## Quanto custa cada operação?
+
+| Operação | Complexidade | Por quê |
+| --- | --- | --- |
+| `newNo` / `newPilha` | <ComplexityBadge>Θ(1)</ComplexityBadge> | só reservam memória e preenchem alguns campos |
+| `push` | <ComplexityBadge>Θ(1)</ComplexityBadge> | cria um nó e mexe em dois ponteiros, sem percorrer nada |
+| `pop` | <ComplexityBadge>Θ(1)</ComplexityBadge> | mexe em poucos ponteiros e libera um nó |
+| `estaVazia` | <ComplexityBadge>Θ(1)</ComplexityBadge> | uma comparação com `NULL` |
+| `size` | <ComplexityBadge>Θ(n)</ComplexityBadge> | percorre os `n` nós para contar |
+| `printPilha` | <ComplexityBadge>Θ(n)</ComplexityBadge> | percorre os `n` nós |
+| `balanceado` | <ComplexityBadge>O(n)</ComplexityBadge> | um laço sobre o texto, com `push` e `pop` em `Θ(1)` |
+
+> 🚀 `push` e `pop` continuam sendo `Θ(1)`: o custo **não depende** de quantos elementos a pilha tem.
+
+### Vetor ou lista ligada?
+
+| | Pilha com vetor | Pilha com lista ligada |
+| --- | --- | --- |
+| **Capacidade** | fixa (`max`), pode encher | cresce conforme a necessidade |
+| **`push` e `pop`** | <ComplexityBadge>Θ(1)</ComplexityBadge> | <ComplexityBadge>Θ(1)</ComplexityBadge> |
+| **`size`** | <ComplexityBadge>Θ(1)</ComplexityBadge> (é o `top`) | <ComplexityBadge>Θ(n)</ComplexityBadge> (precisa percorrer) |
+| **Teste de pilha cheia** | necessário | não existe, o limite é a memória |
+| **Memória por elemento** | só o valor | o valor **mais** um ponteiro `prox` |
+| **Alocação** | uma vez, no construtor | um `malloc` e um `free` por elemento |
+
+Não existe "o melhor": o vetor é mais simples e tem `size` instantâneo, mas tem limite. A lista ligada não tem limite, mas gasta um ponteiro a mais por elemento e mais `malloc`/`free`.
+
+## Erros comuns
+
+1. **Trocar a ordem do `push`.** Se o topo for atualizado **antes** de ligar o novo nó ao antigo topo, você perde o acesso ao resto da pilha. Sempre: (a) cria, (b) liga ao antigo topo, (c) atualiza o `topo`.
+2. **Esquecer o teste de pilha vazia no `pop`.** Com `topo == NULL`, acessar `p->topo->valor` tenta ler um nó que não existe e o programa falha.
+3. **Esquecer o `free` no `pop`.** O programa funciona, mas vaza memória. Cada nó removido sem `free` fica perdido até o programa terminar.
+4. **Guardar o valor tarde demais.** O `valor` precisa ser lido **antes** do `free`. Depois de liberado, o nó não pode mais ser usado.
+5. **Andar com o próprio `topo` ao imprimir ou contar.** Isso faz a pilha perder seu início. Use um ponteiro auxiliar (`aux`).
+6. **Esquecer `prox = NULL` no `newNo`.** O último nó ficaria com um `prox` cheio de lixo, e os laços que esperam `NULL` nunca terminariam corretamente.
+7. **Na versão `No *p`, esquecer o `&`** na chamada (`push(p, 1)` em vez de `push(&p, 1)`): o `push` alteraria uma cópia, e a pilha original nunca mudaria.
+
+## Resumo rápido
+
+- Na pilha com **lista ligada**, cada elemento vive em um **nó** (`valor` e `prox`), e o **topo** é o primeiro nó da cadeia.
+- A struct `Pilha` guarda só o ponteiro `topo`. Pilha vazia: `topo == NULL`. Não há tamanho máximo.
+- `push`, em três passos: **(a)** cria o nó, **(b)** `no->prox = p->topo`, **(c)** `p->topo = no`.
+- `pop`: testa se está vazia, **guarda o valor**, guarda o nó em `no`, avança o `topo`, dá `free(no)` e devolve o valor.
+- Para percorrer, use um ponteiro auxiliar `aux`: `while`, `for` ou recursão (`sizeRec`).
+- `push`, `pop` e `estaVazia` custam <ComplexityBadge>Θ(1)</ComplexityBadge>. `size` e `printPilha` custam <ComplexityBadge>Θ(n)</ComplexityBadge>.
+- A mesma função `balanceado` funciona com as duas implementações: é o **Tipo Abstrato de Dados**.
+- Na versão só com `No *p`, passamos o **endereço** da pilha (`No **p`) para poder alterá-la.
+
+Agora é com você: na aba **Exercícios**, implemente a pilha do zero, sem consultar o material, nas duas versões (vetor e lista ligada). 💪
