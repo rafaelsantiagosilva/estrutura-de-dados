@@ -16,12 +16,6 @@ export default function HomePage() {
           Do básico de C até árvores, com explicações simples e animações passo a passo
           para você ver cada ponteiro se movendo.
         </p>
-        <Link
-          to="/listas-encadeadas/explicacao"
-          className="mt-8 inline-flex items-center gap-2 rounded-lg bg-brand-500 px-5 py-2.5 font-mono text-sm font-semibold text-white shadow-glow transition hover:bg-brand-600"
-        >
-          Começar pelas listas <ArrowRight className="size-4" />
-        </Link>
       </section>
 
       <section className="grid gap-4 sm:grid-cols-2">
