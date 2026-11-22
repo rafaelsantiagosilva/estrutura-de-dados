@@ -1,0 +1,127 @@
+## O que são grafos?
+
+Muitos problemas podem ser resolvidos com o algoritmo certo de grafos. O exemplo clássico é o de **rotas entre cidades**: cada cidade é um ponto, e cada estrada que liga duas cidades é uma linha entre eles. 🗺️
+
+> Antes de ver algoritmos, precisamos falar a mesma língua. Esta página é o **vocabulário** de grafos. 📖
+
+Para a elaboração desse material, foi usado como base o livro [Competitive Programmer's Handbook](https://cses.fi/book/book.pdf).
+
+## Terminologia
+
+Um **grafo** é formado por **nós** (também chamados de **vértices**) e **arestas** (as ligações entre os nós).
+
+> 📚 O livro _Competitive Programmer's Handbook_ usa `n` para o número de **nós** e `m` para o número de **arestas**. Vamos usar a mesma notação.
+
+### Caminhos
+
+Um **caminho** do nó `a` até o nó `b` é a sequência de arestas que leva de `a` até `b`.
+
+- Um caminho é **cíclico** se o primeiro nó e o último nó forem o mesmo.
+- Um caminho é **simples** se cada nó aparece **no máximo uma vez**.
+
+<Grafo name="caminhos" />
+
+> 🎮 **Como usar os grafos:** passe o mouse (ou toque) em um nó para ver o **grau** e os **vizinhos** dele. O botão **↺** repete a animação.
+
+> 💡 No exemplo acima, `1 → 2 → 5` é simples. Já `1 → 3 → 4 → 1` volta para o nó de onde saiu, então é cíclico (e, por repetir o nó `1`, não é simples).
+
+### Conexo e componentes
+
+Um grafo é **conexo** se existe um caminho entre **quaisquer dois nós**, ou seja, é possível chegar a qualquer ponto partindo de qualquer ponto.
+
+Cada parte conectada de um grafo é chamada de **componente**.
+
+<Grafo name="conexo" />
+
+No grafo da direita, o nó `4` está isolado: não há caminho que chegue até ele. Por isso o grafo **não é conexo**.
+
+Um grafo não conexo tem mais de um componente. Veja um exemplo com **três** componentes:
+
+<Grafo name="componentes" />
+
+> ⚠️ Um nó sozinho, como o `8`, também conta como um componente.
+
+### Árvores
+
+Uma **árvore** é um grafo **conexo** com `n` nós e `n - 1` arestas.
+
+<Grafo name="arvore" />
+
+> 🌳 Na árvore acima temos `n = 5` nós e `n - 1 = 4` arestas. Se você adicionar mais uma aresta, surge um ciclo e deixa de ser árvore.
+
+### Grafos direcionados
+
+Um grafo é **direcionado** se cada aresta só pode ser percorrida **em uma direção**, indicada por uma seta.
+
+<Grafo name="direcionado" />
+
+Pense nas ruas de mão única de uma cidade: dá para ir de `1` para `2`, mas não necessariamente de `2` para `1`. 🚗
+
+### Grafos ponderados
+
+Em um grafo **ponderado**, cada aresta possui um **peso** (ou **custo**) para ser percorrida. O peso pode representar distância, tempo, preço...
+
+<Grafo name="ponderado" />
+
+> 💡 Em um problema de rotas, o peso de cada aresta poderia ser a distância em km entre duas cidades.
+
+### Vizinhos e graus
+
+Dois nós são **vizinhos** (ou **adjacentes**) se existe uma aresta ligando um ao outro.
+
+O **grau** de um nó é a quantidade de vizinhos que ele tem.
+
+<Grafo name="graus" />
+
+Alguns tipos especiais de grafo:
+
+- Um grafo é **regular** se **todos** os nós têm o mesmo grau (uma constante `d`).
+- Um grafo é **completo** se o grau de **todo** nó é `n - 1`, ou seja, todos os nós estão ligados entre si.
+
+#### Graus em grafos direcionados
+
+Quando o grafo é direcionado, o grau se divide em dois:
+
+- o **grau de entrada** é o número de arestas que **terminam** no nó;
+- o **grau de saída** é o número de arestas que **começam** no nó.
+
+### Coloração de grafos
+
+Em uma **coloração** (ou **pintura**) de grafos, cada nó recebe uma cor, e **nós adjacentes não podem ter a mesma cor**.
+
+Um grafo é **bipartido** se é possível colori-lo usando apenas **duas cores**.
+
+<Grafo name="coloracao" />
+
+> 🎨 Um grafo é bipartido se, e somente se, **não possui ciclos com número ímpar de arestas**. No exemplo, o único ciclo (`2 → 3 → 6 → 5 → 2`) tem 4 arestas, então é possível usar só duas cores.
+
+### Grafos simples
+
+Um grafo é **simples** quando:
+
+- nenhum nó se conecta **com ele mesmo** (sem laços);
+- não há **múltiplas arestas** entre o mesmo par de nós.
+
+<Grafo name="nao-simples" />
+
+No grafo acima, o nó `4` tem um **laço** (aresta para ele mesmo) e há **duas arestas** entre `2` e `3`. Por isso ele **não é simples**.
+
+## Resumo
+
+| Termo | O que é |
+| --- | --- |
+| Nó (vértice) | Cada "ponto" do grafo |
+| Aresta | Ligação entre dois nós |
+| Caminho | Sequência de arestas de um nó até outro |
+| Caminho cíclico | Primeiro e último nó são iguais |
+| Caminho simples | Nenhum nó se repete |
+| Grafo conexo | Existe caminho entre quaisquer dois nós |
+| Componente | Parte conectada do grafo |
+| Árvore | Grafo conexo com `n` nós e `n - 1` arestas |
+| Direcionado | Arestas têm um sentido |
+| Ponderado | Arestas têm peso/custo |
+| Grau | Quantidade de vizinhos de um nó |
+| Regular | Todos os nós têm o mesmo grau |
+| Completo | Todos os nós têm grau `n - 1` |
+| Bipartido | Pode ser colorido com 2 cores |
+| Simples | Sem laços e sem arestas repetidas |

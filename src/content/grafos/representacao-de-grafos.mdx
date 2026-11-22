@@ -1,0 +1,256 @@
+## Como guardar um grafo na memória?
+
+Um grafo é um desenho, mas o computador precisa de **dados**. Existem três formas clássicas de representar um grafo em C:
+
+1. **Lista de adjacência**
+2. **Matriz de adjacência**
+3. **Lista de arestas**
+
+Em todos os exemplos usaremos o **mesmo grafo direcionado**, primeiro sem pesos e depois com pesos.
+
+> 📌 **Convenção:** os nós são numerados de `1` a `4`. Por isso usamos `N = 5` nos vetores e **ignoramos a posição 0**. Assim o nó `1` fica no índice `1`, e assim por diante.
+
+**Sem pesos:**
+
+<Grafo name="exemplo" />
+
+**Com pesos:**
+
+<Grafo name="exemplo-ponderado" />
+
+As arestas são: `1 → 2`, `2 → 3`, `2 → 4`, `4 → 3` e `4 → 1`.
+
+## Lista de adjacência
+
+Cada nó `x` do grafo possui uma **lista de adjacência** com os nós para onde ele aponta (seus vizinhos).
+
+> 🔗 Em C, cada lista de adjacência é uma **lista encadeada**, exatamente como você já viu em Listas Encadeadas!
+
+<Grafo name="exemplo" />
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+
+#define N 5  // nós de 1 a 4 (o índice 0 não é usado)
+
+typedef struct Vizinho {
+    int destino;
+    struct Vizinho *prox;
+} Vizinho;
+
+// vetor de ponteiros: adj[x] aponta para o início da lista do nó x
+// (variável global, então começa com tudo NULL)
+Vizinho *adj[N];
+
+// adiciona a aresta a -> b (inserindo no início da lista de a)
+void addAresta(int a, int b) {
+    Vizinho *v = malloc(sizeof(Vizinho));
+    v->destino = b;
+    v->prox = adj[a];
+    adj[a] = v;
+}
+
+int main() {
+    addAresta(1, 2);
+    addAresta(2, 3);
+    addAresta(2, 4);
+    addAresta(4, 3);
+    addAresta(4, 1);
+
+    return 0;
+}
+```
+
+Para listar os vizinhos de um nó, basta percorrer a sua lista:
+
+```c
+void printVizinhos(int x) {
+    printf("Vizinhos de %d:", x);
+    for (Vizinho *v = adj[x]; v != NULL; v = v->prox) {
+        printf(" %d", v->destino);
+    }
+    printf("\n");
+}
+```
+
+> 💡 Como inserimos sempre no **início** da lista, os vizinhos aparecem na ordem inversa da inserção. O nó `2` mostraria `4 3`, e não `3 4`.
+
+> ⚠️ Em um grafo **não direcionado**, cada aresta vale nos dois sentidos. Então é preciso chamar `addAresta(a, b)` **e** `addAresta(b, a)`.
+
+### Grafos ponderados
+
+Para grafos ponderados, guardamos o **peso** junto com o vizinho, dentro do próprio nó da lista.
+
+<Grafo name="exemplo-ponderado" />
+
+```c
+typedef struct Vizinho {
+    int destino;
+    int peso;
+    struct Vizinho *prox;
+} Vizinho;
+
+Vizinho *adj[N];
+
+// adiciona a aresta a -> b com o peso dado
+void addAresta(int a, int b, int peso) {
+    Vizinho *v = malloc(sizeof(Vizinho));
+    v->destino = b;
+    v->peso = peso;
+    v->prox = adj[a];
+    adj[a] = v;
+}
+
+int main() {
+    addAresta(1, 2, 5);
+    addAresta(2, 3, 7);
+    addAresta(2, 4, 6);
+    addAresta(4, 3, 5);
+    addAresta(4, 1, 2);
+
+    return 0;
+}
+```
+
+## Matriz de adjacência
+
+Uma **matriz de adjacência** é um array 2D em que `adj[i][j]` guarda o valor da aresta que vai do nó `i` ao nó `j`.
+
+```c
+int adj[N][N];  // global: começa tudo com 0
+```
+
+<Grafo name="exemplo" />
+
+Sem pesos, usamos `1` para "existe aresta" e `0` para "não existe":
+
+```c
+adj[1][2] = 1;
+adj[2][3] = 1;
+adj[2][4] = 1;
+adj[4][3] = 1;
+adj[4][1] = 1;
+```
+
+Ficando a matriz assim (linha = origem, coluna = destino):
+
+```txt
+    1   2   3   4
+1 | 0 | 1 | 0 | 0 |
+2 | 0 | 0 | 1 | 1 |
+3 | 0 | 0 | 0 | 0 |
+4 | 1 | 0 | 1 | 0 |
+```
+
+### Grafos ponderados
+
+Para grafos ponderados, guardamos o **peso** na própria célula.
+
+<Grafo name="exemplo-ponderado" />
+
+```c
+adj[1][2] = 5;
+adj[2][3] = 7;
+adj[2][4] = 6;
+adj[4][3] = 5;
+adj[4][1] = 2;
+```
+
+```txt
+    1   2   3   4
+1 | 0 | 5 | 0 | 0 |
+2 | 0 | 0 | 7 | 6 |
+3 | 0 | 0 | 0 | 0 |
+4 | 2 | 0 | 5 | 0 |
+```
+
+> ⚠️ Cuidado: se uma aresta puder ter peso `0`, não dá para usar `0` como "sem aresta". Nesse caso, escolha outro valor especial (como `-1`) e inicialize a matriz com ele.
+
+Verificar se existe a aresta `a → b` é imediato:
+
+```c
+if (adj[a][b] != 0) {
+    printf("Existe aresta de %d para %d\n", a, b);
+}
+```
+
+## Lista de arestas
+
+Uma **lista de arestas** é simplesmente uma lista com **todas as arestas** do grafo, em qualquer ordem.
+
+<Grafo name="exemplo" />
+
+```c
+#define M 5  // número de arestas
+
+typedef struct {
+    int origem;
+    int destino;
+} Aresta;
+
+Aresta arestas[M];
+int qtdArestas = 0;
+
+void addAresta(int a, int b) {
+    arestas[qtdArestas].origem = a;
+    arestas[qtdArestas].destino = b;
+    qtdArestas++;
+}
+
+int main() {
+    addAresta(1, 2);
+    addAresta(2, 3);
+    addAresta(2, 4);
+    addAresta(4, 3);
+    addAresta(4, 1);
+
+    return 0;
+}
+```
+
+### Grafos ponderados
+
+Para grafos ponderados, a `struct` ganha um **terceiro campo**: o peso.
+
+<Grafo name="exemplo-ponderado" />
+
+```c
+typedef struct {
+    int origem;
+    int destino;
+    int peso;
+} Aresta;
+
+Aresta arestas[M];
+int qtdArestas = 0;
+
+void addAresta(int a, int b, int peso) {
+    arestas[qtdArestas].origem = a;
+    arestas[qtdArestas].destino = b;
+    arestas[qtdArestas].peso = peso;
+    qtdArestas++;
+}
+
+int main() {
+    addAresta(1, 2, 5);
+    addAresta(2, 3, 7);
+    addAresta(2, 4, 6);
+    addAresta(4, 3, 5);
+    addAresta(4, 1, 2);
+
+    return 0;
+}
+```
+
+## Qual representação usar?
+
+| | Lista de adjacência | Matriz de adjacência | Lista de arestas |
+| --- | --- | --- | --- |
+| **Memória** | `n + m` | `n × n` | `m` |
+| **Existe a aresta a → b?** | percorre os vizinhos de `a` | direto, em um acesso | percorre todas as arestas |
+| **Listar vizinhos de x** | direto, só os vizinhos de `x` | percorre uma linha inteira (`n`) | percorre todas as arestas |
+
+- 🔗 **Lista de adjacência:** é a mais usada na prática. Ótima para percorrer vizinhos e para grafos com **poucas arestas**.
+- 🧮 **Matriz de adjacência:** boa quando o grafo é **denso** (muitas arestas) ou quando precisamos checar rápido se uma aresta existe. O custo é gastar memória `n × n`.
+- 📋 **Lista de arestas:** simples e útil quando o algoritmo trabalha **aresta por aresta** (por exemplo, ordenando as arestas por peso).

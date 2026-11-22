@@ -1,3 +1,4 @@
+import type { GraphTone } from "../../viz-data/graphs";
 import type { NodeState } from "../../viz-data/types";
 
 export const stateColor: Record<NodeState, string> = {
@@ -33,3 +34,13 @@ export const ptrColor: Record<string, string> = {
     idx: "var(--color-brand-300)",
     meio: "var(--color-brand-400)",
 };
+
+// cor de cada "tom" usado nos grafos (nós, arestas, molduras e legendas)
+export const toneColor: Record<GraphTone, string> = {
+    brand: "var(--color-brand-400)",
+    ok: "var(--color-ok)",
+    warn: "var(--color-warn)",
+    danger: "var(--color-danger)",
+    muted: "var(--color-ink-400)",
+};
+

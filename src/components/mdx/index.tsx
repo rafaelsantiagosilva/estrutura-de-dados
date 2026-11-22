@@ -12,6 +12,7 @@ import BigOExplorer from "../viz/BigOExplorer";
 import { Exercicio, Resposta } from "./Exercicio";
 import BuscaLab from "../viz/BuscaLab";
 import CompareSteps from "../viz/CompareSteps";
+import Grafo from "../viz/Grafo";
 
 export const mdxComponents: MDXComponents = {
   blockquote: Callout,
@@ -29,5 +30,6 @@ export const mdxComponents: MDXComponents = {
   Exercicio,
   Resposta,
   BuscaLab,
-  CompareSteps
+  CompareSteps,
+  Grafo
 };
