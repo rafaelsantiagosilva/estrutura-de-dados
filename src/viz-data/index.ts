@@ -27,6 +27,7 @@ import { removerChave } from "./listas-ligadas/removerChave";
 import { tipoB } from "./listas-ligadas/tipoB";
 import { vetInserir, vetRemover } from "./listas-ligadas/vetorLista";
 import { pilhaListaNo, pilhaListaNew, pilhaListaPush, pilhaListaPop, pilhaListaPopVazia, pilhaListaPrint, pilhaListaSize, pilhaListaSizeRec, pilhaListaBalanceado, pilhaListaPushRef } from "./pilha/pilha-lista";
+import { filaListaNew, filaListaAddVazia, filaListaAdd, filaListaRemover, filaListaRemoverUnico, filaListaRemoverVazia, filaListaPrint, filaListaProdutorConsumidor, filaListaPrioridade } from "./fila/fila-lista";
 
 // Chave = o que você escreve em <Sim name="..." /> no MDX
 export const sims: Record<string, AnySim> = {
@@ -58,4 +59,14 @@ export const sims: Record<string, AnySim> = {
     pilhaListaSizeRec,
     pilhaListaBalanceado,
     pilhaListaPushRef,
+    // fila com lista
+    filaListaNew,
+    filaListaAddVazia,
+    filaListaAdd,
+    filaListaRemover,
+    filaListaRemoverUnico,
+    filaListaRemoverVazia,
+    filaListaPrint,
+    filaListaProdutorConsumidor,
+    filaListaPrioridade,
 };

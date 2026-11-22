@@ -96,7 +96,20 @@ export const nav: Topic[] = [
     },
     {
         slug: "filas", title: "Filas", icon: ListOrdered,
-        description: "FIFO: o primeiro a entrar é o primeiro a sair.", sections: defaultSections
+        description: "FIFO: o primeiro a entrar é o primeiro a sair.", sections: [
+            {
+                slug: "fila-com-vetor",
+                title: "Fila com Vetor"
+            },
+            {
+                slug: "fila-com-lista-ligada",
+                title: "Fila com Lista Ligada"
+            },
+            {
+                slug: "exercicios",
+                title: "Exercicios"
+            }
+        ]
     },
     {
         slug: "ordenacao", title: "Ordenação", icon: ArrowDownUp,
@@ -121,7 +134,20 @@ export const nav: Topic[] = [
     },
     {
         slug: "buscas", title: "Buscas", icon: Search,
-        description: "Busca sequencial e busca binária.", sections: defaultSections
+        description: "Busca sequencial e busca binária.", sections: [
+            {
+                slug: "busca-sequencial",
+                title: "Busca Sequencial"
+            },
+            {
+                slug: "busca-binaria",
+                title: "Busca Binária",
+            },
+            {
+                slug: "exercicios",
+                title: "Exercícios"
+            }
+        ]
     },
     {
         slug: "grafos", title: "Grafos", icon: Share2,

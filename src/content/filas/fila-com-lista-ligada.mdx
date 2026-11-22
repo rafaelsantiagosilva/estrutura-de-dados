@@ -1,0 +1,512 @@
+Você já conhece a pilha: o último a entrar é o primeiro a sair. Agora vamos conhecer a estrutura que funciona ao contrário, e que você vê todo dia: a **fila**. Aqui vamos implementá-la com **lista ligada**, com simulações para você acompanhar cada ponteiro se mexendo. 🧍🧍🧍
+
+> 🎮 **Como ler as simulações:** a caixa `ini` à esquerda aponta para o primeiro nó da fila, e o rótulo `fim` aparece embaixo do último nó. Os nós são os círculos, ligados por setas (`prox`). As cores indicam: 🟢 nó novo, 🟡 nó que um ponteiro está usando no momento e 🔴 nó que acabou de ser liberado com `free`. Nós que ainda não estão ligados à fila ficam soltos, na linha de cima.
+
+## A regra do jogo: FIFO
+
+Numa fila, **o primeiro a entrar é o primeiro a sair**. Em inglês, *First In, First Out*, ou **FIFO**.
+
+Pense na fila do supermercado: quem chegou primeiro é atendido primeiro, o segundo é o segundo, e assim por diante. Outro exemplo é a fila do açougue, em que as pessoas retiram uma **senha**. Repare que aqui as pessoas nem ficam uma ao lado da outra, e a sequência é controlada pela senha, mas a regra FIFO se mantém. Isso é importante: numa fila, os elementos **não precisam estar fisicamente lado a lado**, e é por isso que a lista ligada combina tão bem com ela.
+
+| | Pilha | Fila |
+| --- | --- | --- |
+| **Regra** | LIFO (último a entrar, primeiro a sair) | FIFO (primeiro a entrar, primeiro a sair) |
+| **Entra por** | topo | **fim** |
+| **Sai por** | topo | **início** |
+| **Exemplo** | pilha de pratos | fila do supermercado |
+
+> 💡 E se for preciso inserir ou remover um elemento **no meio** da fila? Aí já não é mais uma fila, e sim uma **lista**. Ela será o tema da próxima aula.
+
+### Onde as filas aparecem?
+
+- **Fila de impressão:** os documentos são impressos na ordem em que foram enviados.
+- **Fila com prioridades:** suponha que professores tenham prioridade sobre alunos na impressão, ou a fila prioritária do supermercado (idosos, gestantes...). Vamos implementar uma versão disso mais adiante.
+- **Produtor e consumidor:** um processo gera tarefas e as coloca numa fila (o produtor), e outro retira e processa (o consumidor). Também veremos uma versão simplificada.
+
+## A ideia: dois ponteiros, `ini` e `fim`
+
+Na fila, os elementos **entram no final** e **saem do início**. Para fazer as duas coisas rapidamente, a fila guarda **dois ponteiros**:
+
+- `ini`: aponta para o **primeiro** nó (de onde saem os elementos);
+- `fim`: aponta para o **último** nó (onde entram os elementos).
+
+```text
+Fila vazia:           ini ──▶ NULL
+                      fim ──▶ NULL
+
+Fila com 1 elemento:  ini ──▶ [5|NULL] ◀── fim
+
+Fila com 3 elementos: ini ──▶ [8|•]──▶[5|•]──▶[3|NULL] ◀── fim
+```
+
+> 🚀 **Para que serve o `fim`?** Sem ele, para inserir no final teríamos que percorrer a lista inteira até achar o último nó. Com o `fim` apontando direto para ele, inserir no final custa o mesmo, não importa o tamanho da fila.
+
+## O nó e a fila
+
+O nó é o **mesmo** da pilha: um `valor` e um ponteiro `prox` para o nó seguinte (`NULL` no último):
+
+```c
+// estrutura No
+typedef struct No
+{
+    int valor;
+    struct No *prox;
+} No;
+
+// construtor
+No *newNo(int valor)
+{
+    No *no = (No *)malloc(sizeof(No));
+    no->valor = valor;
+    no->prox = NULL;
+    return no;
+}
+```
+
+A diferença está na estrutura que organiza os nós. Em vez de um só ponteiro (`topo`), a fila tem **dois**:
+
+```c
+// estrutura Fila
+typedef struct Fila
+{
+    No *ini;
+    No *fim;
+} Fila;
+
+// construtor
+Fila *newFila()
+{
+    Fila *fila = (Fila *)malloc(sizeof(Fila));
+    fila->ini = NULL;
+    fila->fim = NULL;
+    return fila;
+}
+```
+
+<Sim name="filaListaNew" />
+
+O construtor cria uma fila com `ini` e `fim` apontando para `NULL`: a fila vazia.
+
+E para saber se a fila está vazia, basta olhar o início:
+
+```c
+int estaVazia(Fila *f)
+{
+    return f->ini == NULL;
+}
+```
+
+## `add`: entrando no final da fila
+
+Inserir tem **dois casos**, e é aqui que a fila exige mais atenção que a pilha:
+
+```c
+void add(Fila *f, int x)
+{
+    No *no = newNo(x);
+    if (estaVazia(f))
+    {
+        f->ini = no;
+        f->fim = no;
+    }
+    else
+    {
+        f->fim->prox = no;
+        f->fim = no;
+    }
+}
+```
+
+| Caso | O que fazer |
+| --- | --- |
+| **Fila vazia** | o novo nó é, ao mesmo tempo, o primeiro e o último: `ini` e `fim` apontam para ele |
+| **Fila com elementos** | (b) o último nó passa a apontar para o novo e (c) o `fim` passa a apontar para o novo |
+
+### Caso 1: fila vazia
+
+Quando a fila está vazia, não existe "último nó" para ligar ao novo. Então `ini` **e** `fim` apontam para o mesmo nó:
+
+<Sim name="filaListaAddVazia" />
+
+### Caso 2: fila com elementos
+
+Aqui o processo tem três passos, na ordem certa:
+
+| Passo | O que acontece |
+| --- | --- |
+| **(a)** | `newNo(x)` cria um nó novo e solto |
+| **(b)** | `f->fim->prox = no`: o **último nó** passa a apontar para o novo |
+| **(c)** | `f->fim = no`: o `fim` passa a apontar para o novo, que é o novo último |
+
+Acompanhe com a fila `3, 7, 9` recebendo o valor `10`:
+
+<Sim name="filaListaAdd" />
+
+> ⚠️ **A ordem importa!** O passo (b) usa o `fim` antigo para chegar ao último nó. Se você fizesse (c) antes de (b), o `fim` já estaria no novo nó, e o `9` nunca seria ligado a ele.
+
+## `remover`: saindo do início da fila
+
+A remoção tem **três situações**, e o código precisa tratar todas:
+
+```c
+int remover(Fila *fila)
+{
+    int valor;
+    if (estaVazia(fila))
+    {
+        printf("Fila Vazia\n");
+        exit(1);
+    }
+    valor = fila->ini->valor;
+    No *no = fila->ini;
+    if (fila->ini == fila->fim)
+    {
+        fila->ini = NULL;
+        fila->fim = NULL;
+    }
+    else
+    {
+        fila->ini = fila->ini->prox;
+    }
+    free(no);
+    return valor;
+}
+```
+
+| Situação | O que acontece |
+| --- | --- |
+| **Fila vazia** | mensagem de erro e o programa termina |
+| **Um único elemento** | depois de remover, a fila fica vazia: `ini` **e** `fim` viram `NULL` |
+| **Dois ou mais elementos** | o `ini` avança para o próximo nó; o `fim` não muda |
+
+Nos três casos (menos no erro), os passos comuns são: guardar o `valor` do primeiro nó, guardar o nó em `no` (para poder liberá-lo), ajustar os ponteiros, dar `free(no)` e devolver o valor.
+
+### Caso 1: dois ou mais elementos
+
+Acompanhe a fila `3, 7, 9` perdendo o seu primeiro elemento:
+
+<Sim name="filaListaRemover" />
+
+Repare que, diferente do `add`, só o `ini` se mexe. O `fim` continua no `9`.
+
+### Caso 2: um único elemento
+
+Aqui está a armadilha. Se a fila tem só um nó, `ini` e `fim` apontam para ele. Depois do `free`, **nenhum dos dois** pode continuar apontando para ele:
+
+<Sim name="filaListaRemoverUnico" />
+
+> 🧠 **Por que zerar o `fim` também?** Se só o `ini` virasse `NULL`, o `fim` ficaria apontando para um nó que já foi liberado. Na próxima chamada de `add`, a fila estaria vazia (`ini == NULL`), então o `fim` nem seria consultado... mas ele guardaria um endereço **inválido**. Manter `ini` e `fim` coerentes é o que faz a fila funcionar sempre.
+
+### Caso 3: fila vazia
+
+<Sim name="filaListaRemoverVazia" />
+
+> 🛡️ Sem o teste de fila vazia, o `fila->ini->valor` tentaria acessar o valor de um nó que não existe. Sempre proteja o `remover`!
+
+## `size` e `printFila`: percorrendo a fila
+
+As funções `size` e `printFila` apenas **percorrem** os elementos, do mesmo jeito que na pilha, com um ponteiro auxiliar `aux`:
+
+```c
+// número de elementos na fila
+int size(Fila *fila)
+{
+    int size = 0;
+    No *aux = fila->ini;
+    while (aux != NULL)
+    {
+        aux = aux->prox;
+        size++;
+    }
+    return size;
+}
+
+void printFila(Fila *fila)
+{
+    printf("[");
+    No *aux = fila->ini;
+    while (aux != NULL)
+    {
+        printf("%d", aux->valor);
+        aux = aux->prox;
+        if (aux != NULL)
+        {
+            printf(",");
+        }
+    }
+    printf("]");
+    printf("(%d)\n", size(fila));
+}
+```
+
+<Sim name="filaListaPrint" />
+
+> 💡 Usamos o `aux` (e não o próprio `ini`) para andar pela fila. Se movêssemos o `ini`, **perderíamos** o início da fila!
+
+### Juntando tudo
+
+```c
+int main()
+{
+    Fila *fila = newFila();
+    add(fila, 3);
+    add(fila, 7);
+    add(fila, 9);
+    printFila(fila);
+
+    add(fila, 10);
+    add(fila, 1);
+    add(fila, 5);
+    printFila(fila);
+
+    while (!estaVazia(fila))
+    {
+        printf("Removeu %d\n", remover(fila));
+    }
+}
+```
+
+A saída será:
+
+```text
+[3,7,9](3)
+[3,7,9,10,1,5](6)
+Removeu 3
+Removeu 7
+Removeu 9
+Removeu 10
+Removeu 1
+Removeu 5
+```
+
+Os elementos saem **exatamente na ordem em que entraram**: essa é a regra FIFO funcionando.
+
+## Aplicação: produtor e consumidor
+
+Um problema clássico que a fila resolve. Existe um processo que **gera** tarefas e as coloca na fila (o **produtor**) e outro que **retira** e processa as tarefas (o **consumidor**). A fila garante que as tarefas sejam processadas na ordem em que foram criadas.
+
+O produtor cria uma tarefa (um número aleatório de 0 a 99) e a coloca na fila:
+
+```c
+void produtor(Fila *f)
+{
+    int tarefa = rand() % 100;
+    add(f, tarefa);
+    printf("Add tarefa %d\n", tarefa);
+}
+```
+
+O consumidor verifica se a fila **não** está vazia e, se houver tarefa, remove e processa:
+
+```c
+void consumidor(Fila *f)
+{
+    if (!estaVazia(f))
+    {
+        int tarefa = remover(f);
+        printf("Processando tarefa %d\n", tarefa);
+    }
+}
+```
+
+<Sim name="filaListaProdutorConsumidor" />
+
+> 🧠 Repare no teste do consumidor: se a fila estiver vazia, ele **não faz nada**. Sem esse teste, o `remover` encerraria o programa com erro.
+
+Para ver tudo funcionando, a função `executa` repete 1000 vezes: sorteia um número de 0 a 99 e, se ele for **menor que 40**, chama o produtor (40% de chance); caso contrário, chama o consumidor (60% de chance). A cada passo, imprime a fila e espera 1 segundo:
+
+```c
+void executa()
+{
+    Fila *filaTarefas = newFila();
+    for (int i = 0; i < 1000; i++)
+    {
+        int r = rand() % 100;
+        if (r < 40)
+        {
+            produtor(filaTarefas);
+        }
+        else
+        {
+            consumidor(filaTarefas);
+        }
+        printFila(filaTarefas);
+        sleep(1);
+    }
+}
+```
+
+> 📦 Para a função `sleep` funcionar, é preciso incluir a biblioteca `#include <unistd.h>`. Como o consumidor é mais "rápido" (60%) que o produtor (40%), a fila tende a ficar quase sempre curta.
+
+## Variação: fila com prioridades
+
+Suponha que existam **dois tipos** de elementos: **prioritários** e **normais**. A ideia é ter **duas filas** dentro de uma estrutura só:
+
+- Ao **inserir**, o elemento vai para a fila correta (prioritária ou normal);
+- Ao **remover**, primeiro olhamos a fila prioritária. Se ela **não** estiver vazia, o elemento sai dela. Se estiver vazia, o elemento sai da fila normal.
+
+A estrutura e o construtor:
+
+```c
+typedef struct FilaPrioridade
+{
+    Fila *prioritario;
+    Fila *normal;
+} FilaPrioridade;
+
+FilaPrioridade *newFilaPrioridade()
+{
+    FilaPrioridade *fila = (FilaPrioridade *)
+        malloc(sizeof(FilaPrioridade));
+    fila->prioritario = newFila();
+    fila->normal = newFila();
+    return fila;
+}
+```
+
+O construtor aloca a estrutura principal e depois as duas filas internas. Veja as demais funções:
+
+```c
+// adiciona na fila com prioridades
+void addPri(FilaPrioridade *f, int x, int prioritario)
+{
+    if (prioritario)
+    {
+        add(f->prioritario, x);
+    }
+    else
+    {
+        add(f->normal, x);
+    }
+}
+
+// remoção na fila com prioridades
+int removerPri(FilaPrioridade *f)
+{
+    if (!estaVazia(f->prioritario))
+    {
+        return remover(f->prioritario);
+    }
+    else
+    {
+        return remover(f->normal);
+    }
+}
+
+int estaVaziaPri(FilaPrioridade *fila)
+{
+    return estaVazia(fila->prioritario) &&
+           estaVazia(fila->normal);
+}
+
+// imprime a fila com prioridades
+void printFilaPri(FilaPrioridade *fila)
+{
+    printf("Prioritarios\n");
+    printFila(fila->prioritario);
+    printf("Normal\n");
+    printFila(fila->normal);
+}
+```
+
+Repare que as funções da fila com prioridades **reaproveitam** `add`, `remover`, `estaVazia` e `printFila` que já fizemos. Cada uma só decide **qual** das duas filas usar. A fila está vazia quando **as duas** estão vazias.
+
+Um exemplo de uso:
+
+```c
+int main()
+{
+    FilaPrioridade *fila = newFilaPrioridade();
+    int prioritario = 0;
+    int valor = 3;
+    addPri(fila, valor, prioritario);
+    valor = 4;
+    addPri(fila, valor, prioritario);
+    prioritario = 1;
+    valor = 7;
+    addPri(fila, valor, prioritario);
+    prioritario = 0;
+    valor = 6;
+    addPri(fila, valor, prioritario);
+    prioritario = 1;
+    valor = 10;
+    addPri(fila, valor, prioritario);
+    printFilaPri(fila);
+    printf("----\n");
+    while (!estaVaziaPri(fila))
+    {
+        printf("Removeu %d\n", removerPri(fila));
+    }
+}
+```
+
+A saída será:
+
+```text
+Prioritarios
+[7,10](2)
+Normal
+[3,4,6](3)
+----
+Removeu 7
+Removeu 10
+Removeu 3
+Removeu 4
+Removeu 6
+```
+
+Acompanhe a remoção na simulação. Aqui a fila prioritária fica embaixo (apontada pela caixa `prior`) e a fila normal fica em cima:
+
+<Sim name="filaListaPrioridade" />
+
+> 🎯 Os prioritários (`7`, `10`) saem **antes** dos normais, mesmo o `3` tendo chegado antes do `7`. Dentro de cada grupo, a ordem FIFO continua valendo. Na Questão 62, você vai generalizar essa ideia para muitos níveis de prioridade.
+
+## Quanto custa cada operação?
+
+| Operação | Complexidade | Por quê |
+| --- | --- | --- |
+| `newFila` | <ComplexityBadge>Θ(1)</ComplexityBadge> | só reserva a struct e zera dois ponteiros |
+| `estaVazia` | <ComplexityBadge>Θ(1)</ComplexityBadge> | uma comparação com `NULL` |
+| `add` | <ComplexityBadge>Θ(1)</ComplexityBadge> | o `fim` leva direto ao último nó, sem percorrer nada |
+| `remover` | <ComplexityBadge>Θ(1)</ComplexityBadge> | o `ini` leva direto ao primeiro nó |
+| `size` | <ComplexityBadge>Θ(n)</ComplexityBadge> | percorre os `n` nós para contar |
+| `printFila` | <ComplexityBadge>Θ(n)</ComplexityBadge> | percorre os `n` nós |
+| `addPri`, `removerPri`, `estaVaziaPri` | <ComplexityBadge>Θ(1)</ComplexityBadge> | só escolhem uma das filas e chamam `add`, `remover` ou `estaVazia` |
+
+> 🚀 `add` e `remover` custam `Θ(1)` **graças aos dois ponteiros**. Se a fila guardasse só o `ini`, o `add` precisaria percorrer a fila toda, `Θ(n)`.
+
+O `size` é `Θ(n)` porque não existe uma variável com a quantidade de elementos. Dá para melhorar isso guardando um inteiro `size` dentro da estrutura (somando 1 no `add` e subtraindo 1 no `remover`). Essa é a proposta da Questão 61.
+
+### Pilha ou fila com lista ligada?
+
+| | Pilha | Fila |
+| --- | --- | --- |
+| **Ponteiros na struct** | `topo` | `ini` e `fim` |
+| **Insere** | no começo da lista | no **fim** da lista |
+| **Remove** | do começo da lista | do **começo** da lista |
+| **Casos especiais** | pilha vazia no `pop` | fila vazia no `add` (tem que acertar `ini` e `fim`) e fila com 1 elemento no `remover` |
+| **`push`/`add` e `pop`/`remover`** | <ComplexityBadge>Θ(1)</ComplexityBadge> | <ComplexityBadge>Θ(1)</ComplexityBadge> |
+
+## Erros comuns
+
+1. **Esquecer o caso da fila vazia no `add`.** Com `fim == NULL`, a linha `f->fim->prox = no` tentaria acessar um nó que não existe e o programa falha. Quando a fila está vazia, é preciso acertar `ini` **e** `fim`.
+2. **Esquecer de zerar o `fim` ao remover o único elemento.** O `fim` ficaria apontando para um nó liberado.
+3. **Fazer (c) antes de (b) no `add`.** O `fim` precisa ser usado **antes** de ser atualizado, senão o último nó nunca é ligado ao novo.
+4. **Inserir no começo e remover do começo.** Isso é uma **pilha**, não uma fila! Na fila, entra no fim e sai do início.
+5. **Esquecer o teste de fila vazia no `remover`.** Acessar `fila->ini->valor` com `ini == NULL` derruba o programa.
+6. **Ler o `valor` depois do `free`.** O valor do primeiro nó precisa ser guardado **antes** de liberar o nó.
+7. **Esquecer o `free` no `remover`.** O programa funciona, mas vaza memória: cada nó removido fica perdido até o programa terminar.
+8. **Percorrer a fila com o próprio `ini`.** Use um ponteiro auxiliar (`aux`), senão a fila perde o seu início.
+
+## Resumo rápido
+
+- **Fila** é FIFO: o primeiro a entrar é o primeiro a sair. Entra pelo **fim** e sai pelo **início**.
+- Com lista ligada, a struct `Fila` guarda dois ponteiros: `ini` (primeiro nó) e `fim` (último nó). Fila vazia: `ini == NULL`.
+- **`add`:** se a fila está vazia, `ini` e `fim` apontam para o novo nó. Senão, **(b)** `f->fim->prox = no` e **(c)** `f->fim = no`.
+- **`remover`:** testa se está vazia, guarda o valor, guarda o nó em `no`, e então: se há **um só** nó, zera `ini` **e** `fim`; senão, `ini` avança. Por fim, `free(no)` e devolve o valor.
+- `add`, `remover` e `estaVazia` custam <ComplexityBadge>Θ(1)</ComplexityBadge>. `size` e `printFila` custam <ComplexityBadge>Θ(n)</ComplexityBadge>.
+- Aplicações: **produtor e consumidor** (o consumidor só remove se a fila não estiver vazia) e **fila com prioridades** (duas filas, e a prioritária é sempre atendida primeiro).
+
+E se a fila fosse feita com **vetor**? Como evitar que `ini` e `fim` "fujam" do vetor com o uso? Esse é o próximo assunto. 🔄
+
+Agora é com você: na aba **Exercícios**, implemente a fila do zero, sem consultar o material. 💪
