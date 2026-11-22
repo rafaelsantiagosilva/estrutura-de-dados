@@ -5,6 +5,8 @@ Abaixo seguem algumas das principais funcionalidades da linguagem C para a disci
 As `structs` são variáveis que agrupam dados, de forma similar a objetos em linguagens orientadas a objetos.
 
 ```c
+#include<stdio.h>
+
 typedef struct Personagem 
 {
     char nome[30];
@@ -19,7 +21,7 @@ int main()
     heroi = {"Batman", 4};
     vilao = {"Coringa", 5};
 
-    printf("%s Vs. %s\n");
+    printf("%s Vs. %s\n", heroi.nome, vilao.nome);
     if (heroi.nivel >= vilao)
         printf("%s vence!\n", heroi.nome);
     else
@@ -32,6 +34,8 @@ int main()
 Podemos usar **structs aninhadas**, ou seja, `structs` dentro de outras `structs`:
 
 ```c
+#include<stdio.h>
+
 int main()
 {
     struct Pessoa {
@@ -136,7 +140,7 @@ Abaixo, há a criação de um vetor de 8 números inteiros. Perceba a utilizaç�
 
 ```c
 int tam = 8;
-int *v = (int*)malloc(n*sizeof(int));
+int *v = (int*)malloc(tam*sizeof(int));
 
 if (v == NULL)
 {
@@ -144,12 +148,12 @@ if (v == NULL)
     return 1;
 }
 
-free(v); // Libera o espaço alocado para o vetor
+free(v); // Libera o espaço alocado do vetor
 ```
 
 O que ocorre, do mais interno para o externo, é:
 
-- o cálculo do tamanho de um `int` em bytes
+- o cálculo do tamanho de um `int` em bytes, através da função `sizeof`
 - a multiplicação pelo número de elementos que quero em meu vetor: se eu quero 8 `int`s, preciso alocar `8 * tamanho_de_um_int` em bytes
 - a alocação pela `malloc`
 - a conversão de tipo (`cast`) de `void*` para `int*`
