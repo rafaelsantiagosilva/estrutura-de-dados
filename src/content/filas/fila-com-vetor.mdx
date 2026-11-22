@@ -1,0 +1,363 @@
+Você já viu a fila com lista ligada: os elementos entram no fim e saem do início, cada um em um nó solto na memória. Agora vamos fazer a **mesma fila com um vetor**. À primeira vista parece fácil, mas a fila tem uma pegadinha que a pilha não tem: **os dois lados se mexem**. Resolver isso nos leva a uma ideia muito elegante, o **vetor circular**. 🔄
+
+> 🎮 **Como ler as simulações:** o vetor é desenhado na horizontal, com o índice `[i]` acima de cada célula. Os marcadores `ini` e `fim` aparecem embaixo. 🟢 marca um elemento recém-inserido e 🟡 um elemento que está sendo lido. Células tracejadas estão vazias: na apostila, posição vazia guarda o valor `0`.
+
+## A ideia: um vetor e duas variáveis
+
+A regra continua sendo FIFO (o primeiro a entrar é o primeiro a sair). Para implementá-la com um vetor `v`, usamos **duas variáveis**:
+
+| Variável | Significado |
+| --- | --- |
+| `ini` | o índice do **primeiro elemento** da fila (de onde os elementos saem) |
+| `fim` | o índice da **primeira posição livre** (onde o próximo elemento entra) |
+
+```text
+Fila com os elementos 1, 2 e 3:
+
+índice:    0     1     2     3     4
+         ┌─────┬─────┬─────┬─────┬─────┐
+    v    │  1  │  2  │  3  │     │     │
+         └─────┴─────┴─────┴─────┴─────┘
+            ↑                 ↑
+           ini = 0          fim = 3
+```
+
+Compare com a pilha com vetor: ela tinha **uma** variável (`top`), porque só mexia em um lado. A fila mexe nos dois: **entra pelo `fim`** e **sai pelo `ini`**. Quando `ini == fim`, a fila está **vazia**, e o tamanho é a distância entre os dois.
+
+## Versão 1: o jeito simples (e o seu problema)
+
+Vamos começar com o vetor e as variáveis como **globais**, só para entender a ideia:
+
+```c
+#include <stdio.h>
+#define MAX 8
+
+int v[MAX];
+int ini = 0, fim = 0;
+
+void add(int x)
+{
+    v[fim++] = x;
+}
+
+int remover()
+{
+    int valor = v[ini];
+    v[ini] = 0;
+    ini++;
+    return valor;
+}
+
+int estaVazia()
+{
+    return ini == fim;
+}
+
+int size()
+{
+    return fim - ini;
+}
+```
+
+| Função | O que faz |
+| --- | --- |
+| `add` | `v[fim++] = x`: guarda `x` na primeira posição livre e avança o `fim` |
+| `remover` | guarda `v[ini]`, **zera** essa posição e avança o `ini` |
+| `estaVazia` | verdadeiro quando `ini == fim` |
+| `size` | `fim - ini`, a distância entre os dois |
+
+> 💡 **A linha `v[fim++] = x`** é a mesma da pilha: escreve em `v[fim]` e depois incrementa o `fim`. A diferença é que o `remover` mexe em **outra** variável, o `ini`.
+
+Para ver o problema, vamos usar `MAX 5` e executar esta sequência: `add(1)`, `add(2)`, `add(3)`, `remover()`, `remover()`, `add(4)`, `add(5)` e `add(6)`.
+
+<Sim name="filaVetorLinear" />
+
+O que aconteceu? Os dois marcadores só **andam para a direita**. A cada `add`, o `fim` avança; a cada `remover`, o `ini` avança. Nunca voltam. Depois de um certo tempo de uso, **os dois saem do vetor**, mesmo que a fila esteja quase vazia e haja muitas posições livres no começo.
+
+> ⚠️ Em nenhum momento a fila teve mais que 3 elementos, mas o vetor "acabou". Isso é um desperdício enorme de espaço.
+
+## Versão 2: o vetor circular
+
+A solução é simples de dizer: **ao chegar na última posição, volte para a primeira**. Imagine o vetor dobrado em círculo, com a última posição vindo logo antes da primeira:
+
+```text
+              [0]  [1]  [2]
+          [4]                [3]      (MAX = 5)
+
+   O índice seguinte ao 4 é o 0: o vetor "dá a volta".
+```
+
+Como fazer isso em código? Com o operador **resto da divisão** (`%`, o "módulo"). A fórmula `(i + 1) % MAX` dá o índice seguinte, e **volta para o zero** depois do último:
+
+| `i` | `(i + 1) % 5` |
+| --- | --- |
+| `0` | `1` |
+| `1` | `2` |
+| `2` | `3` |
+| `3` | `4` |
+| `4` | **`0`** ← deu a volta! |
+
+O `add` e o `remover` ficam quase iguais, trocando o `fim++` e o `ini++` pela fórmula:
+
+```c
+void add(int x)
+{
+    v[fim] = x;
+    fim = (fim + 1) % MAX;
+}
+
+int remover()
+{
+    int valor = v[ini];
+    v[ini] = 0;
+    ini = (ini + 1) % MAX;
+    return valor;
+}
+```
+
+Acompanhe a mesma sequência de antes, agora com o vetor circular:
+
+<Sim name="filaVetorCircular" />
+
+> 🎉 Repare em dois momentos: no `add(5)`, o `fim` passa de `4` para `0`, e depois, no último `remover`, o `ini` também passa de `4` para `0`. A fila "dá a volta" no vetor, e agora **o espaço livre no começo é reaproveitado**.
+
+### O `size` também precisa mudar
+
+Na versão simples, `size` era `fim - ini`. Mas agora o `fim` pode estar **antes** do `ini` (quando a fila deu a volta), e a conta daria um número negativo. A solução:
+
+```c
+int size()
+{
+    if (fim > ini)
+    {
+        return fim - ini;
+    }
+    else
+    {
+        return fim - ini + MAX;
+    }
+}
+```
+
+<Sim name="filaVetorSize" />
+
+Quando a fila deu a volta (`fim < ini`), somar `MAX` conserta a conta: é como se o vetor fosse "desenrolado" em uma linha com `MAX` posições a mais.
+
+> ⚠️ **Cuidado com a fila vazia!** Quando a fila está vazia, temos `ini == fim`. Nesse caso `fim > ini` é falso, e o `size` acima cai no `else`, devolvendo `fim - ini + MAX = MAX`. Ou seja, o `size` desta versão responde `MAX` para uma fila **vazia**. (Os programas da aula nunca chamam `size` com a fila vazia, então o erro não aparece.) Uma forma que funciona em todos os casos é `(fim - ini + MAX) % MAX`. Teste com os dois casos da simulação e com a fila vazia!
+
+Como o vetor é desenhado inteiro, a saída do `printFila` (que imprime as `MAX` posições) com `MAX 5` fica assim:
+
+```text
+[1,0,0,0,0](1)
+[1,2,0,0,0](2)
+[1,2,3,0,0](3)
+[0,2,3,0,0](2)
+[0,0,3,0,0](1)
+[0,0,3,4,0](2)
+[0,0,3,4,5](3)
+[6,0,3,4,5](4)
+```
+
+Veja a última linha: o número `6` foi inserido na posição **zero** do vetor, exatamente como na simulação.
+
+## Versão 3: uma fila de verdade, com `struct`
+
+Variáveis globais permitem uma única fila no programa inteiro, e não são uma boa prática. Para criar **várias filas**, colocamos tudo (`v`, `max`, `ini` e `fim`) dentro de uma `struct`:
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+
+// Estrutura fila
+typedef struct Fila
+{
+    int *v;
+    int max;
+    int ini, fim;
+} Fila;
+
+// Construtor
+Fila *newFila(int max)
+{
+    Fila *fila = (Fila *)malloc(sizeof(Fila));
+    // alocando memória e iniciando elementos com zero
+    // via calloc
+    fila->v = (int *)calloc(max, sizeof(int));
+    fila->ini = 0;
+    fila->fim = 0;
+    fila->max = max;
+    return fila;
+}
+```
+
+| Campo | Para que serve |
+| --- | --- |
+| `v` | o vetor, alocado dinamicamente |
+| `max` | a **capacidade** (o tamanho do vetor) |
+| `ini`, `fim` | os mesmos índices de antes |
+
+> 🧠 **`calloc` em vez de `malloc`.** O `calloc(max, sizeof(int))` reserva o vetor e já **zera** todas as posições. Isso casa com a convenção de que posição livre guarda `0` (o que também deixa a saída do `printFila` limpa). O `malloc` deixaria lixo.
+
+As demais funções são as mesmas ideias, agora acessando os campos pelo ponteiro `f` (`f->v`, `f->ini`...):
+
+```c
+int estaVazia(Fila *f)
+{
+    return f->ini == f->fim;
+}
+
+void add(Fila *f, int x)
+{
+    f->v[f->fim] = x;
+    f->fim = (f->fim + 1) % f->max;
+    if (f->fim == f->ini)
+    {
+        printf("Fila Cheia\n");
+        exit(1);
+    }
+}
+
+int remover(Fila *f)
+{
+    if (estaVazia(f))
+    {
+        printf("Fila Vazia\n");
+        exit(1);
+    }
+    int valor = f->v[f->ini];
+    f->v[f->ini] = 0;
+    f->ini = (f->ini + 1) % f->max;
+    return valor;
+}
+
+// número de elementos na fila
+int size(Fila *f)
+{
+    if ((f->ini) < (f->fim))
+    {
+        return (f->fim) - (f->ini);
+    }
+    else
+    {
+        return (f->fim) - (f->ini) + (f->max);
+    }
+}
+
+void printFila(Fila *f)
+{
+    printf("[");
+    for (int i = 0; i < f->max; i++)
+    {
+        printf("%d", f->v[i]);
+        if (i < f->max - 1)
+        {
+            printf(",");
+        }
+    }
+    printf("]");
+    printf("(%d)\n", size(f));
+}
+```
+
+Repare que agora o `add` e o `remover` **verificam** os limites: o `add` avisa quando a fila fica cheia e o `remover` avisa quando está vazia.
+
+### Um uso completo
+
+```c
+int main()
+{
+    Fila *f = newFila(5);
+    add(f, 1); printFila(f);
+    add(f, 2); printFila(f);
+    add(f, 3); printFila(f);
+    add(f, 4); printFila(f);
+    remover(f); printFila(f);
+    remover(f); printFila(f);
+    remover(f); printFila(f);
+    add(f, 5); printFila(f);
+    add(f, 6); printFila(f);
+    add(f, 7); printFila(f);
+    remover(f); printFila(f);
+    remover(f); printFila(f);
+    remover(f); printFila(f);
+}
+```
+
+A saída será:
+
+```text
+[1,0,0,0,0](1)
+[1,2,0,0,0](2)
+[1,2,3,0,0](3)
+[1,2,3,4,0](4)
+[0,2,3,4,0](3)
+[0,0,3,4,0](2)
+[0,0,0,4,0](1)
+[0,0,0,4,5](2)
+[6,0,0,4,5](3)
+[6,7,0,4,5](4)
+[6,7,0,0,5](3)
+[6,7,0,0,0](2)
+[0,7,0,0,0](1)
+```
+
+Os elementos são inseridos de forma circular: ao chegar no final do vetor, voltamos para a primeira posição, e o mesmo vale ao remover. Depois que o `5` ocupa a última posição, o `6` vai para a posição `0`.
+
+## O defeito da fila circular: ela "enche" com `max - 1` elementos
+
+Olhe com atenção a linha `if (f->fim == f->ini)` dentro do `add`. Ela diz "fila cheia" quando o `fim` **alcança** o `ini`. Mas lembre: `ini == fim` é também o jeito de reconhecer uma fila **vazia**!
+
+As duas situações (fila vazia e fila com todas as posições ocupadas) produziriam `ini == fim`, e o código não conseguiria distingui-las. A saída adotada é **nunca deixar a fila ocupar todas as `max` posições**. Uma posição fica sempre livre, e a fila enche com `max - 1` elementos. Veja o `add(f, 5)` em uma fila com `max = 5` que já tem 4 elementos:
+
+<Sim name="filaVetorCheia" />
+
+> 💭 **Para pensar:** este é um defeito do código. Com `max = 5`, só cabem 4 elementos. Como você modificaria a implementação para que a fila pudesse receber os `max` elementos? Dica: o problema é que `ini == fim` não diz, sozinho, se a fila está cheia ou vazia. Que informação a mais poderia resolver isso? A apostila deixa essa melhoria como sugestão de estudo.
+
+## Quanto custa cada operação?
+
+| Operação | Complexidade | Por quê |
+| --- | --- | --- |
+| `newFila` | <ComplexityBadge>Θ(max)</ComplexityBadge> | o `calloc` precisa zerar as `max` posições |
+| `estaVazia` | <ComplexityBadge>Θ(1)</ComplexityBadge> | uma comparação |
+| `add` | <ComplexityBadge>Θ(1)</ComplexityBadge> | uma escrita e uma conta de resto |
+| `remover` | <ComplexityBadge>Θ(1)</ComplexityBadge> | uma leitura, uma escrita e uma conta de resto |
+| `size` | <ComplexityBadge>Θ(1)</ComplexityBadge> | só uma subtração, sem percorrer nada |
+| `printFila` | <ComplexityBadge>Θ(max)</ComplexityBadge> | imprime o vetor **inteiro**, ocupado ou não |
+
+> 🚀 O `size` é `Θ(1)`: ele só faz contas com `ini`, `fim` e `max`. Na fila com lista ligada, o `size` precisava percorrer os nós, `Θ(n)`.
+
+### Vetor ou lista ligada?
+
+| | Fila com vetor | Fila com lista ligada |
+| --- | --- | --- |
+| **Capacidade** | fixa (`max`), e enche com `max - 1` | cresce conforme a necessidade |
+| **`add` e `remover`** | <ComplexityBadge>Θ(1)</ComplexityBadge> | <ComplexityBadge>Θ(1)</ComplexityBadge> |
+| **`size`** | <ComplexityBadge>Θ(1)</ComplexityBadge> | <ComplexityBadge>Θ(n)</ComplexityBadge> |
+| **Variáveis de controle** | `ini`, `fim` e `max` (índices) | `ini` e `fim` (ponteiros) |
+| **Caso de erro** | fila cheia e fila vazia | só fila vazia |
+| **Memória** | uma alocação, tudo junto | um `malloc` e um `free` por elemento |
+| **Truque necessário** | vetor circular (`%`) | nenhum: os nós ficam soltos |
+
+Mais uma vez, não existe "o melhor". O vetor é compacto e tem `size` instantâneo, mas exige o truque do módulo e tem limite. A lista ligada cresce à vontade, mas gasta mais memória e mais `malloc`.
+
+## Erros comuns
+
+1. **Usar `fim++` e `ini++` sem o módulo.** É a versão 1: depois de algum tempo, os índices saem do vetor e o programa escreve fora dele.
+2. **Esquecer o `% max` em um dos dois.** Se só o `fim` der a volta, o `ini` ainda sai do vetor (e vice-versa). Os **dois** precisam do resto da divisão.
+3. **Calcular o `size` como `fim - ini` sempre.** Quando a fila dá a volta, o resultado fica negativo.
+4. **Confundir fila vazia com fila cheia.** Nos dois casos temos `ini == fim`. É por isso que a fila enche com `max - 1` elementos.
+5. **Esquecer o teste de fila vazia no `remover`.** Sem ele, o `ini` avançaria por cima de posições sem elementos e a fila ficaria inconsistente.
+6. **Não zerar a posição ao remover (ou usar `malloc` em vez de `calloc`).** O `printFila` mostraria lixo, e as posições livres deixariam de valer `0`.
+7. **Passar o `max` errado.** Lembre que a fila só comporta `max - 1` elementos. Para guardar 10 elementos, crie com `newFila(11)`.
+
+## Resumo rápido
+
+- A fila com vetor usa duas variáveis: `ini` (primeiro elemento) e `fim` (primeira posição livre). Fila vazia: `ini == fim`.
+- Na versão simples, `v[fim++] = x` (add) e `ini++` (remover) fazem os índices **só andarem para a direita**, até saírem do vetor.
+- O **vetor circular** resolve isso com o resto da divisão: `fim = (fim + 1) % MAX` e `ini = (ini + 1) % MAX`.
+- Com a volta, o `size` precisa tratar dois casos: `fim - ini` (sem volta) e `fim - ini + MAX` (com volta).
+- Na versão com `struct Fila`, guardamos `v`, `max`, `ini` e `fim`, e usamos `calloc` para zerar o vetor.
+- Como `ini == fim` significa vazia, a fila **enche com `max - 1`** elementos.
+- `add`, `remover`, `estaVazia` e `size` custam <ComplexityBadge>Θ(1)</ComplexityBadge>. `printFila` imprime o vetor inteiro, <ComplexityBadge>Θ(max)</ComplexityBadge>.
+
+Agora é com você: na aba **Exercícios**, reimplemente a fila com vetor circular do zero, sem consultar o material. 💪

@@ -69,12 +69,14 @@ export default function ArraySim({ sim }: { sim: ArraySimData }) {
           {Array.from({ length: sim.capacity }, (_, i) => {
             const cell = f.cells[i] ?? null;
             const { x, y } = g.slot(i);
+
+            // ⚠️ `cell` é null em posição vazia: sempre usar `cell?.`
+            const apagada = cell?.state === "descartado";
             const color = cell?.state
-              ? stateColor[cell.state]
+              ? (stateColor[cell.state] ?? "var(--color-ink-400)")
               : cell
                 ? "var(--color-brand-500)"
                 : "var(--color-ink-600)";
-            const apagada = cell.state === "descartado";
 
             return (
               <g key={i} style={{ opacity: apagada ? 0.35 : 1, transition: "opacity 0.4s" }}>
