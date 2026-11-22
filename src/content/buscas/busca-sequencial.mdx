@@ -1,0 +1,160 @@
+## 🔍 O problema
+
+Imagine um vetor com milhares de CPFs e a pergunta: **"este CPF está aí?"** O CPF que procuramos se chama **chave**.
+
+O vetor **não está ordenado**, então não há pista de onde a chave poderia estar. O jeito mais natural é o de quem procura algo na gaveta bagunçada: **olhar um por um, do começo ao fim**. Por isso se chama **busca sequencial**. 🗄️
+
+## Em um vetor
+
+A ideia é percorrer todas as posições e comparar cada elemento com a chave:
+
+- achou? devolve a posição;
+- chegou ao fim sem achar? devolve `-1` (uma posição que não existe no vetor, então ninguém confunde com uma resposta de verdade).
+
+> 🎮 **Como usar as simulações:** **▶** toca sozinho, **⏭ / ⏮** vai passo a passo. 🟡 posição sendo comparada · 🟢 achou · posições **apagadas** já foram conferidas. O chip `comparações` conta quantas vezes comparamos.
+
+<Sim name="buscaSeq" />
+
+Repare no `return i` dentro do `for`: assim que acha, a função **para**. Só chega no `return -1` quem percorreu tudo sem sucesso.
+
+E se a chave **não** existir? Aí não há atalho: temos que olhar **todos** os elementos para ter certeza.
+
+<Sim name="buscaSeqAusente" />
+
+### 🧪 Teste você mesmo
+
+Escolha uma chave e veja quantas comparações ela custa. Compare o `5` (quase no fim) com o `2` (logo no começo). 👇
+
+<BuscaLab tipo="sequencial" chaves={[5, 2, 0, 7]} />
+
+> 💡 O vetor tem **dois** 2 (posições 0 e 5). A busca devolve a **primeira** ocorrência, porque o `return` encerra a função na primeira vez que acha.
+
+### Um `main` para testar
+
+```c
+#include <stdio.h>
+
+int main()
+{
+    int v[] = {2, 4, 6, 8, 9, 2, 1, 3, 5, 0};
+    int n = 10;
+    int chave = 5;
+
+    printf("Posicao = %d\n", busca(v, n, chave)); // Posicao = 8
+    return 0;
+}
+```
+
+> 📝 Em uma versão mais simples, a função devolve só `1` (achou) ou `0` (não achou). Devolver a **posição** é mais útil, porque quem chamou fica sabendo **onde** o elemento está.
+
+## Em uma lista ligada
+
+Numa lista não existe `v[i]`: não dá para pular direto para uma posição. Mas a ideia é exatamente a mesma, só que **andando de nó em nó** com um `aux` até chegar a `NULL`:
+
+<Sim name="buscaSeqLista" />
+
+Veja que o `for` agora usa o `aux` como variável de controle: começa em `li->ini`, continua enquanto `aux != NULL` e avança com `aux = aux->prox`.
+
+## ⏱️ Complexidade
+
+O que importa é **quantas comparações** a busca faz:
+
+| Situação | Comparações | Complexidade |
+| --- | --- | --- |
+| **Melhor caso**: chave na 1ª posição | 1 | <ComplexityBadge>Θ(1)</ComplexityBadge> |
+| **Pior caso**: chave na última posição, ou ausente | `n` | <ComplexityBadge>Θ(n)</ComplexityBadge> |
+| **Caso médio**: chave presente, em posição qualquer | cerca de `n/2` | <ComplexityBadge>Θ(n)</ComplexityBadge> |
+
+Como a chave pode estar em qualquer uma das `n` posições com a mesma chance, a média é:
+
+<Derivation
+  title="Caso médio da busca sequencial"
+  steps={[
+    { tex: "M(n) = \\frac{1 + 2 + 3 + \\cdots + n}{n}", note: "Achar na posição 1 custa 1 comparação, na 2 custa 2, e assim por diante." },
+    { tex: "M(n) = \\frac{1}{n} \\cdot \\frac{n\\,(n+1)}{2} = \\frac{n+1}{2}", note: "Soma de uma progressão aritmética." },
+    { tex: "\\frac{n+1}{2} = \\Theta(n)", note: "A constante 1/2 não importa na notação assintótica: andar metade do vetor ainda é proporcional a n." },
+  ]}
+/>
+
+No total, a busca sequencial é <ComplexityBadge>O(n)</ComplexityBadge>. Boa notícia: ela funciona em **qualquer** vetor ou lista, ordenado ou não. Má notícia: se `n` crescer 10 vezes, o tempo também cresce 10 vezes.
+
+## 🌎 Quando isso vira um problema de verdade
+
+Antigamente, cada estado brasileiro gerava os **seus próprios** números de RG, então um mesmo número podia existir em São Paulo **e** no Paraná (o RG 5.123.456 PR é diferente do 5.123.456 SP). Hoje o RG é único no país.
+
+Imagine que queremos saber **quantos números aparecem nos dois estados** (a **interseção** dos conjuntos). São Paulo tem cerca de 44 milhões de habitantes, e o Paraná, 11 milhões.
+
+A solução direta usa busca sequencial: para **cada** RG de São Paulo, procuramos no vetor do Paraná.
+
+```c
+int size = 0;
+for (int i = 0; i < n1; i++)         // cada RG de SP...
+{
+    for (int j = 0; j < n2; j++)     // ...contra cada RG do PR
+    {
+        if (SP[i] == PR[j])
+        {
+            size++;
+        }
+    }
+}
+```
+
+São dois `for` encadeados, então o custo é <ComplexityBadge>Θ(n1 · n2)</ComplexityBadge>. Se usarmos `n = max(n1, n2)`, isso é `O(n²)`.
+
+### 🕰️ Quanto tempo isso leva?
+
+Vamos **medir** em um computador com vetores menores e **extrapolar**. No computador do professor, com `n1 = n2 = 40.000`, o programa levou **3,887 s**:
+
+<Derivation
+  title="Estimando o tempo para SP × PR"
+  steps={[
+    { tex: "T(n_1, n_2) = c \\cdot n_1 \\cdot n_2", note: "O tempo é proporcional ao número de comparações, e c é o tempo de uma comparação neste computador." },
+    { tex: "3{,}887 = c \\cdot 40\\,000^2", note: "Dado medido: n1 = n2 = 40.000 levou 3,887 segundos." },
+    { tex: "c = \\frac{3{,}887}{40\\,000^2} \\approx 2{,}42 \\times 10^{-9}\\ \\text{s}", note: "Cada comparação custa cerca de 2,4 bilionésimos de segundo." },
+    { tex: "T = 11\\,000\\,000 \\times 44\\,000\\,000 \\times 2{,}42 \\times 10^{-9} \\approx 1\\,171\\,280\\ \\text{s}", note: "Agora com os tamanhos reais de PR e SP." },
+    { tex: "1\\,171\\,280\\ \\text{s} \\approx 325{,}35\\ \\text{h} \\approx 13{,}55\\ \\text{dias}", note: "Mais de duas semanas ligado! Na prática, é inviável." },
+  ]}
+/>
+
+> 😱 O programa roda **13 dias** só para uma conta que parece simples. O problema não é a máquina: é o **algoritmo**.
+
+### 🧹 Organizando o código
+
+Para facilitar a troca do algoritmo depois, separamos a busca em uma função e a interseção em outra:
+
+```c
+// busca a chave dentro do vetor com n elementos.
+// se encontrou, devolve a primeira posição i tal que v[i] == chave.
+// se não encontrou, devolve -1.
+int busca(int v[], int n, int chave)
+{
+    for (int i = 0; i < n; i++)
+    {
+        if (v[i] == chave)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
+// calcula quantos elementos de v1 estão também em v2
+int interseccao(int v1[], int n1, int v2[], int n2)
+{
+    int size = 0;
+    for (int i = 0; i < n1; i++)
+    {
+        int chave = v1[i];
+        if (busca(v2, n2, chave) >= 0)
+        {
+            size++;
+        }
+    }
+    return size;
+}
+```
+
+O custo continua `Θ(n1 · n2)`, mas agora o gargalo está **isolado** na função `busca`. Se ela ficar mais rápida, a interseção inteira melhora.
+
+O objetivo da próxima página é exatamente esse: trocar a busca `O(n)` por uma de `O(lg n)`. ✂️

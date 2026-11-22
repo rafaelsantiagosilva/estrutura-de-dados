@@ -1,4 +1,4 @@
-export type NodeState = "novo" | "visitando" | "removido" | "achado";
+export type NodeState = "novo" | "visitando" | "removido" | "achado" | "descartado";
 
 /* ───────── 🔗 Listas encadeadas ───────── */
 export type VizNode = {

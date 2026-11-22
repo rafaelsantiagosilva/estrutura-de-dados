@@ -5,9 +5,10 @@ export const stateColor: Record<NodeState, string> = {
     visitando: "var(--color-warn)",
     removido: "var(--color-danger)",
     achado: "var(--color-ok)",
+    descartado: "var(--color-ink-400)", // já conferido / eliminado: aparece apagado
 };
 
-// cor do rótulo de cada marcador (ponteiro ou índice)
+// cor do rótulo de cada marcador (ponteiro ou índice). Sem entrada aqui = azul claro.
 export const ptrColor: Record<string, string> = {
     // listas
     aux: "var(--color-warn)",
@@ -30,4 +31,5 @@ export const ptrColor: Record<string, string> = {
     i: "var(--color-warn)",
     max: "var(--color-ok)",
     idx: "var(--color-brand-300)",
+    meio: "var(--color-brand-400)",
 };

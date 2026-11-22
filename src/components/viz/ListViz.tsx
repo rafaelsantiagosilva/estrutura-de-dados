@@ -1,6 +1,7 @@
 import { motion } from "motion/react";
 import type { Frame, NodeState } from "../../viz-data/types";
 import { usePlayer } from "./usePlayer";
+import { stateColor } from "./colors";
 
 const R = 24, GAP = 110;
 
@@ -18,12 +19,7 @@ function layout(f: Frame) {
   return pos;
 }
 
-const fill: Record<NodeState, string> = {
-  novo: "var(--color-ok)",
-  visitando: "var(--color-warn)",
-  removido: "var(--color-danger)",
-  achado: "var(--color-brand-400)", // escolha a cor que preferir
-};
+const fill: Record<NodeState, string> = stateColor;
 
 export function ListViz({ frames }: { frames: Frame[] }) {
   const p = usePlayer(frames);

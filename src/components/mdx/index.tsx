@@ -10,6 +10,8 @@ import CostTable from "../math/CostTable";
 import GrowthChart from "../viz/GrowthChart";
 import BigOExplorer from "../viz/BigOExplorer";
 import { Exercicio, Resposta } from "./Exercicio";
+import BuscaLab from "../viz/BuscaLab";
+import CompareSteps from "../viz/CompareSteps";
 
 export const mdxComponents: MDXComponents = {
   blockquote: Callout,
@@ -25,5 +27,7 @@ export const mdxComponents: MDXComponents = {
   GrowthChart,
   BigOExplorer,
   Exercicio,
-  Resposta
+  Resposta,
+  BuscaLab,
+  CompareSteps
 };

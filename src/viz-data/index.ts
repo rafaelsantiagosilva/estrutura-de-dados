@@ -31,6 +31,7 @@ import { filaListaNew, filaListaAddVazia, filaListaAdd, filaListaRemover, filaLi
 import { filaVetorLinear, filaVetorCircular, filaVetorSize, filaVetorCheia } from "./fila/fila-vetor";
 import { lacoLog } from "./notacao-assintotica/laco-log";
 import { indiceLinear } from "./tempo-de-execucao/indice-linear";
+import { buscaSeqLista, makeBuscaSeq, makeBuscaBin } from "./buscas";
 
 // Chave = o que você escreve em <Sim name="..." /> no MDX
 export const sims: Record<string, AnySim> = {
@@ -43,8 +44,6 @@ export const sims: Record<string, AnySim> = {
     addInicio, addFim, get, set, remover, add, busca, addOrdenado,
     addTrocado, inverter, concatenar, removerChave, tipoB, buscaLenta, ordenaLista,
     circAddFim, circRemover, dblAdd, dblRemover, vetInserir, vetRemover,
-    // ordenacao
-    selecao, bolha, insercaoA, insercaoIte,
     // pilha com vetor
     pilhaVetorPush,
     pilhaVetorPop,
@@ -81,4 +80,12 @@ export const sims: Record<string, AnySim> = {
     filaVetorCircular,
     filaVetorSize,
     filaVetorCheia,
+    // buscas
+    buscaSeqLista,
+    buscaSeq: makeBuscaSeq(5),
+    buscaSeqAusente: makeBuscaSeq(7),
+    buscaBin: makeBuscaBin(3),
+    buscaBinAchou: makeBuscaBin(12),
+    // ordenacao
+    selecao, bolha, insercaoA, insercaoIte,
 };

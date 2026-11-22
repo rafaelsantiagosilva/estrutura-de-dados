@@ -1,0 +1,184 @@
+## ✂️ A ideia: a lista telefônica
+
+Você tem uma lista telefônica de 1000 páginas, **em ordem alfabética**, e quer o telefone da **Florinda**. Você não começa na página 1! Você abre **no meio**, na página 500, e vê que ela começa com **Maria**.
+
+*Florinda vem antes de Maria.* Com **uma única pergunta**, você jogou fora **metade do livro** (da página 500 em diante). 🗑️ E repete o processo com a metade que sobrou: abre no meio dela, pergunta, joga fora metade... até achar.
+
+> 🧑‍🏫 A apostila conta de um professor que levava uma lista telefônica para a aula e, a cada pergunta, **rasgava a lista ao meio** e jogava uma das metades no lixo!
+
+### Por que o meio?
+
+E se você abrisse na página 300 porque "Florinda está no começo do alfabeto"? Com sorte, descartaria 700 páginas. Com azar, só 300. **Só o meio garante** que você elimina 50% dos dados **em qualquer caso**.
+
+> ⚠️ **Condição obrigatória:** a busca binária **só funciona se o vetor já estiver ordenado**. É a ordem que permite concluir "se a chave existe, está desse lado". Num vetor bagunçado, é preciso ordenar antes.
+
+## 🧠 Os três casos de cada pergunta
+
+Comparamos a chave `k` com o elemento do meio, `v[meio]`:
+
+| Resultado | Conclusão | O que fazer |
+| --- | --- | --- |
+| `k == v[meio]` | achamos! | devolve `meio` e **fim** |
+| `k < v[meio]` | só pode estar à **esquerda** | repete a busca de `ini` até `meio - 1` |
+| `k > v[meio]` | só pode estar à **direita** | repete a busca de `meio + 1` até `fim` |
+
+Para controlar a região onde a chave ainda pode estar, usamos três variáveis:
+
+- `ini` e `fim`: os limites da região (no começo, o vetor inteiro);
+- `meio`: a posição do meio, `(ini + fim) / 2`.
+
+## 🎬 Passo a passo
+
+Vamos procurar o **3** no vetor ordenado `[1, 2, 4, 6, 8, 9, 12, 15, 20]`. Ele **não existe** no vetor, e queremos ver o algoritmo chegar a essa conclusão.
+
+> 🎮 🟡 elemento do meio · 🟢 achou · posições **apagadas** foram descartadas · os marcadores `ini`, `meio` e `fim` mostram a região atual. O chip `restantes` conta quantos elementos ainda estão no jogo.
+
+<Sim name="buscaBin" />
+
+Repare como `restantes` cai: **9 → 4 → 2 → 0**. A cada volta, sobra a metade (ou menos) do que havia.
+
+Agora uma chave que **existe**, o `12`:
+
+<Sim name="buscaBinAchou" />
+
+### 🧪 Teste você mesmo
+
+Escolha chaves diferentes e compare. Tente o `1` (no começo), o `20` (no fim), o `7` (que não existe) e o `30` (maior que todos). 👇
+
+<BuscaLab tipo="binaria" chaves={[3, 12, 1, 20, 7, 30]} />
+
+### Por que o laço nunca fica infinito?
+
+A cada volta, **pelo menos um elemento sai do jogo**: o próprio `v[meio]` (veja `meio - 1` e `meio + 1`). Então a região sempre encolhe, até `ini` passar de `fim`. Nesse momento sobrou **zero** elemento e devolvemos `-1`.
+
+Note também que **não** eliminamos exatamente metade: com `n` ímpar, sobra `(n - 1) / 2` elementos; com `n` par, sobra `n/2` ou `n/2 - 1`, dependendo do lado. Isso não muda a conclusão: o número de elementos cai **pelo menos** pela metade.
+
+> 💡 **Curiosidade:** em vetores gigantes (bilhões de posições), `ini + fim` pode estourar o tamanho de um `int`. Uma forma mais segura de calcular o meio é `ini + (fim - ini) / 2`, que dá o mesmo resultado sem somar dois números grandes.
+
+## 🔁 Versão recursiva
+
+A busca binária combina muito bem com recursão, porque "repetir a busca na metade que sobrou" é o **mesmo problema, menor**:
+
+```c
+int buscaBinariaRec(int v[], int ini, int fim, int chave)
+{
+    if (ini <= fim)
+    {
+        int meio = (ini + fim) / 2;
+
+        if (chave == v[meio])
+        {
+            return meio;
+        }
+
+        if (chave < v[meio])
+        {
+            return buscaBinariaRec(v, ini, meio - 1, chave);
+        }
+        else
+        {
+            return buscaBinariaRec(v, meio + 1, fim, chave);
+        }
+    }
+    else
+    {
+        return -1; // região vazia: a chave não está no vetor
+    }
+}
+```
+
+- **Caso base:** `ini > fim` (região vazia) devolve `-1`. É o mesmo "sair do `while`" da versão iterativa.
+- **Chamada recursiva:** passa **novos limites** em vez de mudar `ini` e `fim`.
+- **Quando chamar:** a primeira chamada é `buscaBinariaRec(v, 0, n - 1, chave)`.
+
+> ⚖️ A versão recursiva é mais fácil de ler, mas é um pouco **mais lenta** e gasta memória na pilha de chamadas (uma por volta). Em geral, prefere-se a iterativa.
+
+## ⏱️ Complexidade
+
+### Por que `lg n`?
+
+O `lg n` (logaritmo na base 2) é o **número de vezes que podemos dividir `n` por 2** até chegar a 1. Como a busca binária divide a região por 2 a cada volta, o número de voltas é, no máximo, `lg n`:
+
+<Derivation
+  title="Quantas voltas a busca binária dá?"
+  steps={[
+    { tex: "n \\;\\to\\; \\frac{n}{2} \\;\\to\\; \\frac{n}{4} \\;\\to\\; \\frac{n}{8} \\;\\to\\; \\cdots \\;\\to\\; \\frac{n}{2^k}", note: "Depois de k voltas, restam no máximo n / 2^k elementos." },
+    { tex: "\\frac{n}{2^k} \\le 1 \\iff n \\le 2^k \\iff k \\ge \\lg n", note: "A busca termina quando sobra no máximo 1 elemento." },
+    { tex: "T(n) = \\Theta(\\lg n)", note: "O número de voltas cresce como lg n." },
+  ]}
+/>
+
+| Situação | Complexidade |
+| --- | --- |
+| **Melhor caso**: a chave está bem no meio | <ComplexityBadge>Θ(1)</ComplexityBadge> |
+| **Pior caso**: chave nas pontas ou ausente | <ComplexityBadge>Θ(lg n)</ComplexityBadge> |
+
+No total, a busca binária é <ComplexityBadge>O(lg n)</ComplexityBadge>.
+
+### O poder do logaritmo
+
+| Tamanho `n` | Busca sequencial (pior caso) | Busca binária (pior caso) |
+| --- | --- | --- |
+| 1.000 | 1.000 | cerca de **10** |
+| 1.000.000 | 1.000.000 | cerca de **20** |
+| 1.000.000.000 | 1.000.000.000 | cerca de **30** |
+
+Trocar `n` por `lg n` faz um bilhão cair para **trinta**! Mexa no controle para ver a diferença:
+
+<CompareSteps />
+
+E no gráfico de crescimento, a curva `log n` quase "gruda" no chão, enquanto `n` sobe sem parar:
+
+<GrowthChart show={["log", "n"]} defaultN={30} />
+
+## ⚖️ Sequencial × Binária
+
+| | Sequencial | Binária |
+| --- | --- | --- |
+| Vetor precisa estar ordenado? | ❌ não | ✅ **sim** |
+| Pior caso | `Θ(n)` | `Θ(lg n)` |
+| Funciona em lista ligada? | ✅ sim | ❌ não (precisa acessar o meio em `Θ(1)`, e a lista não permite) |
+
+> 🤔 **Então a binária sempre ganha?** Não! **Ordenar** custa `Θ(n lg n)`. Se você só vai buscar **uma vez**, ordenar e depois buscar custa mais que simplesmente olhar um por um. A binária compensa quando fazemos **muitas buscas** no mesmo vetor, como no próximo exemplo.
+
+## 🌎 De volta ao RG: interseção em `O(n lg n)`
+
+Lembra da interseção entre São Paulo e Paraná, que levava **13 dias**? Agora podemos fazer em dois passos:
+
+1. **Ordenar** o vetor `v2` (com o Merge Sort, que vem na próxima aula);
+2. **Buscar** cada elemento de `v1` em `v2` com **busca binária**.
+
+```c
+// calcula quantos elementos de v1 estão também em v2
+int interseccao(int v1[], int n1, int v2[], int n2)
+{
+    mergeSort(v2, n2);                       // 1) ordena o v2 uma única vez
+
+    int size = 0;
+    for (int i = 0; i < n1; i++)
+    {
+        int chave = v1[i];
+        if (buscaBinaria(v2, n2, chave) >= 0) // 2) cada busca agora é lg n
+        {
+            size++;
+        }
+    }
+    return size;
+}
+```
+
+<Derivation
+  title="Custo da interseção"
+  steps={[
+    { tex: "T = \\underbrace{n_2 \\lg n_2}_{\\text{ordenar } v_2} + \\underbrace{n_1 \\cdot \\lg n_2}_{n_1 \\text{ buscas binárias}}", note: "Ordenamos uma vez e depois fazemos n1 buscas, cada uma custando lg n2." },
+    { tex: "T = (n_1 + n_2)\\,\\lg n_2", note: "Colocando lg n2 em evidência." },
+    { tex: "T = O\\big((n_1 + n_2)\\,\\lg n_2\\big)", note: "Ou, com n = max(n1, n2): O(n lg n)." },
+  ]}
+/>
+
+| Algoritmo | Complexidade | Tempo (SP × PR) |
+| --- | --- | --- |
+| Busca sequencial | `Θ(n1 · n2)` | mais de **13 dias** 😱 |
+| Ordenar + busca binária | `O((n1 + n2) lg n2)` | apenas **25 segundos** 🚀 |
+
+Foram os mesmos dados, o mesmo computador: só mudou o **algoritmo**. Mais de **46 mil vezes** mais rápido. 🎯

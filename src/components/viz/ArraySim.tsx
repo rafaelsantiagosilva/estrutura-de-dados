@@ -74,12 +74,13 @@ export default function ArraySim({ sim }: { sim: ArraySimData }) {
               : cell
                 ? "var(--color-brand-500)"
                 : "var(--color-ink-600)";
+            const apagada = cell.state === "descartado";
 
             return (
-              <g key={i}>
+              <g key={i} style={{ opacity: apagada ? 0.35 : 1, transition: "opacity 0.4s" }}>
                 <rect
                   x={x} y={y} width={g.cw} height={g.ch} rx={8}
-                  strokeWidth={cell?.state ? 3.5 : 2.5}
+                  strokeWidth={cell?.state && !apagada ? 3.5 : 2.5}
                   strokeDasharray={cell ? undefined : "5 5"}
                   style={{ fill: "var(--color-ink-800)", stroke: color, transition: "stroke 0.3s" }}
                 />
@@ -114,7 +115,7 @@ export default function ArraySim({ sim }: { sim: ArraySimData }) {
             );
           })}
 
-          {/* 🏷️ marcadores (topo, ini, fim): deslizam de uma posição para outra */}
+          {/* 🏷️ marcadores (topo, ini, fim, meio...): deslizam de uma posição para outra */}
           <AnimatePresence initial={false}>
             {labels(f, g, vertical).map((l) => (
               <motion.g
