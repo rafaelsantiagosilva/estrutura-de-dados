@@ -14,13 +14,6 @@ export type Topic = {
     sections: Section[];
 };
 
-// Todo tema começa com estas 3 abas. Personalize por tema quando quiser.
-const defaultSections: Section[] = [
-    { slug: "explicacao", title: "Explicação" },
-    { slug: "complexidades", title: "Complexidades" },
-    { slug: "exercicios", title: "Exercícios" },
-];
-
 export const nav: Topic[] = [
     {
         slug: "linguagem-c", title: "Linguagem C", icon: Braces,
@@ -75,7 +68,11 @@ export const nav: Topic[] = [
     },
     {
         slug: "listas-ligadas", title: "Listas Ligadas", icon: Link2,
-        description: "Nós ligados por ponteiros, como uma corrente.", sections: defaultSections
+        description: "Nós ligados por ponteiros, como uma corrente.", sections: [
+            { slug: "explicacao", title: "Explicação" },
+            { slug: "complexidades", title: "Complexidades" },
+            { slug: "exercicios", title: "Exercícios" },
+        ]
     },
     {
         slug: "pilhas", title: "Pilhas", icon: Layers,
@@ -151,11 +148,37 @@ export const nav: Topic[] = [
     },
     {
         slug: "grafos", title: "Grafos", icon: Share2,
-        description: "O básico para entender árvores.", sections: defaultSections
+        description: "O básico para entender árvores.", sections: [
+            {
+                slug: "basico-de-grafos",
+                title: "Básico de Grafos"
+            },
+            {
+                slug: "representacao-de-grafos",
+                title: "Representação de Grafos"
+            },
+        ]
     },
     {
         slug: "arvores", title: "Árvores", icon: GitBranch,
-        description: "Árvores normais, de busca e travessias.", sections: defaultSections
+        description: "Árvores normais, de busca e travessias.", sections: [
+            {
+                slug: "arvore-binaria",
+                title: "Árvore Binária"
+            },
+            {
+                slug: "arvore-binaria-de-busca",
+                title: "Árvore Binária de Busca"
+            },
+            {
+                slug: "percursos-em-arvores",
+                title: "Percursos em Árvores"
+            },
+            {
+                slug: "exercicios",
+                title: "Exercícios"
+            }
+        ]
     },
 ];
 
