@@ -4,8 +4,13 @@ export type NodeState = "novo" | "visitando" | "removido" | "achado";
 export type VizNode = {
     id: string;
     value: number | string;
-    next: string | null; // id do próximo nó (null = NULL)
+    next: string | null;        // id do próximo nó (null = NULL)
+    prev?: string | null;       // lista duplamente ligada: id do nó anterior
     state?: NodeState;
+    // Posição FIXA (opcional). Sem isso, o desenho decide sozinho:
+    // quem é alcançável a partir de `ini` vai em fila e o resto fica na linha de cima.
+    col?: number;               // coluna (0, 1, 2...)
+    row?: "main" | "top";       // linha principal (padrão) ou linha de cima
 };
 
 export type Frame = {
@@ -17,16 +22,18 @@ export type Frame = {
     caption: string;
 };
 
-// `Sim` continua sendo a simulação de LISTA (os 13 arquivos não mudam)
+// `Sim` continua sendo a simulação de LISTA
 export type Sim = {
     kind?: "list";
     title: string;
     code: string;
     frames: Frame[];
     headLabel?: string; // texto da caixa inicial: "ini" (padrão), "topo"...
+    circular?: boolean; // há setas de volta (lista circular): o desenho ganha mais altura
+    doubly?: boolean;   // desenha `prox` (sólida) e `prev` (tracejada) lado a lado
 };
 
-/* ───────── 🧮 Vetores (pilhas e filas) ───────── */
+/* ───────── 🧮 Vetores (pilhas, filas, ordenação) ───────── */
 export type Cell = { value: number | string; state?: NodeState };
 
 export type ArrayFrame = {
@@ -41,8 +48,8 @@ export type ArraySimData = {
     kind: "array";
     title: string;
     code: string;
-    capacity: number; // quantas posições o vetor tem
-    orientation: "vertical" | "horizontal"; // pilha = vertical, fila = horizontal
+    capacity: number;
+    orientation: "vertical" | "horizontal";
     frames: ArrayFrame[];
 };
 

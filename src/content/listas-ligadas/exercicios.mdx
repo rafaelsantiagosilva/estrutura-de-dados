@@ -1,5 +1,1027 @@
-## Exercícios
+## 🧪 Como usar esta página
 
-1. Implemente a função `inverter`, que inverte a ordem dos nós.
-2. Implemente `removerChave`, que remove o nó que contém a chave `k`.
-3. Qual a complexidade de `addFim`? Como torná-la `Θ(1)`?
+Tente resolver **sozinho** primeiro! 💪 Cada questão mostra o enunciado e deixa a resposta **escondida**: clique em **Ver resposta** só quando estiver pronto.
+
+> 🎮 **Convenções das simulações:** 🟢 nó novo · 🟡 nó visitado · 🔴 nó removido ou perdido. Nas listas **circulares** aparecem setas curvas por baixo (o último volta ao primeiro). Nas **duplamente ligadas**, a seta sólida é o `prox` e a tracejada é o `prev`.
+
+---
+
+<Exercicio numero={63} titulo="Complexidade do addFim">
+
+Qual a complexidade da função `addFim`?
+
+```c
+void addFim(Lista *li, int valor)
+{
+    No *no = newNo(valor);
+    if (li->ini == NULL)
+    {
+        li->ini = no;
+    }
+    else
+    {
+        No *aux = li->ini;
+        while (aux->prox != NULL)
+        {
+            aux = aux->prox;
+        }
+        aux->prox = no;
+    }
+}
+```
+
+<Resposta>
+
+#### 💡 A ideia
+
+Para achar a complexidade, **contamos quantas vezes cada linha executa** em uma lista de `n` nós (`n ≥ 1`). Cada linha tem um custo constante `c_i`.
+
+<CostTable
+  rows={[
+    { code: "No *no = newNo(valor);", cost: "c_1", times: "1" },
+    { code: "if (li->ini == NULL)", cost: "c_2", times: "1" },
+    { code: "No *aux = li->ini;", cost: "c_3", times: "1" },
+    { code: "while (aux->prox != NULL)", cost: "c_4", times: "n" },
+    { code: "    aux = aux->prox;", cost: "c_5", times: "n-1" },
+    { code: "aux->prox = no;", cost: "c_6", times: "1" },
+  ]}
+  total={"T(n) = (c_4+c_5)\\,n + (c_1+c_2+c_3+c_6-c_5)"}
+  result={"\\Theta(n)"}
+/>
+
+> 💡 O `while` testa a condição **n** vezes: `n-1` vezes verdadeira (o `aux` anda) e 1 vez falsa (chegou no último nó).
+
+Veja o `aux` caminhando até o último nó, sem atalho:
+
+<Sim name="addFim" />
+
+#### ✅ Resposta
+
+<ComplexityBadge>Θ(n)</ComplexityBadge> em todos os casos. A conta só depende do **tamanho** da lista, não dos valores. (Com a lista vazia o custo é constante, mas isso é um caso especial: o que importa é como o custo **cresce** com `n`.)
+
+> 🚀 **Como melhorar?** Guarde também um apontador `fim` dentro da `struct Lista`. Assim o `addFim` não precisa mais andar pela lista e vira `Θ(1)`.
+
+</Resposta>
+
+</Exercicio>
+
+<Exercicio numero={64} titulo="Complexidade do get">
+
+Qual a complexidade da função `get(li, idx)`?
+
+<Resposta>
+
+#### 💡 A ideia
+
+O `get` precisa **andar** `idx` vezes a partir do `ini`: não existe atalho para o meio da lista. O custo depende de **qual posição** pedimos:
+
+| `idx` pedido | Quantos `aux = aux->prox` | Custo |
+| --- | --- | --- |
+| `0` (primeiro) | 0 | `Θ(1)` |
+| `n/2` (meio) | cerca de `n/2` | `Θ(n)` |
+| `n-1` (último) | `n-1` | `Θ(n)` |
+
+<Sim name="get" />
+
+#### ✅ Resposta
+
+<ComplexityBadge>Θ(1)</ComplexityBadge> no melhor caso (`idx = 0`) e <ComplexityBadge>O(n)</ComplexityBadge> no pior (`idx` perto do fim).
+
+> 🧠 **Compare com o vetor:** `v[idx]` é sempre `Θ(1)`, porque o computador calcula o endereço direto. Na lista ligada, o preço de poder inserir e remover sem deslocar nada é **perder o acesso direto**.
+
+</Resposta>
+
+</Exercicio>
+
+<Exercicio numero={65} titulo="add com as linhas trocadas">
+
+Mostre qual o estado da memória após executar a função `add`, porém **trocando a ordem** das duas linhas que ligam o nó: suponha que primeiro foi executado `anterior->prox = no` e **depois** `no->prox = anterior->prox`.
+
+<Resposta>
+
+#### 💡 A ideia
+
+Vamos executar **exatamente** o que o código manda, linha por linha, na lista `[8, 5, 3]` inserindo o 7 na posição 1:
+
+<Sim name="addTrocado" />
+
+#### ✅ Resposta
+
+| Passo | O que acontece |
+| --- | --- |
+| `anterior->prox = no` | o 8 aponta para o 7. **Ninguém mais aponta para o 5**: ele e o 3 estão perdidos |
+| `no->prox = anterior->prox` | `anterior->prox` já é o `no`, então o 7 aponta para **ele mesmo** |
+
+Estado final: `ini → 8 → 7 ⟲` (o 7 aponta para si). O `printLista` entra em **laço infinito** e os nós 5 e 3 viram **vazamento de memória** (ocupam espaço, mas ninguém os alcança).
+
+> ⚠️ **Regra de ouro:** primeiro o novo nó **segura o resto** da lista (`no->prox = anterior->prox`), e só depois o `anterior` passa a apontar para ele. Se você religar o `anterior` primeiro, perde a única referência para o resto.
+
+</Resposta>
+
+</Exercicio>
+
+<Exercicio numero={66} titulo="Inverter uma lista ligada">
+
+Faça uma função que **inverte** uma lista ligada. Você deve usar apenas **três apontadores** para fazer a inversão.
+
+<Resposta>
+
+#### 💡 A ideia
+
+Não precisamos mexer nos valores nem criar nós: basta **virar cada seta para trás**. Para isso, andamos pela lista com três apontadores:
+
+| Apontador | Papel |
+| --- | --- |
+| `anterior` | o nó que já foi virado (começa em `NULL`) |
+| `atual` | o nó que estamos virando agora |
+| `proximo` | guarda o **resto da lista**, senão ele se perde quando virarmos a seta do `atual` |
+
+A cada volta fazemos 4 passos, **sempre nessa ordem**:
+
+1. `proximo = atual->prox`: salva o resto
+2. `atual->prox = anterior`: vira a seta
+3. `anterior = atual`: anda com o anterior
+4. `atual = proximo`: anda com o atual
+
+#### 💻 Código
+
+```c
+void inverter(Lista *li)
+{
+    No *anterior = NULL;
+    No *atual = li->ini;
+    No *proximo;
+
+    while (atual != NULL)
+    {
+        proximo = atual->prox;   // 1) guarda o resto da lista
+        atual->prox = anterior;  // 2) vira a seta para trás
+        anterior = atual;        // 3) anda com o anterior
+        atual = proximo;         // 4) anda com o atual
+    }
+
+    li->ini = anterior;          // o último nó vira o primeiro
+}
+```
+
+#### 🎬 Simulação
+
+<Sim name="inverter" />
+
+#### ✅ Resposta
+
+<ComplexityBadge>Θ(n)</ComplexityBadge> de tempo (cada nó é virado uma vez) e <ComplexityBadge>O(1)</ComplexityBadge> de memória extra (só 3 apontadores).
+
+> ⚠️ **Erro comum:** esquecer o passo 1. Se você faz `atual->prox = anterior` sem salvar o `proximo`, o resto da lista fica sem ninguém apontando para ele.
+
+</Resposta>
+
+</Exercicio>
+
+<Exercicio numero={67} titulo="Concatenar duas listas">
+
+Faça uma função que recebe duas listas e **concatena** uma na outra. A segunda lista deve ser inserida no **final** da primeira.
+
+<Resposta>
+
+#### 💡 A ideia
+
+Basta achar o **último nó** da `li1` e fazer ele apontar para o **primeiro** nó da `li2`. Não copiamos nenhum nó! Dois casos especiais:
+
+- 🅰️ `li2` vazia: não há o que juntar.
+- 🅱️ `li1` vazia: a `li1` simplesmente passa a começar onde a `li2` começa.
+
+Ao final, zeramos o `ini` da `li2`, para não existirem duas listas "donas" dos mesmos nós (isso causaria um `free` duplo mais tarde).
+
+#### 💻 Código
+
+```c
+void concatenar(Lista *li1, Lista *li2)
+{
+    if (estaVazia(li2))
+    {
+        return; // nada para juntar
+    }
+
+    if (estaVazia(li1))
+    {
+        li1->ini = li2->ini; // a li1 passa a ser a li2
+    }
+    else
+    {
+        No *aux = li1->ini;
+
+        while (aux->prox != NULL)
+        {
+            aux = aux->prox;
+        }
+
+        aux->prox = li2->ini; // o último da li1 aponta para o 1º da li2
+    }
+
+    li2->ini = NULL; // a li2 não é mais dona dos nós
+}
+```
+
+#### 🎬 Simulação
+
+<Sim name="concatenar" />
+
+#### ✅ Resposta
+
+<ComplexityBadge>Θ(n)</ComplexityBadge>, onde `n` é o tamanho da **`li1`** (a `li2` nunca é percorrida).
+
+> 🚀 Com um apontador `fim` na `struct Lista` (como na questão 63), o custo cai para `Θ(1)`.
+
+</Resposta>
+
+</Exercicio>
+
+<Exercicio numero={68} titulo="Remover todas as ocorrências de uma chave">
+
+Faça uma função que remove **todos** os elementos de uma lista que são iguais a uma dada chave `k`. A complexidade do algoritmo deve ser `Θ(n)`.
+
+<Resposta>
+
+#### 💡 A ideia
+
+A tentação é percorrer com um `for` e chamar `remover(li, i)` a cada achado. **Não faça isso**: o `remover` chama o `get`, que custa `O(n)`, e a posição dos elementos muda a cada remoção. O resultado é `Θ(n²)` e cheio de bugs.
+
+O jeito certo é **uma única passada**, com um apontador `ant` sempre um nó **antes** do que estamos examinando:
+
+1. **Início:** enquanto o primeiro nó vale `k`, o `ini` pula ele.
+2. **Meio e fim:** olhamos `ant->prox`. Se vale `k`, o `ant` o **pula** e **não anda** (o novo vizinho também pode ser `k`). Se não vale, aí sim o `ant` anda.
+
+#### 💻 Código
+
+```c
+void removerChave(Lista *li, int k)
+{
+    // 1) remove as ocorrências do início
+    while (li->ini != NULL && li->ini->valor == k)
+    {
+        No *lixo = li->ini;
+        li->ini = li->ini->prox;
+        free(lixo);
+    }
+
+    if (li->ini == NULL)
+    {
+        return; // a lista ficou vazia
+    }
+
+    // 2) remove as ocorrências do meio e do fim
+    No *ant = li->ini;
+
+    while (ant->prox != NULL)
+    {
+        if (ant->prox->valor == k)
+        {
+            No *lixo = ant->prox;
+            ant->prox = lixo->prox; // pula o nó
+            free(lixo);
+        }
+        else
+        {
+            ant = ant->prox; // só anda se NÃO removeu
+        }
+    }
+}
+```
+
+#### 🎬 Simulação
+
+Repare nos dois 3 **seguidos**: o `ant` não anda depois de remover o primeiro deles.
+
+<Sim name="removerChave" />
+
+#### ✅ Resposta
+
+<ComplexityBadge>Θ(n)</ComplexityBadge>. A cada volta de cada `while`, ou um nó é removido ou o `ant` avança: **cada nó é tratado uma única vez**.
+
+</Resposta>
+
+</Exercicio>
+
+<Exercicio numero={69} titulo="Lista aterrada (tipo A) ou com ciclo (tipo B)?">
+
+Considere uma lista ligada onde existem duas possibilidades: ou a lista termina **aterrada** (tipo A, o último aponta para `NULL`) ou o último elemento aponta para um nó qualquer da própria lista (tipo B). Faça uma função que verifica se a lista é do tipo A ou B. Ela deve executar em `O(n)` e usar memória adicional `O(1)`.
+
+<Resposta>
+
+#### 💡 A ideia: a tartaruga e a lebre 🐢🐇
+
+Se andarmos com um apontador só, numa lista do tipo B ele **nunca** chega a `NULL`. E não podemos marcar os nós visitados (isso gastaria memória `O(n)`).
+
+O truque são **dois apontadores** que andam na mesma lista:
+
+- 🐢 `lento` anda **1** nó por volta;
+- 🐇 `rapido` anda **2** nós por volta.
+
+| Tipo | O que acontece |
+| --- | --- |
+| **A** (aterrada) | a lebre chega a `NULL` primeiro, e o laço termina |
+| **B** (com ciclo) | os dois entram no ciclo, e a lebre, andando mais rápido, **alcança** a tartaruga por trás |
+
+#### 💻 Código
+
+```c
+// 0 = tipo A (termina em NULL), 1 = tipo B (tem ciclo)
+int tipoB(Lista *li)
+{
+    No *lento = li->ini;
+    No *rapido = li->ini;
+
+    while (rapido != NULL && rapido->prox != NULL)
+    {
+        lento = lento->prox;         // anda 1 nó
+        rapido = rapido->prox->prox; // anda 2 nós
+
+        if (lento == rapido)
+        {
+            return 1; // se se encontraram, existe ciclo
+        }
+    }
+
+    return 0; // o rapido chegou ao NULL: não tem ciclo
+}
+```
+
+> ⚠️ A condição `rapido->prox != NULL` vem **depois** de `rapido != NULL` de propósito: o `&&` para no primeiro falso, e assim nunca acessamos `NULL->prox`.
+
+#### 🎬 Simulação
+
+<Sim name="tipoB" />
+
+#### ✅ Resposta
+
+- ⏱️ **Tempo `O(n)`:** a tartaruga entra no ciclo em no máximo `n` passos. Dentro do ciclo, a cada volta a distância entre as duas **diminui em 1**, então elas se encontram em no máximo mais uma volta pelo ciclo.
+- 💾 **Memória `O(1)`:** só dois apontadores, não importa o tamanho da lista.
+
+</Resposta>
+
+</Exercicio>
+
+<Exercicio numero={70} titulo="Complexidade da busca (versão ineficiente)">
+
+Qual a complexidade da função abaixo?
+
+```c
+int busca(Lista *li, int k)
+{
+    for (int i = 0; i < size(li); i++)
+    {
+        No *no = get(li, i);
+        if (no->valor == k)
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
+```
+
+<Resposta>
+
+#### 💡 A ideia
+
+Há **dois** custos escondidos dentro do `for`:
+
+- `size(li)` no teste do laço: percorre a lista **toda**, a cada volta (`n` passos);
+- `get(li, i)`: **recomeça do `ini`** a cada volta e anda `i` passos.
+
+<Sim name="buscaLenta" />
+
+#### 🧮 Somando (pior caso: a chave não existe ou é o último)
+
+<Derivation
+  title="Contando os passos da busca ineficiente"
+  steps={[
+    { tex: "T(n) = \\sum_{i=0}^{n-1} (n + i) + n", note: "Em cada volta i: o size custa n e o get custa i. O + n final é o último teste do for." },
+    { tex: "T(n) = n \\cdot n + \\frac{(n-1)\\,n}{2} + n", note: "A soma 0 + 1 + ... + (n-1) é uma progressão aritmética: n(n-1)/2." },
+    { tex: "T(n) = \\frac{3}{2}n^2 + \\frac{1}{2}n", note: "Juntando os termos." },
+    { tex: "T(n) = \\Theta(n^2)", note: "O termo de maior grau manda." },
+  ]}
+/>
+
+#### ✅ Resposta
+
+<ComplexityBadge>Θ(n²)</ComplexityBadge> no pior caso. No melhor caso (chave no primeiro nó) ainda é <ComplexityBadge>Θ(n)</ComplexityBadge>, porque o primeiro teste do `for` já chama o `size`.
+
+</Resposta>
+
+</Exercicio>
+
+<Exercicio numero={71} titulo="Busca em O(n)">
+
+Altere a função de busca para que o programa rode em `O(n)`.
+
+<Resposta>
+
+#### 💡 A ideia
+
+Os dois problemas têm a mesma causa: **recomeçar do início** a cada volta. A solução é andar com **um único** `aux`, sem nunca voltar, e parar quando chegar a `NULL`:
+
+```c
+int busca(Lista *li, int k)
+{
+    No *aux = li->ini;
+
+    while (aux != NULL)
+    {
+        if (aux->valor == k)
+        {
+            return 1; // achou
+        }
+        aux = aux->prox; // próximo nó, sem recomeçar do zero
+    }
+
+    return 0; // chegou no fim sem achar
+}
+```
+
+<Sim name="busca" />
+
+#### ✅ Resposta
+
+<ComplexityBadge>Θ(1)</ComplexityBadge> no melhor caso (chave no primeiro nó) e <ComplexityBadge>Θ(n)</ComplexityBadge> no pior.
+
+| Versão | Melhor | Pior |
+| --- | --- | --- |
+| Ineficiente (`size` + `get` a cada volta) | `Θ(n)` | `Θ(n²)` |
+| Eficiente (um `aux` só) | `Θ(1)` | `Θ(n)` |
+
+</Resposta>
+
+</Exercicio>
+
+<Exercicio numero={72} titulo="Ordenar uma lista ligada">
+
+Faça um programa que recebe uma lista ligada e a **ordena**. Tome cuidado para **não criar nós** de maneira desnecessária: use apenas os nós da própria lista.
+
+<Resposta>
+
+#### 💡 A ideia
+
+É o `addOrdenado`, mas **mudando os nós de lugar** em vez de criar cópias:
+
+1. Começamos com uma lista `ordenada` vazia;
+2. **Tiramos o primeiro nó** da lista original;
+3. **Encaixamos** esse nó na posição certa da `ordenada`: no começo, ou depois do último nó menor que ele;
+4. Repetimos até a original esvaziar, e a `li` passa a apontar para a `ordenada`.
+
+#### 💻 Código
+
+```c
+void ordenaLista(Lista *li)
+{
+    No *ordenada = NULL; // início da nova lista, já ordenada
+
+    while (li->ini != NULL)
+    {
+        // 1) tira o primeiro nó da lista original
+        No *no = li->ini;
+        li->ini = no->prox;
+
+        // 2) encaixa o nó na lista ordenada
+        if (ordenada == NULL || no->valor <= ordenada->valor)
+        {
+            no->prox = ordenada;
+            ordenada = no;
+        }
+        else
+        {
+            No *aux = ordenada;
+
+            while (aux->prox != NULL && aux->prox->valor < no->valor)
+            {
+                aux = aux->prox;
+            }
+
+            no->prox = aux->prox;
+            aux->prox = no;
+        }
+    }
+
+    li->ini = ordenada; // a lista original passa a ser a ordenada
+}
+```
+
+#### 🎬 Simulação
+
+A lista original fica na linha de baixo, e a `ordenada` cresce **na linha de cima**:
+
+<Sim name="ordenaLista" />
+
+#### ✅ Resposta
+
+Nenhum `newNo` e nenhum `free`: só ponteiros mudam. 🎯 A complexidade está na próxima questão.
+
+</Resposta>
+
+</Exercicio>
+
+<Exercicio numero={73} titulo="Complexidade da ordenação por inserção em lista">
+
+Qual a complexidade do algoritmo de ordenação (da questão 72) no pior caso?
+
+<Resposta>
+
+#### 💡 A ideia
+
+Cada nó é inserido na `ordenada`, e o custo de **cada** inserção depende de onde ele cai:
+
+| Entrada | Onde cada nó entra | Custo da inserção |
+| --- | --- | --- |
+| do **maior para o menor** (ex.: `[9, 6, 3]`) | sempre **no começo** | `Θ(1)` |
+| do **menor para o maior** (ex.: `[3, 6, 9]`) | sempre **no fim**: anda a `ordenada` toda | cresce: 1, 2, 3... |
+
+#### 🧮 Somando o pior caso
+
+<Derivation
+  title="Pior caso: entrada do menor para o maior"
+  steps={[
+    { tex: "T(n) = 0 + 1 + 2 + \\cdots + (n-1)", note: "O i-ésimo nó anda i posições na ordenada, que já tem i nós." },
+    { tex: "T(n) = \\frac{(n-1)\\,n}{2} = \\frac{n^2}{2} - \\frac{n}{2}", note: "Soma de progressão aritmética." },
+    { tex: "T(n) = \\Theta(n^2)", note: "O termo de maior grau manda." },
+  ]}
+/>
+
+#### ✅ Resposta
+
+<ComplexityBadge>Θ(n²)</ComplexityBadge> no pior caso (entrada já ordenada do menor para o maior) e <ComplexityBadge>Θ(n)</ComplexityBadge> no melhor (entrada do maior para o menor). Em situações assim, estamos interessados no **pior caso**.
+
+> 🤔 Curioso: aqui, uma entrada **já ordenada** é o *pior* caso! É o contrário do que a intuição diria.
+
+</Resposta>
+
+</Exercicio>
+
+<Exercicio numero={74} titulo="Lista circular">
+
+Implemente as funções `estaVazia`, `size`, `printLista`, `addFim`, `get`, `remover`, `set`, `add` e `addOrdenado` utilizando uma **lista circular**, em que o último elemento aponta para o primeiro. Faça também a `main`.
+
+<Resposta>
+
+#### 💡 A ideia
+
+Na lista circular **não existe `NULL` no fim**. Isso muda tudo:
+
+- Lista vazia: `ini == NULL`. Lista com 1 nó: o nó aponta para **ele mesmo**.
+- 🚨 O laço `while (aux != NULL)` vira **infinito**. O critério de parada passa a ser **voltar ao início**: `aux != li->ini`.
+- Como o começo e o fim se encostam, qualquer mudança no **primeiro** nó exige achar o **último** (para religar o círculo).
+
+#### 💻 Código
+
+```c
+int estaVazia(Lista *li)
+{
+    return li->ini == NULL;
+}
+
+int size(Lista *li)
+{
+    if (estaVazia(li))
+    {
+        return 0;
+    }
+
+    int size = 1;
+    No *aux = li->ini->prox;
+
+    while (aux != li->ini)
+    {
+        size++;
+        aux = aux->prox;
+    }
+
+    return size;
+}
+
+void printLista(Lista *li)
+{
+    printf("[");
+
+    if (!estaVazia(li))
+    {
+        No *aux = li->ini;
+
+        do
+        {
+            printf("%d", aux->valor);
+            aux = aux->prox;
+
+            if (aux != li->ini)
+            {
+                printf(", ");
+            }
+        } while (aux != li->ini);
+    }
+
+    printf("]");
+    printf("(%d)\n", size(li));
+}
+
+void addFim(Lista *li, int valor)
+{
+    No *no = newNo(valor);
+
+    if (li->ini == NULL)
+    {
+        li->ini = no;
+        no->prox = no; // aponta para si mesmo
+    }
+    else
+    {
+        No *aux = li->ini;
+
+        // anda até o último nó: o que aponta de volta para o início
+        while (aux->prox != li->ini)
+        {
+            aux = aux->prox;
+        }
+
+        aux->prox = no;     // o último aponta para o novo
+        no->prox = li->ini; // o novo fecha o círculo
+    }
+}
+
+// obtém o nó na posição idx
+No *get(Lista *li, int idx)
+{
+    if (idx < 0 || idx >= size(li)) // sem NULL, precisamos do size para validar
+    {
+        printf("Fora dos limites\n");
+        exit(1);
+    }
+
+    No *aux = li->ini;
+
+    for (int i = 0; i < idx; i++)
+    {
+        aux = aux->prox;
+    }
+
+    return aux;
+}
+
+// remove o elemento da posição idx
+int remover(Lista *li, int idx)
+{
+    if (idx < 0 || idx >= size(li))
+    {
+        printf("Fora dos limites\n");
+        exit(1);
+    }
+
+    No *no;
+
+    if (idx == 0)
+    {
+        no = li->ini;
+
+        if (no->prox == no)
+        {
+            li->ini = NULL; // era o único nó
+        }
+        else
+        {
+            No *ultimo = get(li, size(li) - 1);
+            ultimo->prox = no->prox; // o último pula o primeiro
+            li->ini = no->prox;      // o segundo vira o primeiro
+        }
+    }
+    else
+    {
+        No *anterior = get(li, idx - 1);
+        no = anterior->prox;
+        anterior->prox = no->prox;
+    }
+
+    int valor = no->valor;
+    free(no);
+    return valor;
+}
+
+// substitui o valor da posição idx
+void set(Lista *li, int valor, int idx)
+{
+    No *aux = get(li, idx);
+    aux->valor = valor;
+}
+
+// insere o valor na posição idx (de 0 até size)
+void add(Lista *li, int valor, int idx)
+{
+    if (idx < 0 || idx > size(li))
+    {
+        printf("Fora dos limites\n");
+        exit(1);
+    }
+
+    No *no = newNo(valor);
+
+    if (idx == 0)
+    {
+        if (estaVazia(li))
+        {
+            li->ini = no;
+            no->prox = no;
+        }
+        else
+        {
+            No *ultimo = get(li, size(li) - 1);
+            no->prox = li->ini;
+            ultimo->prox = no;
+            li->ini = no;
+        }
+    }
+    else
+    {
+        No *anterior = get(li, idx - 1);
+        no->prox = anterior->prox;
+        anterior->prox = no;
+    }
+}
+
+void addOrdenado(Lista *li, int valor)
+{
+    No *no = newNo(valor);
+
+    if (estaVazia(li))
+    {
+        li->ini = no;
+        no->prox = no;
+    }
+    else if (valor <= li->ini->valor)
+    {
+        // entra no começo: precisa achar o último para fechar o círculo
+        No *ultimo = li->ini;
+
+        while (ultimo->prox != li->ini)
+        {
+            ultimo = ultimo->prox;
+        }
+
+        no->prox = li->ini;
+        ultimo->prox = no;
+        li->ini = no;
+    }
+    else
+    {
+        No *aux = li->ini;
+
+        while (aux->prox != li->ini && aux->prox->valor < valor)
+        {
+            aux = aux->prox;
+        }
+
+        no->prox = aux->prox;
+        aux->prox = no;
+    }
+}
+
+int main()
+{
+    Lista *li = newLista();
+    addFim(li, 8);
+    addFim(li, 5);
+    addFim(li, 9);
+    addFim(li, 3);
+    printLista(li);                              // [8, 5, 9, 3](4)
+
+    add(li, 7, 1);
+    printLista(li);                              // [8, 7, 5, 9, 3](5)
+
+    printf("Removeu %d\n", remover(li, 0));      // Removeu 8
+    printLista(li);                              // [7, 5, 9, 3](4)
+
+    set(li, 6, 2);
+    printLista(li);                              // [7, 5, 6, 3](4)
+
+    Lista *ord = newLista();
+    addOrdenado(ord, 3);
+    addOrdenado(ord, 4);
+    addOrdenado(ord, 9);
+    addOrdenado(ord, 1);
+    addOrdenado(ord, 4);
+    printLista(ord);                             // [1, 3, 4, 4, 9](5)
+
+    return 0;
+}
+```
+
+#### 🎬 Simulações
+
+O `addFim` precisa andar até o nó que aponta de volta para o `ini`:
+
+<Sim name="circAddFim" />
+
+E remover o **primeiro** nó exige mexer no **último**:
+
+<Sim name="circRemover" />
+
+#### ✅ Resposta
+
+| Função | Complexidade |
+| --- | --- |
+| `estaVazia` | `Θ(1)` |
+| `size`, `printLista` | `Θ(n)` |
+| `addFim` | `Θ(n)` (achar o último) |
+| `get`, `set` | `Θ(n)` (o `size` de validação percorre a lista) |
+| `add`, `remover` | `O(n)` |
+| `addOrdenado` | `O(n)` |
+
+</Resposta>
+
+</Exercicio>
+
+<Exercicio numero={75} titulo="add em lista duplamente ligada: passo a passo">
+
+Faça um desenho mostrando, **passo a passo**, as operações executadas na função `add` em uma lista duplamente ligada:
+
+```c
+void add(Lista *li, int valor)
+{
+    No *no = newNo(valor);
+    if (li->ini == NULL)
+    {
+        li->ini = no;
+        no->prox = no;
+        no->prev = no;
+    }
+    else
+    {
+        no->prox = li->ini->prox;
+        no->prev = li->ini;
+        li->ini->prox->prev = no;
+        li->ini->prox = no;
+    }
+}
+```
+
+<Resposta>
+
+#### 💡 A ideia
+
+Esta função insere o novo nó **logo depois do `ini`**. Um nó novo precisa ser "costurado" nos **dois sentidos**, então são **4 ligações**: duas saindo do novo nó e duas chegando nele.
+
+#### 🎬 O desenho animado
+
+<Sim name="dblAdd" />
+
+#### ✅ Resposta
+
+| Passo | Linha | Efeito |
+| --- | --- | --- |
+| 1 | `no->prox = li->ini->prox` | o novo aponta para o 5 (**para a frente**) |
+| 2 | `no->prev = li->ini` | o novo aponta para o 8 (**para trás**) |
+| 3 | `li->ini->prox->prev = no` | o 5 passa a apontar de volta para o novo |
+| 4 | `li->ini->prox = no` | o 8 passa a apontar para o novo |
+
+> ⚠️ **A ordem importa de novo!** O passo 3 usa `li->ini->prox` para achar o 5. Se o passo 4 viesse antes, `li->ini->prox` já seria o próprio `no`, e perderíamos a referência para o 5.
+
+Quando a lista está **vazia** (o `if`), o único nó aponta para si mesmo nos dois sentidos.
+
+</Resposta>
+
+</Exercicio>
+
+<Exercicio numero={76} titulo="Remover um nó de uma lista duplamente ligada">
+
+Faça uma função que remove um elemento de uma lista duplamente ligada. Tal função recebe como parâmetro um **apontador para o nó** que será removido.
+
+<Resposta>
+
+#### 💡 A ideia
+
+Na lista simples, remover exigia achar o nó **anterior** (custo `O(n)`). Na duplamente ligada **o próprio nó sabe quem é o anterior** (`no->prev`). Basta costurar os vizinhos um no outro:
+
+1. `no->prev->prox = no->prox`: o anterior pula o nó;
+2. `no->prox->prev = no->prev`: o próximo volta direto para o anterior.
+
+Casos especiais: o nó é o **único** (a lista fica vazia) e o nó é o **`ini`** (o `ini` precisa avançar).
+
+#### 💻 Código
+
+```c
+int removerNo(Lista *li, No *no)
+{
+    if (no->prox == no)
+    {
+        li->ini = NULL; // era o único nó
+    }
+    else
+    {
+        no->prev->prox = no->prox; // o anterior pula o nó
+        no->prox->prev = no->prev; // o próximo volta direto para o anterior
+
+        if (li->ini == no)
+        {
+            li->ini = no->prox;    // removemos o primeiro: o segundo assume
+        }
+    }
+
+    int valor = no->valor;
+    free(no);
+    return valor;
+}
+```
+
+#### 🎬 Simulação
+
+<Sim name="dblRemover" />
+
+#### ✅ Resposta
+
+<ComplexityBadge>Θ(1)</ComplexityBadge>: nenhuma busca, só 2 ligações trocadas. Esta é a grande vantagem da lista duplamente ligada.
+
+</Resposta>
+
+</Exercicio>
+
+<Exercicio numero={77} titulo="Lista em vetor: inserir e remover">
+
+Suponha agora que a lista está representada por meio de um **vetor**. Faça a função que insere um elemento em uma dada posição do vetor, empurrando os elementos subsequentes uma posição para frente. Faça também a função que remove um elemento de uma lista guardada em um vetor. Qual a complexidade destas funções?
+
+<Resposta>
+
+#### 💡 A ideia
+
+No vetor os elementos ficam **lado a lado** na memória, então abrir ou fechar um espaço significa **copiar** os vizinhos:
+
+- **Inserir:** copiamos do **fim para o começo**, para não sobrescrever ninguém.
+- **Remover:** copiamos do **começo para o fim**, puxando cada elemento por cima do removido.
+
+> ⚠️ Antes de inserir, confira que o vetor ainda tem espaço (`n < MAX`).
+
+#### 💻 Código
+
+```c
+// insere valor na posicao idx e devolve o novo tamanho
+int inserir(int v[], int n, int valor, int idx)
+{
+    for (int i = n; i > idx; i--)
+    {
+        v[i] = v[i-1]; // empurra para a direita
+    }
+
+    v[idx] = valor;
+    return n + 1;
+}
+
+// remove o elemento da posicao idx e devolve o novo tamanho
+int removerVet(int v[], int n, int idx)
+{
+    for (int i = idx; i < n - 1; i++)
+    {
+        v[i] = v[i+1]; // puxa para a esquerda
+    }
+
+    return n - 1;
+}
+```
+
+#### 🎬 Simulações
+
+<Sim name="vetInserir" />
+
+<Sim name="vetRemover" />
+
+#### ✅ Resposta
+
+- **Melhor caso:** <ComplexityBadge>Θ(1)</ComplexityBadge>. Inserir no fim (`idx = n`) ou remover o último (`idx = n-1`): o `for` não executa nenhuma vez.
+- **Pior caso:** <ComplexityBadge>Θ(n)</ComplexityBadge>. Inserir ou remover na posição `0` desloca **todos** os elementos.
+
+#### ⚖️ Vetor × Lista ligada
+
+| Operação | Vetor | Lista ligada (só `ini`) |
+| --- | --- | --- |
+| acessar a posição `idx` | `Θ(1)` | `O(n)` |
+| inserir no início | `Θ(n)` | `Θ(1)` |
+| inserir no fim | `Θ(1)` (se couber) | `Θ(n)` |
+| remover do início | `Θ(n)` | `Θ(1)` |
+
+Não existe estrutura "melhor": cada uma é boa em coisas diferentes. 🎯
+
+</Resposta>
+
+</Exercicio>
+
+---
+
+## 🏁 Resumo das complexidades
+
+| Questão | Função | Tempo | Memória extra |
+| --- | --- | --- | --- |
+| 63 | `addFim` | `Θ(n)` | `O(1)` |
+| 64 | `get` | `Θ(1)` melhor, `O(n)` pior | `O(1)` |
+| 66 | `inverter` | `Θ(n)` | `O(1)` |
+| 67 | `concatenar` | `Θ(n)` | `O(1)` |
+| 68 | `removerChave` | `Θ(n)` | `O(1)` |
+| 69 | `tipoB` | `O(n)` | `O(1)` |
+| 70 | `busca` ineficiente | `Θ(n)` melhor, `Θ(n²)` pior | `O(1)` |
+| 71 | `busca` eficiente | `Θ(1)` melhor, `Θ(n)` pior | `O(1)` |
+| 72 e 73 | `ordenaLista` | `Θ(n)` melhor, `Θ(n²)` pior | `O(1)` |
+| 76 | `removerNo` (dupla) | `Θ(1)` | `O(1)` |
+| 77 | `inserir` e `removerVet` (vetor) | `Θ(1)` melhor, `Θ(n)` pior | `O(1)` |

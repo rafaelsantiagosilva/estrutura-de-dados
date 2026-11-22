@@ -9,6 +9,7 @@ import Derivation from "../math/Derivation";
 import CostTable from "../math/CostTable";
 import GrowthChart from "../viz/GrowthChart";
 import BigOExplorer from "../viz/BigOExplorer";
+import { Exercicio, Resposta } from "./Exercicio";
 
 export const mdxComponents: MDXComponents = {
   blockquote: Callout,
@@ -23,4 +24,6 @@ export const mdxComponents: MDXComponents = {
   CostTable,
   GrowthChart,
   BigOExplorer,
+  Exercicio,
+  Resposta
 };
