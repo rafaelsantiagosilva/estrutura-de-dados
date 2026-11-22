@@ -1,0 +1,36 @@
+## Questão 108: Seleção pelo menor
+
+Implemente uma variação do algoritmo da seleção:
+
+1. Selecione o **menor** elemento e ponha na **primeira** posição do vetor;
+2. Repita o processo no vetor **sem considerar a primeira posição**;
+3. Faça de maneira **iterativa**.
+
+> 💡 **Dica:** em vez de diminuir o `n`, agora é o **começo** que anda. Um `for (int ini = 0; ini < n - 1; ini++)` e uma busca do menor entre `ini` e `n - 1`.
+
+## Questão 109: Vetor de alunos
+
+a) Crie uma `struct Aluno` com `nome`, `RA` e `CR`.
+b) Faça um construtor para ela.
+c) Faça uma função que imprime um `Aluno` em **uma única linha**.
+d) Crie um **vetor de apontadores** para `Aluno` com 5 alunos e ordene com algum algoritmo desta aula. Além do vetor e do `n`, passe uma **opção**: `1` ordena por nome, `2` por RA, `3` por CR.
+e) Faça uma interface em linha de comando que pede a opção, ordena e imprime o vetor.
+
+> 💡 **Dica:** a troca de lugar acontece entre **apontadores**, não entre `structs` inteiras. E para comparar nomes, olhe a função `strcmp` da `string.h` (lembra da tabela ASCII?).
+
+## Questão 110: Seleção em lista ligada
+
+Reaproveite o código das listas. Faça uma `struct Aluno` com `nome`, `RA`, `CR` e um apontador `prox`, e monte uma lista ligada de alunos.
+
+a) Crie a função que imprime um aluno e a que imprime a lista (esta **deve chamar** a primeira).
+b) Faça a ordenação da lista por **nome**. O único parâmetro é a lista `li`. A função **não cria nem destrói** alunos, só reorganiza os existentes, e segue estes passos:
+
+1. Criar uma lista vazia `aux`;
+2. Percorrer `li` e descobrir a posição `max_pos` do **maior** elemento;
+3. **Remover** o elemento de `max_pos`, devolvendo o **nó** removido (e não só o valor);
+4. Inserir o nó removido no **início** de `aux`;
+5. Quando `li` esvaziar, fazer a lista receber `aux`.
+
+c) Na `main`: insira 15 alunos bem desordenados, imprima, ordene e imprima de novo.
+
+> 🧠 **Pense:** por que inserir no **início** de `aux` deixa a lista em ordem crescente? (Dica: o primeiro a sair é o maior...)
