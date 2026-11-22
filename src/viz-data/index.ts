@@ -15,11 +15,23 @@ import { addOrdenado } from "./listas-ligadas/addOrdenado";
 import { bolha } from "./ordenacao/bolha";
 import { insercaoA, insercaoIte } from "./ordenacao/insercao";
 import { selecao } from "./ordenacao/selecao";
+import { pilhaVetorPush, pilhaVetorPop, pilhaVetorNew, pilhaVetorCheia, pilhaVetorVazia, pilhaVetorPrint, pilhaVetorBalanceado, pilhaVetorDesbalanceadoVazia, pilhaVetorDesbalanceadoSobra } from "./pilha/pilha-vetor";
 
 // Chave = o que você escreve em <Sim name="..." /> no MDX
 export const sims: Record<string, AnySim> = {
     // listas
     newNo, newLista, estaVazia, size, printLista,
     addInicio, addFim, get, set, remover, add, busca, addOrdenado,
+    // ordenacao
     selecao, bolha, insercaoA, insercaoIte,
+    // pilha com vetor
+    pilhaVetorPush,
+    pilhaVetorPop,
+    pilhaVetorNew,
+    pilhaVetorCheia,
+    pilhaVetorVazia,
+    pilhaVetorPrint,
+    pilhaVetorBalanceado,
+    pilhaVetorDesbalanceadoVazia,
+    pilhaVetorDesbalanceadoSobra,
 };

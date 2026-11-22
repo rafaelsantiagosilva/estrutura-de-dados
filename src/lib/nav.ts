@@ -79,7 +79,20 @@ export const nav: Topic[] = [
     },
     {
         slug: "pilhas", title: "Pilhas", icon: Layers,
-        description: "LIFO: o último a entrar é o primeiro a sair.", sections: defaultSections
+        description: "LIFO: o último a entrar é o primeiro a sair.", sections: [
+            {
+                slug: "pilha-com-vetor",
+                title: "Pilha com Vetor"
+            },
+            {
+                slug: "pilha-com-lista-ligada",
+                title: "Pilha com Lista Ligada"
+            },
+            {
+                slug: "exercicios",
+                title: "Exercicios"
+            }
+        ]
     },
     {
         slug: "filas", title: "Filas", icon: ListOrdered,
