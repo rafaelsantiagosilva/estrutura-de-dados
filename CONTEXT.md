@@ -30,12 +30,16 @@ Títulos e código: `font-mono` (JetBrains Mono). Texto corrido: Inter. Raio: `r
 Cores funcionais: verde=novo/achado, amarelo=visitando/aux, vermelho=removido.
 
 ## 6. Motor de simulações
-Sim = { title, code, frames }. Frame = { nodes, head, ptrs?, vars?, line?, caption }.
-- `line` = nº da linha DENTRO de `code` (começa em 1)
-- `ptrs: { aux: null }` = aponta para NULL (não omita a chave)
-- nó novo usa id "n"; helpers: makeList, patch, mark
-- Legenda aceita `crases` (viram <code>)
-Uso no MDX: `<Sim name="addInicio" />` (substitui o bloco de código estático da função)
+Camadas: `SimShell` (código + legenda + vars + controles, recebe `children(frame)`)
+  → `ListSim` (nós/setas) e `ArraySim` (células/marcadores) só desenham.
+`Sim.tsx` escolhe pelo campo `kind`: "array" → ArraySim; ausente → ListSim.
+Tipos: `Sim` (lista), `ArraySimData`, `AnySim` (união usada no registro `viz-data/index.ts`).
+- Lista: Frame = { nodes, head, ptrs?, vars?, line?, caption }; helpers makeList, patch, mark
+- Vetor: ArrayFrame = { cells, ptrs?: {topo: 2} (-1 = vazia), vars?, line?, caption };
+  helpers makeCells, putCell, markCell; `orientation`: "vertical" (pilha) | "horizontal" (fila)
+- `line` = nº da linha DENTRO de `code` (começa em 1). Legenda aceita `crases`.
+- Cores compartilhadas em `components/viz/colors.ts`.
+Uso no MDX: `<Sim name="push" />`
 
 ## 7. Armadilhas conhecidas
 - Em .mdx, `{` e `<` fora de crases/blocos de código quebram a compilação.
@@ -44,11 +48,12 @@ Uso no MDX: `<Sim name="addInicio" />` (substitui o bloco de código estático d
 - Ids de SVG: usar `useId().replace(/:/g, "")`.
 - Em props de componentes dentro do MDX, backslash de LaTeX precisa ser dobrado: "\\Theta".
 
-## 8. Estado atual (⚠️ atualize a cada etapa)
+
+## 8. Estado atual
 - [x] Layout, rotas, sidebar, MDX, tema de código
-- [x] Simulações de Listas: todas as 13 funções
+- [x] Simulações de Listas (13 funções)
+- [x] SimShell + ArraySim
 - [ ] Gráficos e cálculos (notação assintótica / tempo de execução)
-- [ ] Pilhas e filas (vetor e lista)
 - [ ] Ordenação, buscas, grafos, árvores
 
 ## 9. Como me responder

@@ -1,4 +1,4 @@
-import type { Sim } from "./types";
+import type { AnySim } from "./types";
 import { newNo } from "./listas-ligadas/newNo";
 import { newLista } from "./listas-ligadas/newLista";
 import { estaVazia } from "./listas-ligadas/estaVazia";
@@ -14,7 +14,8 @@ import { busca } from "./listas-ligadas/busca";
 import { addOrdenado } from "./listas-ligadas/addOrdenado";
 
 // Chave = o que você escreve em <Sim name="..." /> no MDX
-export const sims: Record<string, Sim> = {
+export const sims: Record<string, AnySim> = {
+    // listas
     newNo, newLista, estaVazia, size, printLista,
     addInicio, addFim, get, set, remover, add, busca, addOrdenado,
 };

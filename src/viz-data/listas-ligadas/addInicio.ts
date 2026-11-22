@@ -1,5 +1,5 @@
 import type { Sim } from "../types";
-import { makeList } from "./helpers";
+import { makeList } from "../helpers";
 
 const base = makeList(3, 5); // a(3) → b(5)
 const novo = (next: string | null) => ({ id: "n", value: 7, next, state: "novo" as const });

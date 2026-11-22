@@ -1,5 +1,5 @@
 import type { Sim } from "../types";
-import { makeList, mark, patch } from "./helpers";
+import { makeList, mark, patch } from "../helpers";
 
 const base = makeList(2, 5, 8, 12); // lista já ordenada
 const novo = (next: string | null) => ({ id: "n", value: 7, next, state: "novo" as const });

@@ -1,5 +1,5 @@
 import type { Sim } from "../types";
-import { makeList } from "./helpers";
+import { makeList } from "../helpers";
 
 const cheia = makeList(3, 5);
 

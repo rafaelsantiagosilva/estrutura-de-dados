@@ -1,5 +1,5 @@
 import type { Sim } from "../types";
-import { makeList, mark, patch } from "./helpers";
+import { makeList, mark, patch } from "../helpers";
 
 const base = makeList(3, 5, 8, 2); // a → b → c → d
 
