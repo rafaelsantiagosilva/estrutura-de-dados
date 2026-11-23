@@ -6,6 +6,377 @@ Tente resolver **sozinho** primeiro! 💪 Cada questão mostra o enunciado e dei
 
 ---
 
+<Exercicio numero={9} titulo="100n² + 200n² é Θ(n²)">
+
+Mostre que `100n² + 200n²` é `Θ(n²)`.
+
+<Resposta>
+
+#### 💡 A ideia
+
+Lembre do **sanduíche** 🥪: para provar `f(n) = Θ(n²)` precisamos achar três números positivos, `c_1`, `c_2` e `n_0`, tais que, para todo `n ≥ n_0`:
+
+`c_1·n² ≤ f(n) ≤ c_2·n²`
+
+Aqui o enunciado tem uma sutileza: `100n² + 200n²` é simplesmente `300n²`. Então o "sanduíche" fica **colado**: o pão de baixo e o de cima podem ser a mesma coisa.
+
+> ⚠️ **Provável erro de digitação:** a apostila deve querer dizer `100n² + 200n` (o segundo termo seria **linear**, como no exemplo `100n² + 100n + 100` logo acima). Resolvemos as **duas** versões: a do enunciado e a provável.
+
+#### 🧮 Versão do enunciado: 100n² + 200n²
+
+<Derivation
+  title="Provando que 100n² + 200n² = Θ(n²)"
+  steps={[
+    { tex: "f(n) = 100n^2 + 200n^2 = 300n^2", note: "Os dois termos têm o mesmo grau, então somamos os coeficientes." },
+    { tex: "300\\,n^2 \\le f(n) \\le 300\\,n^2 \\quad (n \\ge 1)", note: "Escolhemos c_1 = 300, c_2 = 300 e n_0 = 1. Como f(n) é exatamente 300n², vale a igualdade dos dois lados." },
+    { tex: "f(n) = \\Theta(n^2)", note: "Existem c_1, c_2 e n_0 positivos que montam o sanduíche. É exatamente a definição." },
+  ]}
+/>
+
+#### 🧮 Versão provável: 100n² + 200n
+
+<Derivation
+  title="Provando que 100n² + 200n = Θ(n²)"
+  steps={[
+    { tex: "n \\ge 1 \\ \\Rightarrow \\ n \\le n^2", note: "Para n a partir de 1, o n² é pelo menos tão grande quanto n. (Com n = 5: 5 ≤ 25.)" },
+    { tex: "100n^2 \\le 100n^2 + 200n", note: "Pão de baixo: o termo 200n é positivo, então jogá-lo fora só diminui a função. Isto dá c_1 = 100." },
+    { tex: "100n^2 + 200n \\le 100n^2 + 200n^2 = 300n^2", note: "Pão de cima: trocamos o n por n² (que é maior ou igual). Isto dá c_2 = 300." },
+    { tex: "100\\,n^2 \\le f(n) \\le 300\\,n^2 \\quad (n \\ge 1)", note: "Juntando os dois lados, com n_0 = 1." },
+    { tex: "f(n) = \\Theta(n^2)", note: "Sanduíche montado." },
+  ]}
+/>
+
+#### ✅ Resposta
+
+Nas duas versões, <ComplexityBadge>Θ(n²)</ComplexityBadge>. Constantes: `c_1 = 300`, `c_2 = 300`, `n_0 = 1` (enunciado) ou `c_1 = 100`, `c_2 = 300`, `n_0 = 1` (versão provável).
+
+> 🧠 Mesmo sem a prova: um polinômio sempre é `Θ` do seu **termo de maior grau**. A questão 11 prova isso para qualquer polinômio.
+
+</Resposta>
+
+</Exercicio>
+
+<Exercicio numero={10} titulo="n log n é O(n²)">
+
+Mostre que `n log n = O(n²)`.
+
+<Resposta>
+
+#### 💡 A ideia
+
+Para ser `O(n²)`, basta achar `c` e `n_0` tais que `n log n ≤ c·n²` para todo `n ≥ n_0`. Se dividirmos os dois lados por `n`, a pergunta fica mais simples: **o `log n` é menor que `n`?**
+
+Pense em um **elevador** 🛗 contra uma **escada**: o `log n` é o elevador, que sobe devagarinho, e o `n` é a escada, que sobe um degrau por vez. O `log n` **nunca ultrapassa** o `n`. Veja:
+
+| `n` | `n log n` (base 2) | `n²` |
+| --- | --- | --- |
+| 1 | 0 | 1 |
+| 2 | 2 | 4 |
+| 8 | 24 | 64 |
+| 16 | 64 | 256 |
+| 1024 | 10.240 | 1.048.576 |
+
+Ligue as duas curvas e veja que a parábola sempre fica por cima:
+
+<GrowthChart show={["nlog", "n2"]} />
+
+#### 🧮 Prova
+
+<Derivation
+  title="Provando que n log n = O(n²)"
+  steps={[
+    { tex: "n < 2^n \\quad (n \\ge 1)", note: "Cada vez que o n aumenta de 1, o 2^n dobra, enquanto o n só ganha 1. (1 < 2, 2 < 4, 3 < 8, 4 < 16...)" },
+    { tex: "\\lg n < \\lg 2^n = n \\quad (n \\ge 1)", note: "Aplicamos o lg (log na base 2) nos dois lados. Como o lg é crescente, a desigualdade se mantém." },
+    { tex: "n \\lg n \\le n \\cdot n = n^2 \\quad (n \\ge 1)", note: "Multiplicamos os dois lados por n, que é positivo, e a desigualdade não muda." },
+    { tex: "n \\lg n \\le 1 \\cdot n^2 \\quad (n \\ge n_0 = 1)", note: "Escolhemos c = 1 e n_0 = 1." },
+    { tex: "n \\log n = O(n^2)", note: "É a definição de O." },
+  ]}
+/>
+
+#### ✅ Resposta
+
+Provado, com `c = 1` e `n_0 = 1`.
+
+> 💡 **E se o log for na base 10?** Nada muda: `log₁₀ n ≤ lg n` (o log na base 10 é menor), então `n log₁₀ n ≤ n lg n ≤ n²`. Na notação assintótica, a base do log só muda uma **constante**.
+
+> 🧠 **Tem folga!** `n log n` é `O(n²)`, mas **não** é `Θ(n²)`: o `n log n` cresce bem mais devagar que `n²`. Por isso um algoritmo `O(n log n)` (como o MergeSort) é muito melhor que um `O(n²)`.
+
+</Resposta>
+
+</Exercicio>
+
+<Exercicio numero={11} titulo="Todo polinômio de grau k é Θ(x^k)">
+
+Mostre que, dado um polinômio de grau `k`, com o seguinte formato `P(x) = a_0x^0 + a_1x^2 + ... + a_kx^k`, onde os valores `a_i` são constantes, `P(x) = Θ(x^k)`.
+
+<Resposta>
+
+#### 💡 A ideia
+
+> ⚠️ **Provável erro de digitação:** o segundo termo do enunciado é `a_1x^2`, mas deveria ser `a_1x^1`. A prova abaixo serve para o polinômio completo `P(x) = a_0 + a_1x + a_2x² + ... + a_kx^k`. E, como a notação assintótica só vale para funções **positivas**, vamos supor `a_k > 0` (o coeficiente do termo de maior grau) e `k ≥ 1`.
+
+Já provamos casos particulares, como `100n² + 100n + 100 = Θ(n²)`. A ideia é a mesma, mas com letras no lugar dos números. Precisamos do **sanduíche** com `x^k`:
+
+- **Pão de cima:** para `x ≥ 1`, todo `x^i` com `i ≤ k` é no máximo `x^k`. Então trocamos todos por `x^k` e somamos os coeficientes.
+- **Pão de baixo:** é a parte delicada, porque os `a_i` podem ser **negativos**. O truque é esperar o `x` ficar grande o bastante para o termo `a_k·x^k` **engolir** todos os outros.
+
+#### 🧮 Prova
+
+<Derivation
+  title="Parte 1: o limite superior, P(x) ≤ c_2·x^k"
+  steps={[
+    { tex: "x^i \\le x^k \\quad (x \\ge 1,\\ 0 \\le i \\le k)", note: "Potência maior dá número maior, desde que a base seja pelo menos 1." },
+    { tex: "P(x) \\le |a_0| + |a_1|\\,x + \\cdots + |a_k|\\,x^k \\le \\big(|a_0| + |a_1| + \\cdots + |a_k|\\big)\\,x^k", note: "Primeiro trocamos cada coeficiente pelo valor absoluto (assim os negativos não atrapalham). Depois trocamos cada x^i por x^k." },
+    { tex: "c_2 = |a_0| + |a_1| + \\cdots + |a_k|", note: "Esta soma é uma constante positiva. Pronto: P(x) ≤ c_2·x^k para todo x ≥ 1." },
+  ]}
+/>
+
+<Derivation
+  title="Parte 2: o limite inferior, P(x) ≥ c_1·x^k"
+  steps={[
+    { tex: "B = |a_0| + |a_1| + \\cdots + |a_{k-1}|", note: "B é a soma dos valores absolutos de todos os coeficientes, menos o último." },
+    { tex: "P(x) \\ge a_k\\,x^k - B\\,x^{k-1} \\quad (x \\ge 1)", note: "No pior caso, todos os outros termos são negativos. Para x ≥ 1, cada |a_i|·x^i com i < k é no máximo |a_i|·x^(k-1)." },
+    { tex: "x \\ge \\frac{2B}{a_k} \\ \\Rightarrow \\ B\\,x^{k-1} \\le \\frac{a_k}{2}\\,x^k", note: "Se x é grande o bastante, o termo negativo é no máximo METADE do termo principal. (Basta multiplicar x ≥ 2B/a_k por x^(k-1) e por a_k/2.)" },
+    { tex: "P(x) \\ge a_k\\,x^k - \\frac{a_k}{2}\\,x^k = \\frac{a_k}{2}\\,x^k", note: "Tirar metade do termo principal ainda deixa metade. Isto dá c_1 = a_k / 2." },
+  ]}
+/>
+
+<Derivation
+  title="Juntando as duas partes"
+  steps={[
+    { tex: "n_0 = \\max\\left(1,\\ \\frac{2B}{a_k}\\right)", note: "O n_0 precisa servir para as duas partes: x ≥ 1 (parte 1) e x ≥ 2B/a_k (parte 2)." },
+    { tex: "\\frac{a_k}{2}\\,x^k \\le P(x) \\le c_2\\,x^k \\quad (x \\ge n_0)", note: "O sanduíche está montado, com c_1 = a_k/2 e c_2 = soma de todos os |a_i|." },
+    { tex: "P(x) = \\Theta(x^k)", note: "É exatamente a definição de Θ." },
+  ]}
+/>
+
+#### 🧮 Um exemplo com coeficiente negativo
+
+`P(x) = 3x² − 5x + 7`, ou seja, `k = 2` e `a_k = 3`.
+
+| Constante | Valor | Por quê |
+| --- | --- | --- |
+| `c_2` | `3 + 5 + 7 = 15` | soma dos valores absolutos |
+| `B` | `5 + 7 = 12` | soma sem o último |
+| `c_1` | `3 / 2 = 1,5` | metade de `a_k` |
+| `n_0` | `max(1, 2·12/3) = 8` | espera o `x` passar de 8 |
+
+Conferindo em `x = 8`: `P(8) = 192 − 40 + 7 = 159`, e `1,5·64 = 96 ≤ 159 ≤ 15·64 = 960`. ✅ (Já em `x = 7` o `n_0` não foi atingido, mas ainda valia: a prova só garante a partir de `n_0`.)
+
+#### ✅ Resposta
+
+`P(x) = Θ(x^k)`, com `c_1 = a_k/2`, `c_2 = |a_0| + ... + |a_k|` e `n_0 = max(1, 2B/a_k)`. Por isso, ao analisar um algoritmo, olhamos **só o termo de maior grau** e jogamos fora o resto.
+
+> 🚀 **Caso fácil:** se **todos** os coeficientes forem positivos, a prova encurta: `a_k·x^k ≤ P(x)` (os outros termos só somam) e `P(x) ≤ (soma dos a_i)·x^k`. Vale com `n_0 = 1`.
+
+</Resposta>
+
+</Exercicio>
+
+<Exercicio numero={12} titulo="Justifique ou refute">
+
+Justifique ou refute as seguintes afirmativas:
+
+1. Se `f(n) = O(g(n))` então `f(n) = Θ(g(n))`.
+2. Se `f(n) = Θ(g(n))` então `f(n) = O(g(n))`.
+3. Se `f(n) = Θ(g(n))` então `g(n) = Θ(f(n))`.
+
+<Resposta>
+
+#### 💡 A ideia
+
+Para **refutar** uma afirmação basta **um contra-exemplo**. Para **justificar**, é preciso uma prova que valha para **todas** as funções.
+
+| Afirmativa | Veredito |
+| --- | --- |
+| 1. `O` implica `Θ` | ❌ **falsa** |
+| 2. `Θ` implica `O` | ✅ **verdadeira** |
+| 3. `Θ` é simétrico | ✅ **verdadeira** |
+
+Pense assim: `O` é só o **teto** (limite superior), `Θ` é teto **e** piso (o sanduíche inteiro). Ter o teto não garante o piso.
+
+#### 🧮 1. Refutando: O não implica Θ
+
+Contra-exemplo: `f(n) = n` e `g(n) = n²`.
+
+<Derivation
+  title="n = O(n²), mas n não é Θ(n²)"
+  steps={[
+    { tex: "n \\le 1 \\cdot n^2 \\quad (n \\ge 1)", note: "f(n) = O(g(n)) vale, com c = 1 e n_0 = 1." },
+    { tex: "f(n) = \\Theta(n^2) \\ \\Rightarrow \\ \\text{existe } c_1 > 0 \\text{ com } c_1\\,n^2 \\le n \\ \\text{para todo } n \\ge n_0", note: "Se fosse Θ, existiria um piso c_1·n² abaixo de n a partir de algum n_0. Vamos ver que isso é impossível." },
+    { tex: "c_1\\,n^2 \\le n \\ \\Rightarrow \\ n \\le \\frac{1}{c_1}", note: "Dividimos por c_1·n, que é positivo." },
+    { tex: "n > \\frac{1}{c_1} \\ \\text{(e } n \\ge n_0\\text{)} \\ \\Rightarrow \\ \\text{contradição}", note: "Qualquer que seja o c_1 escolhido, basta um n maior que 1/c_1 para a conta quebrar. Logo, não existe c_1." },
+  ]}
+/>
+
+Em números: com `c_1 = 0,01`, o piso é `0,01·n²`. Em `n = 200`, o piso vale `400`, mas o próprio `n` vale só `200`. O piso **ultrapassou** a função.
+
+#### 🧮 2. Justificando: Θ implica O
+
+<Derivation
+  title="Θ implica O"
+  steps={[
+    { tex: "f(n) = \\Theta(g(n)) \\ \\Rightarrow \\ c_1\\,g(n) \\le f(n) \\le c_2\\,g(n) \\quad (n \\ge n_0)", note: "Hipótese: o sanduíche existe." },
+    { tex: "f(n) \\le c_2\\,g(n) \\quad (n \\ge n_0)", note: "Olhando só o pão de cima (o lado direito)." },
+    { tex: "f(n) = O(g(n))", note: "É exatamente a definição de O, com c = c_2. (É a ida da questão 14.)" },
+  ]}
+/>
+
+#### 🧮 3. Justificando: Θ é simétrico
+
+<Derivation
+  title="Se f = Θ(g), então g = Θ(f)"
+  steps={[
+    { tex: "c_1\\,g(n) \\le f(n) \\le c_2\\,g(n) \\quad (n \\ge n_0)", note: "Hipótese: f(n) = Θ(g(n))." },
+    { tex: "g(n) \\le \\frac{1}{c_1}\\,f(n)", note: "Da primeira desigualdade, dividimos por c_1 (positivo) e isolamos g." },
+    { tex: "\\frac{1}{c_2}\\,f(n) \\le g(n)", note: "Da segunda desigualdade, dividimos por c_2 e isolamos g." },
+    { tex: "\\frac{1}{c_2}\\,f(n) \\le g(n) \\le \\frac{1}{c_1}\\,f(n) \\quad (n \\ge n_0)", note: "Juntando: o sanduíche de g, agora feito com f. As novas constantes são 1/c_2 e 1/c_1, também positivas." },
+    { tex: "g(n) = \\Theta(f(n))", note: "Mesma definição, com os papéis trocados." },
+  ]}
+/>
+
+#### ✅ Resposta
+
+1. **Falsa.** Contra-exemplo: `n = O(n²)`, mas `n ≠ Θ(n²)`.
+2. **Verdadeira.** `Θ` inclui o limite superior, que é o próprio `O`.
+3. **Verdadeira.** Basta inverter as constantes: `1/c_2` e `1/c_1`.
+
+> 🧠 **Resumo:** `Θ` é simétrico (vai e volta), mas `O` **não** é: `n = O(n²)` e, no entanto, `n² ≠ O(n)`. É como "menor ou igual" contra "igual".
+
+</Resposta>
+
+</Exercicio>
+
+<Exercicio numero={13} titulo="Sim ou não? Prove">
+
+Responda "sim" ou "não". Justifique sua resposta com uma prova matemática.
+
+- `10n² + 10n + 100 = O(n²)`?
+- `n² = O(10n² + 10n + 100)`?
+- `100n³ = O(n⁴)`?
+- `n⁴ = O(n³)`?
+- `2^n = O(3^n)`?
+- `3^n = O(2^n)`?
+- `log₁₀(n) = O(log₂ n)`?
+- `10n² + 10n + 100 = Θ(n²)`?
+- `n² = Θ(10n² + 10n + 100)`?
+- `100n³ = Θ(n⁴)`?
+- `2^n = Θ(3^n)`?
+- `3^n = Θ(2^n)`?
+- `log₁₀(n) = Θ(log₂ n)`?
+
+<Resposta>
+
+#### 💡 A ideia
+
+Duas regras resolvem as 13 perguntas:
+
+- **Para dizer SIM:** exiba as constantes (`c`, `n_0`) e mostre que a desigualdade vale.
+- **Para dizer NÃO:** mostre que, **qualquer** constante que alguém ofereça, existe um `n` que a derruba (uma **contradição**, como a apostila fez com `n = O(√n)`).
+
+Lembre também: `f = O(g)` quer dizer "`g` é **teto** de `f`", e `f = Θ(g)` quer dizer "`g` é teto **e** piso". Então `Θ` é `O` nos **dois** sentidos (questão 14).
+
+#### ✅ Resposta
+
+| Pergunta | Resposta | Constantes ou motivo |
+| --- | --- | --- |
+| `10n² + 10n + 100 = O(n²)` | ✅ **Sim** | `c = 120`, `n_0 = 1` |
+| `n² = O(10n² + 10n + 100)` | ✅ **Sim** | `c = 1`, `n_0 = 1` |
+| `100n³ = O(n⁴)` | ✅ **Sim** | `c = 100`, `n_0 = 1` |
+| `n⁴ = O(n³)` | ❌ **Não** | exigiria `n ≤ c`, que falha para `n > c` |
+| `2^n = O(3^n)` | ✅ **Sim** | `c = 1`, `n_0 = 1` |
+| `3^n = O(2^n)` | ❌ **Não** | exigiria `(3/2)^n ≤ c`, mas `(3/2)^n` cresce sem limite |
+| `log₁₀ n = O(log₂ n)` | ✅ **Sim** | `c = 1`, `n_0 = 1` |
+| `10n² + 10n + 100 = Θ(n²)` | ✅ **Sim** | `c_1 = 10`, `c_2 = 120`, `n_0 = 1` |
+| `n² = Θ(10n² + 10n + 100)` | ✅ **Sim** | `c_1 = 1/120`, `c_2 = 1/10`, `n_0 = 1` |
+| `100n³ = Θ(n⁴)` | ❌ **Não** | `O` vale, mas o piso `Ω` falha |
+| `2^n = Θ(3^n)` | ❌ **Não** | `O` vale, mas o piso `Ω` falha |
+| `3^n = Θ(2^n)` | ❌ **Não** | nem o teto `O` vale |
+| `log₁₀ n = Θ(log₂ n)` | ✅ **Sim** | `c_1 = 0,3`, `c_2 = 1`, `n_0 = 1` |
+
+As provas estão abaixo, agrupadas por assunto.
+
+#### 🧮 Polinômios: itens 1, 2, 8 e 9
+
+<Derivation
+  title="10n² + 10n + 100 = Θ(n²), e portanto n² = Θ(...)"
+  steps={[
+    { tex: "n \\ge 1 \\ \\Rightarrow \\ n \\le n^2 \\ \\text{e} \\ 1 \\le n^2", note: "Para n a partir de 1, n² é maior ou igual a n e a 1." },
+    { tex: "10n^2 + 10n + 100 \\le 10n^2 + 10n^2 + 100n^2 = 120\\,n^2", note: "Teto: trocamos o n e o 1 por n², com cuidado de multiplicar pelos coeficientes (10 e 100). Item 1: c = 120." },
+    { tex: "10\\,n^2 \\le 10n^2 + 10n + 100", note: "Piso: tirar os termos positivos 10n e 100 só diminui a função. Item 8: c_1 = 10." },
+    { tex: "10\\,n^2 \\le f(n) \\le 120\\,n^2 \\quad (n \\ge 1) \\ \\Rightarrow \\ f(n) = \\Theta(n^2)", note: "Sanduíche montado: o item 8 é SIM." },
+    { tex: "n^2 \\le \\frac{1}{10}\\,f(n) \\quad \\text{e} \\quad n^2 \\ge \\frac{1}{120}\\,f(n)", note: "Da desigualdade de cima, dividindo por 10 e por 120. Item 9: n² = Θ(f(n)) com c_1 = 1/120 e c_2 = 1/10. (É a simetria da questão 12.3.) Também prova o item 2, pois o lado direito dá n² ≤ f(n)/10 ≤ f(n)." },
+  ]}
+/>
+
+#### 🧮 Potências de n: itens 3, 4 e 10
+
+<Derivation
+  title="100n³ = O(n⁴), mas não é Θ(n⁴)"
+  steps={[
+    { tex: "100\\,n^3 \\le 100\\,n^4 \\quad (n \\ge 1)", note: "n³ ≤ n⁴ quando n ≥ 1. Item 3: SIM, com c = 100 e n_0 = 1." },
+    { tex: "100\\,n^3 \\ge c_1\\,n^4 \\ \\Rightarrow \\ n \\le \\frac{100}{c_1}", note: "Item 10: para ser Θ, precisaria de um piso c_1·n⁴ abaixo de 100n³. Dividimos por n³." },
+    { tex: "n > \\frac{100}{c_1} \\ \\Rightarrow \\ \\text{contradição}", note: "Qualquer c_1 que alguém ofereça é derrubado por um n grande. Com c_1 = 0,01: em n = 10.001, o piso passa do 100n³. Logo, NÃO é Θ." },
+  ]}
+/>
+
+<Derivation
+  title="n⁴ não é O(n³)"
+  steps={[
+    { tex: "n^4 \\le c\\,n^3 \\quad (n \\ge n_0)", note: "Se fosse O(n³), existiria um c e um n_0 assim." },
+    { tex: "n \\le c", note: "Dividimos por n³." },
+    { tex: "n > c \\ \\Rightarrow \\ \\text{contradição}", note: "Basta pegar n maior que c (e maior que n_0). Logo, a resposta do item 4 é NÃO." },
+  ]}
+/>
+
+#### 🧮 Exponenciais: itens 5, 6, 11 e 12
+
+<Derivation
+  title="2^n = O(3^n), mas 2^n não é Θ(3^n)"
+  steps={[
+    { tex: "2^n \\le 3^n \\quad (n \\ge 1)", note: "Base maior, mesmo expoente, dá número maior. Item 5: SIM, com c = 1 e n_0 = 1." },
+    { tex: "2^n \\ge c_1\\,3^n \\ \\Rightarrow \\ \\left(\\frac{2}{3}\\right)^n \\ge c_1", note: "Item 11: para ser Θ, precisaria de um piso. Dividimos por 3^n." },
+    { tex: "\\left(\\frac{2}{3}\\right)^n \\to 0", note: "Uma fração menor que 1, elevada a n, encolhe cada vez mais: com n = 10 vale 0,017; com n = 20, 0,0003; com n = 50, quase zero." },
+    { tex: "\\text{nenhum } c_1 > 0 \\text{ serve} \\ \\Rightarrow \\ 2^n \\ne \\Theta(3^n)", note: "Para qualquer c_1 positivo, a partir de algum n o lado esquerdo cai abaixo dele." },
+  ]}
+/>
+
+<Derivation
+  title="3^n não é O(2^n), e portanto não é Θ(2^n)"
+  steps={[
+    { tex: "3^n \\le c\\,2^n \\ \\Rightarrow \\ \\left(\\frac{3}{2}\\right)^n \\le c", note: "Se fosse O(2^n), existiria c e n_0 assim. Dividimos por 2^n." },
+    { tex: "\\left(\\frac{3}{2}\\right)^n \\to \\infty", note: "Uma fração maior que 1, elevada a n, cresce sem limite: n = 10 dá 57,7; n = 20 dá 3.325; n = 40 dá mais de 11 milhões." },
+    { tex: "n > \\log_{1{,}5}\\, c \\ \\Rightarrow \\ \\text{contradição}", note: "Para qualquer c, existe um n que o derruba. Item 6: NÃO." },
+    { tex: "3^n \\ne O(2^n) \\ \\Rightarrow \\ 3^n \\ne \\Theta(2^n)", note: "Θ exige O. Sem o teto, não há sanduíche. Item 12: NÃO." },
+  ]}
+/>
+
+#### 🧮 Logaritmos: itens 7 e 13
+
+Na notação assintótica a **base do log não importa**, porque trocar de base só multiplica por uma constante:
+
+<Derivation
+  title="log₁₀ n = Θ(log₂ n)"
+  steps={[
+    { tex: "\\log_{10} n = \\frac{\\log_2 n}{\\log_2 10}", note: "Fórmula de mudança de base." },
+    { tex: "\\log_{10} n = \\frac{1}{\\log_2 10}\\,\\log_2 n \\approx 0{,}301\\,\\log_2 n", note: "log₂ 10 ≈ 3,32, então o fator é cerca de 0,301. É uma constante." },
+    { tex: "0{,}3\\,\\log_2 n \\le \\log_{10} n \\le 1\\,\\log_2 n \\quad (n \\ge 1)", note: "Como 0,3 ≤ 0,301 ≤ 1 e log₂ n ≥ 0 para n ≥ 1, o sanduíche vale. Item 7 (teto, c = 1): SIM. Item 13 (teto e piso): SIM." },
+  ]}
+/>
+
+#### 🏁 O que aprendemos
+
+- **Polinômios** de mesmo grau são `Θ` um do outro (itens 1, 2, 8 e 9).
+- **Grau maior** é teto, mas nunca piso: `n³ = O(n⁴)`, mas `n³ ≠ Θ(n⁴)`; e o contrário é falso: `n⁴ ≠ O(n³)`.
+- **Bases diferentes** em uma exponencial importam muito: `2^n` e `3^n` estão em classes diferentes.
+- **Bases diferentes** em um logaritmo **não** importam: é só uma constante.
+
+> ⚠️ **Cuidado com a armadilha:** `2^n = O(3^n)` é verdade, mas `3^n = O(2^n)` é falso. `O` **não é simétrico**; só `Θ` é (questão 12.3).
+
+</Resposta>
+
+</Exercicio>
+
 <Exercicio numero={14} titulo="Θ é o mesmo que O e Ω juntos">
 
 Mostre que `g(n) = Θ(g(n))` se e somente se `f(n) = O(g(n))` e `f(n) = Ω(g(n))`.
@@ -634,6 +1005,11 @@ Repare: entre `n = 100.000` e `n = 200.000` o `c(n)` quase não mudou (diferenç
 
 | Questão | Assunto | Resultado |
 | --- | --- | --- |
+| 9 | `100n² + 200n²` | `Θ(n²)`, com `c_1 = c_2 = 300` (e `100n² + 200n`: `c_1 = 100`, `c_2 = 300`) |
+| 10 | `n log n` | `O(n²)`, com `c = 1` e `n_0 = 1` |
+| 11 | polinômio de grau `k` | `Θ(x^k)`, com `c_1 = a_k/2` e `c_2` igual à soma dos valores absolutos dos coeficientes |
+| 12 | afirmativas sobre `O` e `Θ` | 1 falsa, 2 e 3 verdadeiras |
+| 13 | sim ou não, 13 itens | sim: 1, 2, 3, 5, 7, 8, 9, 13 · não: 4, 6, 10, 11, 12 |
 | 14 | `Θ` ⇔ `O` e `Ω` | provado nos dois sentidos |
 | 15 | `ordena`, `T(n) = c·n²` | `c ≈ 1,07·10⁻⁶ ms`; `n = 10⁶` leva ≈ `17,9 min`; `n = 10⁷` leva ≈ `29,8 h` |
 | 16 | `f1` | `Θ(n)` |
