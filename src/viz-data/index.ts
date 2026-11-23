@@ -33,6 +33,7 @@ import { lacoLog } from "./notacao-assintotica/laco-log";
 import { indiceLinear } from "./tempo-de-execucao/indice-linear";
 import { buscaSeqLista, makeBuscaSeq, makeBuscaBin } from "./buscas";
 import { mergeIntercala, makeMergeTree, VETOR_MERGE, quickParticao, makeQuickTree, VETOR_QUICK } from "./nlogn";
+import { arvoreSims } from "./arvores/arvore";
 
 // Chave = o que você escreve em <Sim name="..." /> no MDX
 export const sims: Record<string, AnySim> = {
@@ -94,4 +95,6 @@ export const sims: Record<string, AnySim> = {
     mergeArvore: makeMergeTree(VETOR_MERGE),
     quickParticao,
     quickArvore: makeQuickTree(VETOR_QUICK),
+    // arvore
+    ...arvoreSims
 };

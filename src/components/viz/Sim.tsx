@@ -2,7 +2,9 @@ import { sims } from "../../viz-data";
 import ListSim from "./ListSim";
 import ArraySim from "./ArraySim";
 import RowsSim from "./RowsSim";
+import CallTreeSim from "./CallTreeSim";
 import TreeSim from "./TreeSim";
+import TreeXmlSim from "./TreeXmlSim";
 
 export default function Sim({ name }: { name: string }) {
   const sim = sims[name];
@@ -18,6 +20,8 @@ export default function Sim({ name }: { name: string }) {
   // `kind` decide qual desenho usar. Sem `kind` = lista (compatível com os arquivos antigos)
   if (sim.kind === "array") return <ArraySim sim={sim} />;
     if (sim.kind === "rows") return <RowsSim sim={sim} />;
-  if (sim.kind === "tree") return <TreeSim sim={sim} />;
+  if (sim.kind === "calltree") return <CallTreeSim sim={sim} />;
+   if (sim.kind === "tree") return <TreeSim sim={sim} />;
+  if (sim.kind === "treexml") return <TreeXmlSim sim={sim} />;
   return <ListSim sim={sim} />;
 }

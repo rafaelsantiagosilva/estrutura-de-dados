@@ -1,0 +1,347 @@
+Até agora, todas as estruturas que vimos (pilhas, filas, listas) são **lineares**: cada elemento tem, no máximo, um "próximo". Mas muita coisa no mundo **não é uma linha**. Pense em uma árvore genealógica, no organograma de uma empresa ou nas pastas do seu computador: um elemento se desdobra em vários outros, que se desdobram em outros, e assim por diante. Para guardar esse tipo de informação, usamos a **árvore**. 🌳
+
+Nesta página você vai ver **o que é uma árvore**, como ela é formada, como implementar uma **árvore binária** em C e como medir a sua **altura**. Nas próximas páginas, vamos organizar os valores com a **árvore binária de busca** e aprender a **percorrer** a árvore.
+
+> 🎮 **Como ler as simulações:** os quadrados são os nós e as setas apontam do pai para o filho. 🟡 amarelo é o nó que um ponteiro está usando agora, 🟢 verde é um nó novo ou já tratado, e os quadradinhos tracejados com `NULL` mostram ponteiros que não apontam para nada. O desenho se rearruma sozinho quando a árvore cresce.
+
+## O que é uma árvore?
+
+### Primeiro, grafos
+
+Para definir árvore com precisão, precisamos de uma ideia emprestada da teoria dos grafos. Um **grafo** é um conjunto de elementos, chamados de **nós** ou **vértices**, e um conjunto de relações entre eles, chamadas de **arestas**.
+
+Um exemplo clássico: o grafo de uma rede social. Cada vértice é um usuário, e existe uma aresta entre dois vértices se os dois forem amigos.
+
+```text
+Alguns grafos:
+
+   a             a───b          a───b
+  ╱ ╲            │   │          │╲ ╱│
+ b───c           d───c          │ ╳ │
+(triângulo)    (quadrado)       │╱ ╲│
+                                d───c
+                              (quadrado com diagonais)
+```
+
+> 📚 Ainda não estudamos grafos a fundo. Quando chegarmos lá, você vai ver todo o vocabulário na página **Básico de Grafos**. Por enquanto, estes dois conceitos bastam:
+
+| Conceito | O que significa |
+| --- | --- |
+| **Ciclo** | uma sequência **fechada** de vértices ligados por arestas. No triângulo acima, `a → b → c → a` é um ciclo |
+| **Conexo** | existe um **caminho** entre quaisquer dois vértices |
+
+Um grafo **sem ciclos** se chama **acíclico**. Um grafo que não é conexo se chama **desconexo**, e cada pedaço isolado é uma **componente conexa**. Voltando à rede social: se três pessoas na Sibéria só forem amigas entre si e de mais ninguém, o grafo deixa de ser conexo, porque não há caminho entre elas e o resto do mundo.
+
+### Agora, árvore
+
+> 🔑 **Uma árvore é um grafo conexo e acíclico.**
+
+Ou seja, tem de estar **tudo ligado** (conexo) e **sem voltas** (acíclico). Se faltar uma das duas condições, não é árvore:
+
+| Grafo | Conexo? | Acíclico? | É árvore? |
+| --- | --- | --- | --- |
+| triângulo | ✅ | ❌ (tem ciclo) | ❌ |
+| dois pedaços separados | ❌ | ✅ | ❌ |
+| um "galho" com várias ramificações | ✅ | ✅ | ✅ |
+
+Uma consequência curiosa: uma árvore com `n` vértices tem sempre **`n - 1` arestas**. A razão é simples: se você escolher uma raiz, **todo nó, exceto a raiz, tem exatamente um pai**, e cada um desses nós "gasta" uma aresta para se ligar ao pai.
+
+### Árvore enraizada
+
+Em estrutura de dados, nos interessa um tipo especial: a **árvore enraizada**. Curiosamente, ela é desenhada **de cabeça para baixo**: a **raiz** fica em cima. Alguns nomes importantes:
+
+| Termo | Significado |
+| --- | --- |
+| **Raiz** | o nó que fica acima de todos, o único sem pai |
+| **Pai** e **filho** | em cada par de nós ligados, o de cima é o pai e o de baixo é o filho |
+| **Irmãos** | nós que têm o mesmo pai |
+| **Folha** | um nó que **não tem filhos** (geralmente na parte de baixo) |
+| **Nó interno** | um nó que tem pelo menos um filho |
+| **Subárvore** | um nó qualquer junto com **tudo** que fica abaixo dele |
+| **Nível** | a distância até a raiz: a raiz está no nível `0`, os filhos dela no nível `1`, e assim por diante (alguns livros começam a contar do `1`) |
+
+<Sim name="arvoreTermos" />
+
+Um exemplo do dia a dia é a **árvore de diretórios** do seu computador. Existe uma raiz, onde tudo começa. Cada pasta é filha de outra pasta, até chegarmos nas folhas, que são os arquivos:
+
+```text
+Pasta 1
+├── Pasta 2
+│   ├── Ficheiro 1
+│   ├── Ficheiro 2
+│   └── Ficheiro 3
+├── Pasta 3
+│   ├── Pasta 4
+│   │   ├── Pasta 5
+│   │   │   └── Ficheiro 4
+│   │   └── Ficheiro 5
+│   └── Pasta 6
+│       └── Ficheiro 6
+└── Ficheiro 7
+```
+
+### Uma estrutura recursiva
+
+Olhe para qualquer nó de uma árvore e para tudo o que fica abaixo dele: isso também é uma árvore! Cada filho de um nó é a raiz de uma **subárvore**. Por isso dizemos que a árvore é uma estrutura **naturalmente recursiva**.
+
+<Sim name="arvoreSubarvores" />
+
+Essa propriedade é a chave para quase todos os algoritmos que vamos ver: para resolver um problema na árvore, resolvemos no nó e **repetimos a mesma ideia nas subárvores**. 🔁
+
+## Árvore binária
+
+Existe um tipo especial de árvore que usaremos o tempo todo: a **árvore binária**, em que cada nó tem, **no máximo, dois filhos**. Esses dois filhos têm nome e **posição**: o filho da **esquerda** e o filho da **direita**.
+
+A árvore da simulação acima é binária. Já a árvore de diretórios **não é** binária, pois a `Pasta 2` tem três filhos.
+
+> ⚠️ Em uma árvore binária, **esquerda e direita importam**. Estas duas árvores têm os mesmos nós, mas são **diferentes**:
+
+```text
+    1             1
+   ╱               ╲
+  2                 2
+(2 à esquerda)   (2 à direita)
+```
+
+Cada nó pode ter **0, 1 ou 2** filhos. Um nó com um só filho precisa dizer de que lado ele está.
+
+## Implementando uma árvore binária em C
+
+### O nó
+
+A estrutura básica é o **nó**. Ele guarda um valor e **dois** ponteiros: um para o filho da esquerda e outro para o da direita.
+
+```c
+// Estrutura No
+typedef struct No
+{
+    int valor;
+    struct No *esq, *dir;
+} No;
+```
+
+Comparando com a lista ligada: lá o nó tinha um `prox`; aqui tem dois, `esq` e `dir`. Um nó com o valor `8` fica assim na memória:
+
+```text
+┌─────┬─────┬─────┐
+│ esq │  8  │ dir │
+└──┬──┴─────┴──┬──┘
+   ▼           ▼
+ (nó ou NULL)  (nó ou NULL)
+```
+
+Cada ponteiro aponta para **outro nó** ou vale `NULL`, que significa "não tem filho deste lado".
+
+### O construtor
+
+O construtor segue o mesmo padrão de sempre, e o novo nó começa **sem filhos**:
+
+```c
+// construtor da estrutura nó
+No *newNo(int valor)
+{
+    No *no = (No *)malloc(sizeof(No));
+    no->valor = valor;
+    no->esq = NULL;
+    no->dir = NULL;
+    return no;
+}
+```
+
+### A árvore
+
+Existem **dois padrões** para representar uma árvore:
+
+1. a árvore é só um **ponteiro para nó** (`No *tree`);
+2. a árvore é uma **struct** que guarda um ponteiro para a raiz.
+
+A apostila usa o segundo:
+
+```c
+// estrutura árvore
+typedef struct Tree
+{
+    No *raiz;
+} Tree;
+
+// construtor da estrutura árvore
+Tree *newTree()
+{
+    Tree *t = (Tree *)malloc(sizeof(Tree));
+    t->raiz = NULL;
+    return t;
+}
+```
+
+A desvantagem é precisar de uma struct a mais. A vantagem é um código mais padronizado em funções como o `add`: no primeiro padrão, inserir em uma árvore **vazia** exige receber um ponteiro para ponteiro (`No **`), como vimos nas pilhas. Com a struct, basta um ponteiro para a árvore. É questão de gosto. 🙂
+
+> 🧪 Na Questão 122, você vai refazer os códigos desta aula usando só o nó, sem a struct `Tree`, para comparar os dois padrões.
+
+### A árvore vazia
+
+Quando `t->raiz` vale `NULL`, a árvore está **vazia**. E isso vale para qualquer ponteiro de filho: um `NULL` em `esq` ou `dir` é uma **subárvore vazia**.
+
+Isso é muito importante para o código: toda função recursiva sobre árvores precisa decidir o que fazer quando recebe `NULL`. Esse é o **caso base** da recursão, e esquecê-lo é o erro mais comum com árvores.
+
+### Montando uma árvore à mão
+
+Veja uma `main` que cria uma árvore pequena, ligando os nós um a um:
+
+```c
+int main(int argc, const char *argv[])
+{
+    Tree *t = newTree();
+    t->raiz = newNo(5);
+    t->raiz->esq = newNo(6);
+    t->raiz->dir = newNo(7);
+    t->raiz->dir->esq = newNo(2);
+    return 0;
+}
+```
+
+<Sim name="arvoreMain" />
+
+Repare em `t->raiz->dir->esq`: é só seguir os ponteiros, de nó em nó, a partir da raiz: "da raiz, vá para a direita; dali, vá para a esquerda". Ao final, a memória tem estes quatro nós:
+
+| Nó | `esq` | `dir` |
+| --- | --- | --- |
+| `5` (raiz) | aponta para o `6` | aponta para o `7` |
+| `6` | `NULL` | `NULL` |
+| `7` | aponta para o `2` | `NULL` |
+| `2` | `NULL` | `NULL` |
+
+Os nós `6` e `2` são **folhas**: os dois ponteiros valem `NULL`.
+
+### E se o nó tivesse três filhos?
+
+A ideia se generaliza. Uma árvore **ternária** tem um ponteiro a mais:
+
+```c
+typedef struct No
+{
+    int valor;
+    struct No *esq;
+    struct No *meio;
+    struct No *dir;
+} No;
+```
+
+Uma regra possível para inserir seria: menores que a raiz vão para a esquerda, maiores para a direita e **iguais** para o meio. Você vai explorar essa estrutura nos exercícios (Questões 131 e 149).
+
+## A altura de uma árvore
+
+A **altura** de uma árvore é o **maior caminho da raiz até uma folha**, contado em **arestas**. Ela é representada por `h` (de *height*). Por definição, uma árvore **nula** tem altura **−1**:
+
+<Sim name="arvoreAlturas" />
+
+A altura é importante porque, como veremos, o custo de inserir e de buscar em uma árvore de busca depende dela.
+
+### A altura é recursiva
+
+Suponha um nó cujo filho da direita tem altura `13` e o filho da esquerda tem altura `10`. Para chegar até o nó, damos **mais um passo**: ficamos com `14` e `11`. Como a altura é o **maior** caminho, vale o maior valor. Em fórmula:
+
+```text
+h(no) = max( h(no->esq), h(no->dir) ) + 1
+```
+
+Por que a árvore nula vale `-1`? Para a conta fechar nas folhas: uma folha tem dois filhos nulos, então `h = max(-1, -1) + 1 = 0`, que é exatamente a altura de um nó sozinho.
+
+```c
+int altura(No *no)
+{
+    if (no == NULL)
+    {
+        return -1;
+    }
+    else
+    {
+        int he = altura(no->esq);
+        int hd = altura(no->dir);
+        if (he > hd)
+        {
+            return he + 1;
+        }
+        else
+        {
+            return hd + 1;
+        }
+    }
+}
+```
+
+### Acompanhando a conta
+
+Considere esta árvore, em que repetimos o valor `3` de propósito:
+
+```text
+        6
+      ╱   ╲
+     2     8
+    ╱ ╲     ╲
+   1   3     10
+        ╲
+         3
+```
+
+A função calcula primeiro os **filhos** e só depois o pai, de baixo para cima:
+
+| Nó | `h(esq)` | `h(dir)` | `h` do nó |
+| --- | --- | --- | --- |
+| `1` (folha) | −1 | −1 | **0** |
+| `3` (a folha de baixo) | −1 | −1 | **0** |
+| `3` (filho do `2`) | −1 | 0 | **1** |
+| `2` | 0 | 1 | **2** |
+| `10` (folha) | −1 | −1 | **0** |
+| `8` | −1 | 0 | **1** |
+| `6` (raiz) | 2 | 1 | **3** |
+
+A altura da árvore é a da raiz: `h = 3`.
+
+> 🔎 Repare na ordem: cada nó só consegue calcular o seu `h` **depois** que os dois filhos já responderam. Esse padrão ("filhos primeiro, raiz por último") é o **percurso em pós-ordem**, que vamos estudar na página de Percursos.
+
+### Altura e número de nós
+
+Uma árvore binária de altura `h` cabe, no máximo, `2^(h+1) - 1` nós. Veja como isso cresce:
+
+| Altura `h` | Máximo de nós |
+| --- | --- |
+| 0 | 1 |
+| 1 | 3 |
+| 2 | 7 |
+| 3 | 15 |
+| 10 | 2047 |
+
+Ou seja: com poucos níveis cabem **muitos** nós. Isso significa que, com `n` nós, a altura varia entre dois extremos:
+
+- **Árvore bem distribuída:** `h` perto de `lg n`.
+- **Árvore degenerada** (cada nó com um só filho, como uma lista ligada): `h = n - 1`.
+
+Por isso dizemos que, se a árvore tiver um bom **balanceamento**, a altura é <ComplexityBadge>O(lg n)</ComplexityBadge>, mas pode chegar a <ComplexityBadge>O(n)</ComplexityBadge> em uma árvore degenerada.
+
+## Quanto custa cada operação?
+
+| Operação | Complexidade | Por quê |
+| --- | --- | --- |
+| `newNo`, `newTree` | <ComplexityBadge>Θ(1)</ComplexityBadge> | só reservam memória e preenchem campos |
+| Acessar `t->raiz->esq` | <ComplexityBadge>Θ(1)</ComplexityBadge> | é só seguir um ponteiro |
+| `altura` | <ComplexityBadge>Θ(n)</ComplexityBadge> | precisa calcular a altura de **todos** os nós |
+
+## Erros comuns
+
+1. **Esquecer o caso base `no == NULL`.** Sem ele, a recursão tenta ler `no->esq` de um nó que não existe e o programa falha.
+2. **Não inicializar `esq` e `dir` com `NULL` no `newNo`.** Os ponteiros ficariam com lixo, e a árvore pareceria ter filhos que não existem.
+3. **Confundir árvore vazia com árvore de um nó.** A vazia tem altura `-1`; a de um nó só tem altura `0`.
+4. **Tentar acessar `t->raiz->esq` com a árvore vazia.** Se `t->raiz` é `NULL`, o acesso falha.
+5. **Esquecer que esquerda e direita são diferentes.** `no->esq = x` e `no->dir = x` geram árvores diferentes.
+6. **Esquecer o `free`.** Nos códigos desta página não liberamos a memória (ela é devolvida quando o programa termina). O correto é um `free` por `malloc`; veja como na página de Percursos.
+
+## Resumo rápido
+
+- **Árvore** é um grafo **conexo e acíclico**, e com `n` vértices tem `n - 1` arestas.
+- Em estrutura de dados, usamos a **árvore enraizada**: raiz no topo, relações de pai e filho, folhas sem filhos e subárvores dentro de subárvores.
+- Na **árvore binária**, cada nó tem, no máximo, **dois filhos**, e a posição (esquerda ou direita) importa.
+- Em C, o nó guarda `valor`, `esq` e `dir`. A árvore guarda um ponteiro `raiz`, e `NULL` significa árvore (ou subárvore) vazia.
+- Toda função recursiva em árvore precisa do **caso base** `no == NULL`.
+- A **altura** é o maior caminho da raiz até uma folha (árvore nula: `-1`), e vale `max(h(esq), h(dir)) + 1`. Com `n` nós, vai de `lg n` (balanceada) até `n - 1` (degenerada).
+
+Na próxima página, vamos dar uma **regra de organização** para os nós: a **árvore binária de busca**. 🔍

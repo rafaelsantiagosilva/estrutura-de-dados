@@ -1,4 +1,4 @@
-import type { Cell, NodeState, Row, RowsFrame, RowsSimData, TreeFrame, TreeNode, TreeSimData } from "./types";
+import type { Cell, NodeState, Row, RowsFrame, RowsSimData, CallTreeFrame, CallTreeNode, CallTreeSimData } from "./types";
 
 type Marks = Record<number, NodeState>;
 type Slot = number | null;
@@ -252,12 +252,12 @@ function intercala(a: number[], b: number[]) {
   return out;
 }
 
-export function makeMergeTree(values: number[]): TreeSimData {
+export function makeMergeTree(values: number[]): CallTreeSimData {
   const n = values.length;
-  const nodes: TreeNode[] = [];
+  const nodes: CallTreeNode[] = [];
   const done = new Set<string>();
   let active = "";
-  const frames: TreeFrame[] = [];
+  const frames: CallTreeFrame[] = [];
 
   const snap = (line: number, caption: string, vars: Record<string, string | number> = {}) =>
     frames.push({
@@ -280,8 +280,8 @@ export function makeMergeTree(values: number[]): TreeSimData {
     snap(3, `\`mergeSort(v, ${len})\` com ${fmt(vals)}: \`n > 1\`? Sim. Vamos dividir ao meio.`, { n: len });
 
     const n1 = Math.floor(len / 2), n2 = len - n1;
-    const left: TreeNode = { id: id + "0", lo: node.lo, hi: node.lo + n1 - 1, depth: node.depth + 1, parent: id, values: vals.slice(0, n1) };
-    const right: TreeNode = { id: id + "1", lo: node.lo + n1, hi: node.hi, depth: node.depth + 1, parent: id, values: vals.slice(n1) };
+    const left: CallTreeNode = { id: id + "0", lo: node.lo, hi: node.lo + n1 - 1, depth: node.depth + 1, parent: id, values: vals.slice(0, n1) };
+    const right: CallTreeNode = { id: id + "1", lo: node.lo + n1, hi: node.hi, depth: node.depth + 1, parent: id, values: vals.slice(n1) };
     nodes.push(left, right);
     snap(10, `\`n1 = n / 2 = ${n1}\` e \`n2 = n - n1 = ${n2}\`. As duas metades são **copiadas** para \`v1 = ${fmt(left.values)}\` e \`v2 = ${fmt(right.values)}\`.`, { n: len, n1, n2 });
 
@@ -303,7 +303,7 @@ export function makeMergeTree(values: number[]): TreeSimData {
   active = "r";
   snap(1, `\`mergeSort(v, ${n})\` com ${fmt(values)}. A chamada inicial é a **caixa de cima**; cada divisão cria duas caixas abaixo.`, { n });
   sort("r", [...values]);
-  return { kind: "tree", title: "MergeSort: árvore de chamadas", code: CODE_MS, n, frames };
+  return { kind: "calltree", title: "MergeSort: árvore de chamadas", code: CODE_MS, n, frames };
 }
 
 /* ═══════════════════ 🌳 QuickSort: árvore de chamadas ═══════════════════ */
@@ -320,13 +320,13 @@ const CODE_QS = String.raw`void quickSort(int v[], int p, int r)
     }
 }`;
 
-export function makeQuickTree(values: number[]): TreeSimData {
+export function makeQuickTree(values: number[]): CallTreeSimData {
   const n = values.length;
   const a = [...values];
-  const nodes: TreeNode[] = [];
+  const nodes: CallTreeNode[] = [];
   const done = new Set<string>();
   let active = "";
-  const frames: TreeFrame[] = [];
+  const frames: CallTreeFrame[] = [];
 
   const snap = (line: number, caption: string, vars: Record<string, string | number> = {}) =>
     frames.push({
@@ -367,7 +367,7 @@ export function makeQuickTree(values: number[]): TreeSimData {
     node.values = a.slice(p, r + 1);
     node.cellStates = { [q]: "achado" };
 
-    const kids: TreeNode[] = [];
+    const kids: CallTreeNode[] = [];
     if (p <= q - 1) kids.push({ id: id + "0", lo: p, hi: q - 1, depth: node.depth + 1, parent: id, values: a.slice(p, q) });
     if (q + 1 <= r) kids.push({ id: id + "1", lo: q + 1, hi: r, depth: node.depth + 1, parent: id, values: a.slice(q + 1, r + 1) });
     nodes.push(...kids);
@@ -387,5 +387,5 @@ export function makeQuickTree(values: number[]): TreeSimData {
   active = "r";
   snap(1, `\`quickSort(v, 0, ${n - 1})\` com ${fmt(values)}. Cada partição cria **no máximo** duas caixas abaixo (pode ser só uma, ou nenhuma).`, { p: 0, r: n - 1 });
   sort("r", 0, n - 1);
-  return { kind: "tree", title: "QuickSort: árvore de chamadas", code: CODE_QS, n, frames };
+  return { kind: "calltree", title: "QuickSort: árvore de chamadas", code: CODE_QS, n, frames };
 }

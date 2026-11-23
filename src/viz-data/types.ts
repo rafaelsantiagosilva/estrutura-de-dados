@@ -1,3 +1,5 @@
+import type { TreeSimData, TreeXmlSimData } from "./arvores/treeTypes";
+
 export type NodeState = "novo" | "visitando" | "removido" | "achado" | "descartado";
 
 /* ───────── 🔗 Listas encadeadas ───────── */
@@ -75,7 +77,7 @@ export type RowsSimData = {
 };
 
 /* ───────── 🌳 Árvore de chamadas recursivas (MergeSort, QuickSort) ───────── */
-export type TreeNode = {
+export type CallTreeNode = {
     id: string;
     lo: number;                         // este nó cobre as posições lo..hi do vetor ORIGINAL
     hi: number;
@@ -86,21 +88,21 @@ export type TreeNode = {
     cellStates?: Record<number, NodeState>; // cor de células específicas (índice ABSOLUTO)
 };
 
-export type TreeFrame = {
-    nodes: TreeNode[];
+export type CallTreeFrame = {
+    nodes: CallTreeNode[];
     vars?: Record<string, string | number>;
     line?: number;
     caption: string;
 };
 
-export type TreeSimData = {
-    kind: "tree";
+export type CallTreeSimData = {
+    kind: "calltree";
     title: string;
     code: string;
     n: number;                          // tamanho do vetor original (define a largura)
-    frames: TreeFrame[];
+    frames: CallTreeFrame[];
 };
 
 
 // Qualquer simulação que o <Sim name="..." /> pode mostrar
-export type AnySim = Sim | ArraySimData | RowsSimData | TreeSimData;
+export type AnySim = Sim | ArraySimData | RowsSimData | CallTreeSimData | CallTreeSimData | TreeXmlSimData | TreeSimData;

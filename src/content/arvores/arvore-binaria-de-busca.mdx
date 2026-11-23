@@ -1,0 +1,442 @@
+Montar uma árvore binária ligando os nós na mão é trabalhoso e **não organiza nada**: os valores ficam onde você os colocou. A **árvore binária de busca** (BST, de *binary search tree*) resolve isso com uma **regra de inserção**. Seguindo essa regra, os valores ficam organizados de um jeito que torna **inserir e buscar** muito mais rápidos. 🔍
+
+Nesta página você vai ver a regra da árvore de busca, como **inserir** (de forma recursiva e iterativa), como **buscar**, por que a **ordem de inserção** muda tudo e como medir o **balanceamento**.
+
+> 📌 Esta página supõe que você já viu a página **Árvore Binária**: o `No`, o `Tree`, `newNo`, `newTree` e a **altura** de uma árvore.
+
+> 🎮 **Como ler as simulações:** os quadrados são os nós e as setas apontam do pai para o filho. 🟡 amarelo é o nó que um ponteiro (`aux` ou `no`) está usando agora, 🟢 verde é um nó novo ou já tratado, e os quadradinhos tracejados com `NULL` mostram ponteiros que não apontam para nada. O desenho se rearruma sozinho quando a árvore cresce.
+
+## A regra da árvore de busca
+
+> 🔑 Ao inserir um valor, se ele for **menor ou igual** ao da raiz, vai para o ramo da **esquerda**. Se for **maior**, vai para o ramo da **direita**. E essa regra vale **em cada subárvore**.
+
+Em outras palavras, para **todo nó** da árvore:
+
+- tudo o que está na **subárvore da esquerda** é menor ou igual ao valor do nó;
+- tudo o que está na **subárvore da direita** é maior que o valor do nó.
+
+Se você já viu a busca binária em um vetor ordenado, a ideia é a mesma: comparar com **um** elemento e descartar **metade** das possibilidades. Aqui, o "elemento do meio" é o próprio nó.
+
+### "Em todos os nós" quer dizer em todos mesmo
+
+Não basta olhar só para os filhos diretos. Veja esta árvore:
+
+```text
+      5
+     ╱ ╲
+    3   8
+     ╲
+      9
+```
+
+Olhando só o nó `3` e o filho dele, tudo certo: `9` é maior que `3` e está à direita. Mas o `9` está na subárvore **da esquerda** do `5`, e `9` é **maior** que `5`. A regra foi quebrada, então essa árvore **não é de busca**. Toda árvore de busca é uma árvore binária, mas **nem toda árvore binária é de busca**.
+
+Uma forma de conferir é pensar em **intervalos permitidos**: a raiz aceita qualquer valor; ao descer para a esquerda, o limite superior passa a ser o valor da raiz; ao descer para a direita, o limite inferior é que passa a ser esse valor. O `9` acima, na esquerda do `5`, teria de ser menor ou igual a `5`.
+
+## Inserindo passo a passo
+
+Acompanhe a inserção dos valores `5`, `3`, `7` e `6`:
+
+- o `5` é o primeiro, então vira a **raiz**;
+- o `3` é menor que `5`: **esquerda**;
+- o `7` é maior que `5`: **direita**;
+- o `6` é maior que `5` (**direita**) e menor que `7` (**esquerda do `7`**).
+
+<Sim name="arvoreBst5376" />
+
+> 💡 Repare: para decidir o caminho, só comparamos com **um** nó por nível. A cada comparação, descartamos metade da árvore, e é essa a força da árvore de busca.
+
+## A ordem de inserção importa
+
+Os **mesmos valores**, inseridos em **outra ordem**, formam uma árvore **diferente**. Veja `3`, `6`, `7`, `5`:
+
+<Sim name="arvoreBst3675" />
+
+Agora o `3` é a raiz, e os outros valores ficam para a direita, até o `5` encontrar o seu lugar à esquerda do `6`. Os valores são os mesmos de antes, mas a árvore é outra.
+
+Um caso ruim é quando os elementos chegam **já ordenados**. Veja `3`, `5`, `6`, `7`:
+
+<Sim name="arvoreBst3567" />
+
+A árvore ficou **degenerada**: cada nó tem só um filho, e ela virou praticamente uma **lista ligada**. Guarde esse caso, porque ele vai fazer diferença na complexidade.
+
+> 🧩 **Hora de praticar:** descubra a árvore gerada ao inserir `(7, 3, 9, 3, 10, 1, 8)` (Questão 123), calcule as alturas de três árvores montadas a partir de outras sequências (Questão 124) e monte todas as árvores de busca distintas com os elementos `3, 5, 6, 7` em qualquer ordem (Questão 125).
+
+## O código da inserção
+
+### A função addTree
+
+Primeiro, a função que recebe a árvore:
+
+```c
+// Insere o valor na árvore
+void addTree(Tree *t, int valor)
+{
+    if (t->raiz == NULL)
+    {
+        t->raiz = newNo(valor);
+    }
+    else
+    {
+        addNo(t->raiz, valor);
+    }
+}
+```
+
+Ela trata o **caso especial** da árvore vazia: nesse caso, basta criar o nó e atribuí-lo à raiz. Se a raiz não é nula, chama `addNo`, que insere em uma árvore representada por um **nó**. Repare: `addNo` **sempre recebe um nó não nulo**. Isso simplifica o código dele.
+
+### Inserção recursiva: addNo
+
+```c
+/**
+ * Insere o valor na árvore.
+ * O nó não pode ser nulo, por definição.
+ */
+void addNo(No *no, int valor)
+{
+    if (valor <= no->valor)
+    {
+        // insere na subárvore à esquerda
+        if (no->esq != NULL)
+        {
+            addNo(no->esq, valor);
+        }
+        else
+        {
+            no->esq = newNo(valor);
+        }
+    }
+    else
+    {
+        // insere na subárvore à direita
+        if (no->dir != NULL)
+        {
+            addNo(no->dir, valor);
+        }
+        else
+        {
+            no->dir = newNo(valor);
+        }
+    }
+}
+```
+
+A lógica, para o lado esquerdo (o direito é idêntico):
+
+1. Se o valor deve ir para a esquerda e **já existe uma subárvore** ali, fazemos uma **chamada recursiva**, passando `no->esq` como se fosse a nova raiz.
+2. Se o ponteiro `no->esq` vale `NULL`, achamos o lugar! Criamos o nó e o ponteiro passa a apontar para ele.
+
+O processo se repete até acharmos um ponteiro nulo. Veja o valor `4` entrando em uma árvore já montada. Note que o problema é resolvido **recursivamente**, passando uma subárvore a cada chamada:
+
+<Sim name="arvoreAddRec" />
+
+### Inserção iterativa: addTreeIt
+
+Dá para inserir **sem recursão**, com um ponteiro auxiliar `aux` que **desce** pela árvore:
+
+```c
+#define TRUE 1
+#define FALSE 0
+
+// Inserção em uma árvore de maneira iterativa
+void addTreeIt(Tree *t, int valor)
+{
+    if (t->raiz == NULL)
+    {
+        t->raiz = newNo(valor);
+        return;
+    }
+    No *aux = t->raiz;
+    int inseriu = FALSE;
+    while (!inseriu)
+    {
+        if (valor < aux->valor)
+        {
+            if (aux->esq != NULL)
+            {
+                // descer para o ramo esquerdo
+                aux = aux->esq;
+            }
+            else
+            {
+                aux->esq = newNo(valor);
+                inseriu = TRUE;
+            }
+        }
+        else
+        {
+            if (aux->dir != NULL)
+            {
+                // descer para o ramo direito
+                aux = aux->dir;
+            }
+            else
+            {
+                aux->dir = newNo(valor);
+                inseriu = TRUE;
+            }
+        }
+    }
+}
+```
+
+O `aux` começa na raiz. A cada passo, desce para a esquerda ou para a direita, **se existir** esse ramo. Quando não existe, achamos o ponto correto: cria-se o nó e o laço termina. Veja o mesmo valor `4`, agora pelo método iterativo:
+
+<Sim name="arvoreAddIt" />
+
+### Recursivo ou iterativo?
+
+| | `addNo` (recursivo) | `addTreeIt` (iterativo) |
+| --- | --- | --- |
+| Como desce | chama a si mesmo com `no->esq` ou `no->dir` | move o ponteiro `aux` |
+| Memória extra | uma chamada empilhada por nível, até `h` níveis | só o ponteiro `aux` |
+| Custo de tempo | <ComplexityBadge>O(h)</ComplexityBadge> | <ComplexityBadge>O(h)</ComplexityBadge> |
+| Em árvore degenerada | pode estourar a pilha de chamadas com `n` muito grande | continua funcionando |
+
+> 🔎 **Um detalhe curioso:** a versão recursiva usa `valor <= no->valor` (o valor **igual** vai para a esquerda), mas o código iterativo da apostila usa `valor < aux->valor` (o valor **igual** vai para a direita). Com valores **distintos** o resultado é o mesmo; com **repetidos**, as duas versões posicionam o repetido de jeitos diferentes. O importante é você escolher **uma regra** e manter a mesma em todo o programa.
+
+## Quanto custa inserir?
+
+Em cada chamada (ou volta do laço), descemos **um nível**. No pior caso, descemos até uma folha. Então o custo de inserir é <ComplexityBadge>O(h)</ComplexityBadge>, onde `h` é a **altura** da árvore.
+
+E quanto vale `h`? Depende de como os dados chegam:
+
+| Situação da árvore | Altura | Custo de inserir |
+| --- | --- | --- |
+| **Balanceada** (bem distribuída) | `h = O(lg n)` | <ComplexityBadge>O(lg n)</ComplexityBadge> |
+| **Degenerada** (como uma lista ligada) | `h = O(n)` | <ComplexityBadge>O(n)</ComplexityBadge> |
+
+### E com dados aleatórios?
+
+Na prática, se inserirmos números sorteados, a árvore fica **razoavelmente** equilibrada. O autor da apostila fez o teste com `n = 100.000` valores aleatórios na sua máquina:
+
+| Cenário (`n = 100.000`) | Altura |
+| --- | --- |
+| Balanceamento perfeito (`lg n`, arredondado para baixo) | 16 |
+| Valores aleatórios (resultado do autor) | 38 |
+| Valores inseridos em ordem crescente (`n - 1`) | 99.999 |
+
+A altura com valores aleatórios foi um pouco maior que `2 lg n`, mas **muito** menor que `n`. Nessas condições, inserir e buscar são rápidos. Já com os dados em ordem, a árvore perde toda a eficiência.
+
+> 🌟 Existem árvores que **garantem** altura `lg n` para qualquer ordem de inserção, como a **árvore AVL** e a **árvore B**. Nesta página, porém, **não** temos essa garantia. A árvore B será estudada mais adiante no curso.
+
+> 🧩 Na Questão 144, você vai medir a altura da árvore para `n = 1.000`, `10.000`, `50.000` e `100.000` valores aleatórios e comparar com `lg n`.
+
+## Buscando um valor
+
+O processo de busca é **parecido com o da inserção**. Ao buscar um valor, comparamos com o nó atual:
+
+- se for **igual**, achamos: a busca termina;
+- se for **menor**, a busca continua na subárvore da **esquerda**;
+- se for **maior**, a busca continua na subárvore da **direita**;
+- se chegamos em `NULL`, o valor **não existe** na árvore.
+
+Isso pode ser feito de forma recursiva ou iterativa.
+
+### Busca recursiva
+
+```c
+No *buscaRec(No *no, int valor)
+{
+    if (no == NULL)
+        return NULL;
+    else if (no->valor == valor)
+        return no;
+    else if (valor < no->valor)
+        return buscaRec(no->esq, valor);
+    else
+        return buscaRec(no->dir, valor);
+}
+```
+
+Repare que a função **devolve o ponteiro para o nó** encontrado, e `NULL` se não achar. Na lista ligada, nossa `busca` devolvia só `1` ou `0`. Devolver o nó é mais útil: além de saber **se** o valor existe, você já tem **acesso** a ele.
+
+### Busca iterativa
+
+```c
+No *buscaIterativa(No *no, int valor)
+{
+    No *aux = no;
+    while (aux != NULL)
+    {
+        if (aux->valor == valor)
+            return aux;
+        else if (valor < aux->valor)
+            aux = aux->esq;
+        else
+            aux = aux->dir;
+    }
+    return NULL;
+}
+```
+
+O `aux` começa no nó recebido e **desce** a árvore. Se sair do laço, é porque `aux` chegou em `NULL`: o valor não está lá.
+
+### Acompanhando duas buscas
+
+Vamos usar a árvore que resulta de inserir `3`, `6`, `7`, `5`, nessa ordem:
+
+```text
+    3
+     ╲
+      6
+     ╱ ╲
+    5   7
+```
+
+```c
+int main(int argc, const char *argv[])
+{
+    Tree *t = newTree();
+    addTree(t, 3);
+    addTree(t, 6);
+    addTree(t, 7);
+    addTree(t, 5);
+
+    No *achou = buscaIterativa(t->raiz, 5);
+    if (achou != NULL)
+        printf("Achei o %d\n", achou->valor);
+    else
+        printf("Não existe\n");
+
+    return 0;
+}
+```
+
+**Buscando o `5`:**
+
+| Nó atual | Comparação | Decisão |
+| --- | --- | --- |
+| `3` | `5 == 3`? Não. `5 < 3`? Não | desce para a **direita** |
+| `6` | `5 == 6`? Não. `5 < 6`? Sim | desce para a **esquerda** |
+| `5` | `5 == 5`? **Sim!** | devolve o nó `5` ✅ |
+
+**Buscando o `4`:**
+
+| Nó atual | Comparação | Decisão |
+| --- | --- | --- |
+| `3` | `4 == 3`? Não. `4 < 3`? Não | desce para a **direita** |
+| `6` | `4 == 6`? Não. `4 < 6`? Sim | desce para a **esquerda** |
+| `5` | `4 == 5`? Não. `4 < 5`? Sim | desce para a **esquerda** |
+| `NULL` | chegamos ao fim | devolve `NULL` ❌ |
+
+Na busca recursiva, o `4` seria assim, uma chamada dentro da outra:
+
+```text
+buscaRec(nó 3, 4)
+  └─ buscaRec(nó 6, 4)
+       └─ buscaRec(nó 5, 4)
+            └─ buscaRec(NULL, 4)  → devolve NULL
+```
+
+> 💡 Repare que o caminho da busca pelo `4` é **exatamente** o caminho que a inserção do `4` percorreria. A inserção é uma busca que, ao chegar no `NULL`, **cria o nó ali**. (Volte nas simulações de inserção do valor `4` e compare: é o mesmo caminho.)
+
+### Quanto custa buscar?
+
+Como na inserção, descemos **um nível** por passo. O custo é <ComplexityBadge>O(h)</ComplexityBadge>, onde `h` é a altura da árvore:
+
+- no **melhor caso**, o valor está na raiz: <ComplexityBadge>Θ(1)</ComplexityBadge>;
+- com a árvore **balanceada**, `h = O(lg n)`;
+- com a árvore **degenerada**, `h = O(n)`: é como buscar em uma lista ligada.
+
+### E se a árvore não for de busca?
+
+Sem a regra "menores à esquerda, maiores à direita", olhar a raiz não diz nada sobre **qual lado** tentar. O valor pode estar em qualquer lugar, então é preciso olhar o nó atual **e as duas subárvores**. O custo passa a ser <ComplexityBadge>O(n)</ComplexityBadge>.
+
+| Árvore | Como busca | Custo |
+| --- | --- | --- |
+| **De busca** | escolhe **um** lado a cada nó | <ComplexityBadge>O(h)</ComplexityBadge> |
+| **Qualquer** | verifica o nó e as **duas** subárvores | <ComplexityBadge>O(n)</ComplexityBadge> |
+
+> 🧩 **Questão 135:** implemente a busca em uma árvore que **não** é de busca, de forma naturalmente **recursiva**, e analise a complexidade. **Questão 148:** faça uma função `conta`, que conta quantos nós têm um dado valor, rodando em `O(h)` na árvore de busca e em `O(n)` na árvore qualquer. (Dica: com valores **repetidos**, achar um não significa que acabou.)
+
+## Mínimo e máximo
+
+Onde ficam o **menor** e o **maior** valor em uma árvore de busca? A resposta sai direto da regra:
+
+- o **menor** está no nó mais à **esquerda**: basta descer sempre por `esq`, até que ele seja `NULL`;
+- o **maior** está no nó mais à **direita**: basta descer sempre por `dir`.
+
+```text
+        7
+      ╱   ╲
+     3     9
+    ╱ ╲     ╲
+   1   5     12
+
+menor: 7 → 3 → 1   (parou: não tem esquerda)
+maior: 7 → 9 → 12  (parou: não tem direita)
+```
+
+Isso custa <ComplexityBadge>O(h)</ComplexityBadge>. Em uma árvore que **não** é de busca, essa "dica" não vale, e é preciso olhar **todos** os nós.
+
+> 🧩 Na Questão 126, implemente as funções de máximo e mínimo, tanto para a árvore **de busca** quanto para uma árvore **qualquer**, e compare os custos.
+
+## Balanceamento
+
+Vimos que a eficiência da árvore de busca depende da altura. O **fator de balanceamento** mede o quanto as duas metades de um nó estão desiguais:
+
+```text
+fb(no) = abs( h(no->esq) - h(no->dir) )
+```
+
+ou seja, o valor absoluto da **diferença de altura** entre o ramo da esquerda e o da direita. O fator de balanceamento da árvore inteira é o **maior** `fb` entre todos os nós.
+
+Uma árvore binária é considerada **balanceada** quando, **para todo nó**, a diferença de altura entre os dois filhos é `0` ou `1`. Se existir **algum** nó com diferença maior que `1`, ela é **não balanceada**.
+
+Como exemplo, a árvore degenerada que gerou a simulação `3, 5, 6, 7` (a raiz tem a esquerda vazia, com `h = -1`, e a direita com `h = 2`):
+
+```text
+fb(3) = abs(-1 - 2) = 3   →  maior que 1, árvore NÃO balanceada
+```
+
+> 🧩 Nas Questões 146 e 147, você vai implementar um código que diz se uma árvore é balanceada e outro que calcula o fator de balanceamento da árvore, analisando a complexidade de cada um. (Dica: as duas precisam da **altura** de vários nós.)
+
+## Guardando informação extra no nó
+
+Calcular o tamanho ou a altura percorrendo a árvore custa `O(n)`. Uma alternativa é **guardar** esses valores dentro do próprio nó:
+
+```c
+typedef struct No
+{
+    int valor;
+    struct No *esq;
+    struct No *dir;
+    int size;   // quantos nós há nesta subárvore
+    int altura; // altura desta subárvore (use um ou outro nos exercícios)
+} No;
+```
+
+Com isso, consultar vira só ler o campo: <ComplexityBadge>Θ(1)</ComplexityBadge>. O preço é que a **inserção precisa atualizar** esses campos em todos os nós do caminho percorrido. Você vai fazer isso nas Questões 150, 151 e 152.
+
+## Quanto custa cada operação?
+
+| Operação | Complexidade | Por quê |
+| --- | --- | --- |
+| `addTree` / `addNo` / `addTreeIt` | <ComplexityBadge>O(h)</ComplexityBadge> | descem, no máximo, um nível por passo |
+| `buscaRec` / `buscaIterativa` | <ComplexityBadge>O(h)</ComplexityBadge> | descem um nível por passo, escolhendo um só lado |
+| Mínimo e máximo | <ComplexityBadge>O(h)</ComplexityBadge> | descem sempre por um mesmo lado |
+| Busca em árvore que não é de busca | <ComplexityBadge>O(n)</ComplexityBadge> | pode precisar olhar todos os nós |
+
+Onde `h` é a altura da árvore: `O(lg n)` se estiver balanceada e `O(n)` se estiver degenerada. Ou seja, **tudo depende de a árvore ser bem distribuída**. 🌳
+
+## Erros comuns
+
+1. **Chamar `addNo` com um nó nulo.** Ele pressupõe nó **não nulo**. É por isso que o `addTree` trata a árvore vazia antes.
+2. **Misturar `<=` e `<` na inserção.** Escolha uma regra para valores repetidos e use sempre a mesma.
+3. **Achar que toda árvore binária é de busca.** Só é de busca se a regra "menores à esquerda, maiores à direita" valer em **todos** os nós, não só entre pai e filho.
+4. **Conferir só os filhos diretos.** O caso do `9` à esquerda do `5` mostra que o valor precisa respeitar **todos os ancestrais**.
+5. **Esquecer que a ordem de inserção importa.** Dados já ordenados degeneram a árvore e transformam `O(lg n)` em `O(n)`.
+6. **Esquecer o caso `NULL` na busca.** Sem o `no == NULL`, buscar um valor que não existe faz o programa falhar.
+7. **Usar o resultado da busca sem testar.** Se `buscaRec` devolve `NULL`, acessar `achou->valor` falha. Sempre teste `achou != NULL` antes.
+
+## Resumo rápido
+
+- Na **árvore binária de busca**, valores menores ou iguais vão para a **esquerda** e maiores para a **direita**, em **todos** os nós.
+- A **ordem de inserção** muda o formato da árvore. Dados já ordenados geram uma árvore **degenerada**, parecida com uma lista ligada.
+- **Inserir** e **buscar** descem um nível por passo: <ComplexityBadge>O(h)</ComplexityBadge>. Com a árvore balanceada, `h = O(lg n)`; degenerada, `h = O(n)`.
+- A busca devolve o **ponteiro para o nó** (ou `NULL`) e segue o **mesmo caminho** da inserção.
+- O **menor** valor está mais à esquerda e o **maior**, mais à direita.
+- O **fator de balanceamento** de um nó é `abs(h(esq) - h(dir))`. Árvores como a **AVL** e a **B** garantem altura `lg n`.
+
+Na próxima página, vamos aprender a **percorrer** todos os nós da árvore, e descobrir por que, em uma árvore de busca, um percurso especial devolve tudo **ordenado**. 🚶

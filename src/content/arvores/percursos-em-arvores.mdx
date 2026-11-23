@@ -1,0 +1,524 @@
+Em uma lista ligada, percorrer os elementos é fácil: começa no `ini` e vai seguindo o `prox` até o `NULL`. Só existe **um caminho**. Já em uma árvore, cada nó tem até **dois** caminhos a seguir (esquerda e direita). Se você vai para um lado, como voltar e visitar o outro? E em que **ordem** visitar os nós? 🚶
+
+Nesta página você vai ver os **três percursos** clássicos de uma árvore binária: **em-ordem**, **pré-ordem** e **pós-ordem**. Vai ver também para que cada um serve: imprimir, ordenar, gerar XML, reconstruir uma árvore, liberar memória e contar nós.
+
+> 📌 Esta página supõe que você já viu **Árvore Binária** (o `No`, o `Tree` e o caso base `NULL`) e **Árvore Binária de Busca** (a regra "menores à esquerda, maiores à direita").
+
+> 🎮 **Como ler as simulações:** os quadrados são os nós e as setas apontam do pai para o filho. 🟡 amarelo é o nó que um ponteiro está usando agora, 🟢 verde é um nó já tratado, e os quadradinhos tracejados com `NULL` mostram ponteiros que não apontam para nada. Observe a **ordem** em que os nós ficam verdes: é ela que diferencia cada percurso.
+
+## O que é percorrer uma árvore?
+
+**Percorrer** (ou **visitar**) uma árvore é passar por **todos** os nós, uma única vez cada, fazendo algo em cada um (imprimir o valor, somar, liberar memória...). A pergunta é: **em que ordem**?
+
+Como a árvore é recursiva, a receita é sempre a mesma, e só muda **quando** tratamos a raiz em relação às duas subárvores:
+
+| Percurso | Ordem de visita | Onde fica a raiz? |
+| --- | --- | --- |
+| **Em-ordem** | ramo da esquerda → **raiz** → ramo da direita | no **meio** |
+| **Pré-ordem** | **raiz** → ramo da esquerda → ramo da direita | **antes** dos ramos |
+| **Pós-ordem** | ramo da esquerda → ramo da direita → **raiz** | **depois** dos ramos |
+
+> 💡 O prefixo diz tudo: **pré**-ordem visita a raiz **antes**, **pós**-ordem visita a raiz **depois**, e **em**-ordem visita a raiz **entre** os ramos. Em todos, o ramo da esquerda vem antes do ramo da direita.
+
+Cada "ramo" é uma subárvore, então a visita dele é feita **recursivamente**, com a mesma regra.
+
+## O código
+
+Os três códigos são **naturalmente recursivos**, e quase idênticos. Compare:
+
+```c
+// percurso em-ordem
+void printEmOrdem(No *no)
+{
+    if (no != NULL)
+    {
+        printEmOrdem(no->esq);
+        printf("%d,", no->valor);
+        printEmOrdem(no->dir);
+    }
+}
+
+// percurso em pré-ordem
+void printPreOrdem(No *no)
+{
+    if (no != NULL)
+    {
+        printf("%d,", no->valor);
+        printPreOrdem(no->esq);
+        printPreOrdem(no->dir);
+    }
+}
+
+// percurso em pós-ordem
+void printPosOrdem(No *no)
+{
+    if (no != NULL)
+    {
+        printPosOrdem(no->esq);
+        printPosOrdem(no->dir);
+        printf("%d,", no->valor);
+    }
+}
+```
+
+Só **uma linha** muda de lugar: o `printf`. Todo o resto é igual. E o `if (no != NULL)` é o **caso base**: ao chegar em uma subárvore vazia, a função simplesmente não faz nada e volta.
+
+## Vendo os três percursos
+
+Todos os exemplos abaixo usam a mesma árvore, com a raiz `9`:
+
+```text
+    9
+     ╲
+      3
+     ╱ ╲
+    5   7
+   ╱
+  10
+```
+
+### Em-ordem
+
+Primeiro o ramo da esquerda, depois a raiz, depois o ramo da direita. Observe a ordem em que os nós ficam verdes:
+
+<Sim name="arvoreEmOrdem" />
+
+A raiz `9` não tem esquerda, então já é impressa primeiro. Depois a função desce pela direita até o `3`, e antes de imprimir o `3` ela precisa terminar o ramo da esquerda dele (o `5`, que por sua vez imprime o `10` antes de si mesmo).
+
+### Pré-ordem
+
+A raiz **primeiro**, depois o ramo da esquerda, depois o da direita:
+
+<Sim name="arvorePreOrdem" />
+
+### Pós-ordem
+
+Os dois ramos **primeiro**, e a raiz por último:
+
+<Sim name="arvorePosOrdem" />
+
+### Comparando as saídas
+
+| Percurso | Ordem de visita | Saída para a árvore acima |
+| --- | --- | --- |
+| **Em-ordem** | esquerda → raiz → direita | `9,10,5,3,7,` |
+| **Pré-ordem** | raiz → esquerda → direita | `9,3,5,10,7,` |
+| **Pós-ordem** | esquerda → direita → raiz | `10,5,7,3,9,` |
+
+Os **mesmos nós** aparecem nos três, só em ordens diferentes. Nas árvores menores usadas nos exemplos da apostila, o resultado é:
+
+| Árvore | Em-ordem | Pré-ordem | Pós-ordem |
+| --- | --- | --- | --- |
+| só o `5` | `5` | `5` | `5` |
+| raiz `3` com filhos `5` (esq.) e `7` (dir.) | `5,3,7` | `3,5,7` | `5,7,3` |
+
+> 🧩 Nas Questões 136 e 138, você vai imprimir árvores em-ordem, em pré-ordem e em pós-ordem, e depois conferir os resultados com o código.
+
+## O que acontece dentro da recursão
+
+Para entender de verdade, acompanhe as chamadas do `printEmOrdem` na árvore pequena com raiz `3` e filhos `5` e `7`. Cada nível de recuo é uma chamada **dentro** da anterior:
+
+```text
+printEmOrdem(3)
+  printEmOrdem(5)
+    printEmOrdem(NULL)    → volta sem fazer nada
+    imprime 5
+    printEmOrdem(NULL)    → volta sem fazer nada
+  imprime 3
+  printEmOrdem(7)
+    printEmOrdem(NULL)    → volta sem fazer nada
+    imprime 7
+    printEmOrdem(NULL)    → volta sem fazer nada
+```
+
+A saída é `5,3,7,`. Se você mover a linha de `imprime` para **antes** das duas chamadas, tem a pré-ordem; se mover para **depois**, tem a pós-ordem.
+
+> 🔎 **Um truque para fazer à mão:** imagine que você caminha em volta da árvore, encostando nela, começando pelo lado esquerdo da raiz. Cada nó é "tocado" **três vezes**: ao chegar nele, ao voltar do ramo da esquerda e ao voltar do ramo da direita. Na **pré-ordem** você escreve o valor no **primeiro** toque, na **em-ordem** no **segundo** e na **pós-ordem** no **terceiro**.
+
+## Serve para qualquer árvore binária
+
+Os três percursos **não** exigem que a árvore seja de busca. Eles só usam `esq` e `dir`, então funcionam em **qualquer** árvore binária. A diferença é o que a saída significa: o que torna a árvore de busca especial é a propriedade abaixo.
+
+## Em-ordem em uma árvore de busca: tudo ordenado!
+
+Aqui está uma propriedade valiosa. Em uma árvore binária de **busca**, o percurso **em-ordem** visita os elementos em **ordem crescente**. Por quê? Porque tudo o que está à esquerda é menor que a raiz, e tudo o que está à direita é maior: visitando "esquerda, raiz, direita", sempre saem os menores primeiro. E isso vale em **cada subárvore**.
+
+Veja uma `main` que insere sete valores e imprime:
+
+```c
+void printTree(Tree *t)
+{
+    printf("[");
+    if (t->raiz != NULL)
+        printEmOrdem(t->raiz);
+    printf("]\n");
+}
+
+int main(int argc, const char *argv[])
+{
+    Tree *t = newTree();
+    addTree(t, 6);
+    addTree(t, 8);
+    addTree(t, 2);
+    addTree(t, 10);
+    addTree(t, 7);
+    addTree(t, 1);
+    addTree(t, 3);
+    printTree(t);
+    printTreeXML(t);
+    return 0;
+}
+```
+
+A saída de `printTree` mostra os dados **ordenados**:
+
+```text
+[1,2,3,6,7,8,10,]
+```
+
+Repare na vírgula depois do último valor: o `printf("%d,")` imprime uma vírgula após **cada** elemento, inclusive o último.
+
+> 🧩 **Questão 128:** altere a impressão em-ordem para delimitar os ramos com **colchetes**. Para as árvores dos exemplos, a saída esperada é: `[5]`, `[[5]3[7]]`, `[9[[5]3[7]]]` e `[9[[[10]5]3[7]]]`. Não é a melhor forma de visualizar uma árvore, mas ajuda a depurar o código.
+
+## Qual percurso usar?
+
+Cada percurso brilha em um tipo de tarefa:
+
+| Percurso | Quando usar | Exemplo |
+| --- | --- | --- |
+| **Em-ordem** | quando a **ordem dos valores** importa | ler uma árvore de busca em ordem crescente; `TreeSort` |
+| **Pré-ordem** | quando o **pai precisa ser tratado antes** dos filhos | imprimir em XML; copiar uma árvore |
+| **Pós-ordem** | quando o **pai depende dos filhos** | calcular altura e tamanho; liberar memória |
+
+## Imprimindo em XML: visualizando árvores grandes
+
+A impressão com colchetes ajuda a depurar, mas e se a árvore tiver **milhares de nós**? Como saber se ela está certa?
+
+Uma boa ideia é imprimi-la em **XML**. O ramo da esquerda fica entre as marcas `<esq>` e `</esq>`, e o ramo da direita fica entre `<dir>` e `</dir>`. A árvore inteira fica dentro de `<tree>` e `</tree>`. Um navegador como o Chrome sabe **abrir** um arquivo XML e deixa você **recolher e expandir** cada ramo, o que permite navegar até em uma árvore enorme.
+
+O código tem duas partes. Primeiro, a função que recebe a árvore, abre o arquivo e escreve a marca externa:
+
+```c
+// imprime a árvore em XML
+void printTreeXML(Tree *t)
+{
+    FILE *fp = fopen("Tree.xml", "w+");
+    fprintf(fp, "<tree>\n");
+    if (t->raiz != NULL)
+        printNoXML(t->raiz, fp);
+    fprintf(fp, "</tree>\n");
+    fclose(fp);
+}
+```
+
+E agora a função recursiva, que escreve cada nó:
+
+```c
+// imprime a árvore em XML
+void printNoXML(No *no, FILE *fp)
+{
+    fprintf(fp, "%d\n", no->valor);
+    if (no->esq != NULL)
+    {
+        fprintf(fp, "<esq>\n");
+        printNoXML(no->esq, fp);
+        fprintf(fp, "</esq>\n");
+    }
+    if (no->dir != NULL)
+    {
+        fprintf(fp, "<dir>\n");
+        printNoXML(no->dir, fp);
+        fprintf(fp, "</dir>\n");
+    }
+}
+```
+
+A ideia: **primeiro** escreve o valor do nó. Depois, se existe filho à esquerda, **abre** `<esq>`, imprime **recursivamente** todo aquele ramo e **fecha** `</esq>`. O mesmo para a direita. Note que ele só escreve as marcas dos ramos que **existem**.
+
+> 🔎 Percebeu o padrão? O valor do nó é escrito **antes** de descer para os ramos. Ou seja, `printNoXML` é um percurso em **pré-ordem**, com marcas extras em volta de cada ramo.
+
+### Veja a transformação acontecendo
+
+A simulação abaixo mostra, lado a lado, a **árvore** (à esquerda) e o **arquivo `Tree.xml`** (à direita) sendo escrito, linha por linha, conforme o código executa. É a árvore da `main` anterior.
+
+<Sim name="arvoreXml" />
+
+Repare em alguns pontos:
+
+- **Cada nó vira um valor.** O nó fica verde quando o seu ramo todo já foi escrito.
+- **Cada ramo vira um par de marcas.** O `<esq>` abre antes da recursão e o `</esq>` fecha **depois** que ela termina. É a recursão que garante que as marcas fiquem bem aninhadas.
+- **As folhas são só um valor.** Sem filhos, nenhuma marca é escrita.
+- **Você pode recolher os ramos.** Quando um ramo já estiver fechado, clique no ▼ ao lado da marca para escondê-lo (vira `<esq> … </esq>`), como o Chrome faz ao abrir um XML. Em uma árvore com milhares de nós, é assim que se navega por ela.
+
+> 📝 Na tela, indentamos as linhas para você enxergar a estrutura. O arquivo gerado pelo código acima não tem indentação: quem formata é o navegador.
+
+> 🧩 Nas Questões 129 e 130, você vai gerar o XML das árvores da Figura 11.16 e depois de uma árvore com 1.000 números pseudoaleatórios, navegar nela pelo Chrome e desenhar seus 4 primeiros níveis.
+
+## TreeSort: ordenando com uma árvore
+
+Juntando duas ideias (a árvore de busca organiza os valores e o percurso em-ordem os lê em ordem crescente), temos um **algoritmo de ordenação**:
+
+1. **Insira** todos os elementos em uma árvore binária de busca;
+2. Faça um percurso **em-ordem**, só que, em vez de imprimir, **devolva os valores para a lista**.
+
+Suponha uma lista guardada em um vetor, com esta estrutura:
+
+```c
+// Lista salva em vetor
+typedef struct Lista
+{
+    int *v;
+    int top, max;
+} Lista;
+```
+
+Os construtores e a função `addLista` já foram vistos em aulas anteriores. Primeiro, o `TreeSort` coloca tudo na árvore:
+
+```c
+void TreeSort(Lista *l)
+{
+    if (l->top <= 1)
+    {
+        return;
+    }
+    // insere os elementos da lista
+    // em uma árvore binária de busca
+    Tree *t = newTree();
+    for (int i = 0; i < l->top; i++)
+    {
+        addTree(t, l->v[i]);
+    }
+    // deixar o vetor vazio.
+    l->top = 0;
+    percurso(t->raiz, l);
+}
+```
+
+Depois, o `percurso` é o **mesmo percurso em-ordem**, mas, no lugar do `printf`, usa `addLista`:
+
+```c
+void percurso(No *no, Lista *l)
+{
+    if (no == NULL)
+    {
+        return;
+    }
+    percurso(no->esq, l);
+    addLista(l, no->valor);
+    percurso(no->dir, l);
+}
+```
+
+Veja o percurso devolvendo os valores à lista, em uma árvore criada a partir de `7, 3, 9, 1, 5`:
+
+<Sim name="arvoreTreeSort" />
+
+A lista que estava desordenada volta **ordenada**. Dois pontos para refletir (que viram exercícios):
+
+> 🧩 **Questão 132:** o que acontece se os dados da lista já estiverem ordenados? Qual a complexidade nesse caso? Como melhorar o `TreeSort` para ter complexidade esperada `O(n lg n)`? (Dica: lembre-se do que vimos sobre árvores degeneradas.)
+>
+> **Questão 133:** o `TreeSort` tem um **vazamento de memória**: aloca nós e depois perde os ponteiros para eles. Como resolver? (Dica: veja a seção sobre liberar memória, mais abaixo.)
+>
+> **Questão 134:** implemente o `TreeSort` para ordenar uma **lista ligada**, em vez de uma lista em vetor.
+
+## Reconstruindo a árvore a partir dos percursos
+
+Uma propriedade curiosa: se você tem o percurso **em-ordem** e o **pré-ordem** de uma árvore, é possível **reconstruir** a árvore original.
+
+Por que precisamos dos dois? Porque cada um sozinho **não basta**. As duas árvores abaixo são diferentes, mas têm o mesmo percurso em pré-ordem (`1,2`):
+
+```text
+  1          1
+ ╱            ╲
+2              2
+pré: 1,2      pré: 1,2
+em:  2,1      em:  1,2
+```
+
+O percurso em-ordem desfaz a dúvida: ele mostra de que lado do `1` está o `2`.
+
+### O algoritmo
+
+1. **Localize**, no percurso em pré-ordem, a **raiz** da árvore (é sempre o **primeiro** elemento).
+2. Com a raiz, descubra **quais nós ficam à esquerda e à direita**, usando o percurso em-ordem: o que vem **antes** da raiz é o ramo da esquerda, e o que vem **depois** é o da direita.
+3. **Divida** o problema em duas árvores (a da esquerda e a da direita), cada uma com o seu pedaço dos dois percursos.
+4. **Repita** o processo recursivamente nas duas, até que reste um único vértice.
+
+### Um exemplo completo
+
+Dados os percursos:
+
+- pré-ordem: `(7, 6, 5, 8, 10, 9, 1)`
+- em-ordem: `(8, 5, 6, 7, 9, 10, 1)`
+
+**Passo 1:** na pré-ordem, o primeiro valor é o `7`, a **raiz**. No em-ordem, o `7` divide a lista em `(8, 5, 6)` (ramo da esquerda) e `(9, 10, 1)` (ramo da direita). Como o ramo da esquerda tem 3 elementos, os 3 valores seguintes da pré-ordem pertencem a ele: `(6, 5, 8)`. Os 3 últimos, `(10, 9, 1)`, são da direita.
+
+Depois repetimos a ideia em cada ramo:
+
+| Subárvore | Pré-ordem | Em-ordem | Raiz | Esquerda | Direita |
+| --- | --- | --- | --- | --- | --- |
+| toda a árvore | `7,6,5,8,10,9,1` | `8,5,6,7,9,10,1` | `7` | `8,5,6` | `9,10,1` |
+| ramo esquerdo | `6,5,8` | `8,5,6` | `6` | `8,5` | vazia |
+| | `5,8` | `8,5` | `5` | `8` | vazia |
+| | `8` | `8` | `8` | vazia | vazia |
+| ramo direito | `10,9,1` | `9,10,1` | `10` | `9` | `1` |
+
+O ramo da esquerda do `6` é o `5`, que tem o `8` à sua esquerda. O ramo da direita é o `10`, com os filhos `9` e `1`. A árvore final:
+
+```text
+        7
+      ╱   ╲
+     6     10
+    ╱     ╱  ╲
+   5     9    1
+  ╱
+ 8
+```
+
+Confira: o pré-ordem dessa árvore é `7,6,5,8,10,9,1` e o em-ordem é `8,5,6,7,9,10,1`. ✅
+
+> ⚠️ **Valores repetidos atrapalham.** O algoritmo procura a raiz dentro do percurso em-ordem. Se o mesmo valor aparecer mais de uma vez, não dá para saber qual é a raiz certa. Os exemplos pressupõem valores **distintos**.
+
+> 🧠 **Curiosidades:** com o **em-ordem + pós-ordem** também dá para reconstruir (a raiz é o **último** elemento do pós-ordem). Já com **pré-ordem + pós-ordem** não basta, em geral: as duas árvores acima têm pré `1,2` e pós `2,1`. E em uma árvore de **busca**, o percurso em-ordem é sempre a lista **ordenada** dos valores, então o pré-ordem **sozinho** já define a árvore. Isso será útil na Questão 139.
+
+> 🧩 **Questão 137:** reconstrua as quatro árvores pedidas a partir dos pares de percursos. **Questão 138:** depois de criá-las, faça o percurso em-ordem e em pré-ordem delas para tirar a prova de que estão corretas. **Questão 139:** a partir da pré-ordem de três árvores de busca, monte as árvores e some as alturas.
+
+## Liberando a memória da árvore
+
+Cada nó foi criado com `malloc`, então, quando terminarmos de usar a árvore, precisamos dar um `free` em **cada nó**. E aqui a **ordem importa**.
+
+Imagine dar `free` na raiz **primeiro**: depois disso, `no->esq` e `no->dir` não podem mais ser lidos (a memória foi devolvida), e perdemos o caminho para o resto da árvore. Por isso o percurso mais indicado é a **pós-ordem**: libera o ramo da esquerda, depois o da direita e, por fim, a raiz, quando os filhos já foram embora.
+
+```c
+void liberaMemoria(No *no)
+{
+    if (no == NULL)
+        return;
+    liberaMemoria(no->esq);
+    liberaMemoria(no->dir);
+    printf("Free. Valor=%d\n", no->valor);
+    free(no);
+}
+```
+
+Para a árvore com raiz `7`, filho esquerdo `3` (que tem o `0` à esquerda) e filho direito `9` (que tem o `8` à esquerda), a saída é:
+
+```text
+Free. Valor=0
+Free. Valor=3
+Free. Valor=8
+Free. Valor=9
+Free. Valor=7
+```
+
+Os nós são liberados em **pós-ordem**: cada nó só é liberado depois dos seus dois filhos.
+
+Há ainda um cuidado. Depois do `free`, a árvore continua guardando **endereços inválidos**. A sugestão é fazer a raiz valer `NULL` ao final. Como `liberaMemoria` recebe um **nó**, essa parte fica a cargo de uma função que recebe a árvore:
+
+```c
+void liberaTree(Tree *t)
+{
+    liberaMemoria(t->raiz);
+    t->raiz = NULL; // a árvore volta a ser uma árvore vazia
+}
+```
+
+> 🧩 **Questão 140:** altere `liberaMemoria` para liberar os nós em **pré-ordem**. Cuidado: depois de `free(no)` você não pode mais ler `no->esq` e `no->dir`, então esses valores precisam ser salvos em variáveis auxiliares **antes** do `free`.
+
+## Contando os nós da árvore
+
+O **tamanho** da árvore (`size`) é o número de nós. Ele tem uma definição **recursiva**: o `size` de um nó é o tamanho do ramo da esquerda, mais o tamanho do ramo da direita, mais **um**, que é o próprio nó.
+
+```text
+size(no) = 1 + size(no->esq) + size(no->dir)
+```
+
+A árvore nula tem `size` igual a zero.
+
+```c
+int size(No *no)
+{
+    if (no == NULL)
+    {
+        return 0;
+    }
+    else
+    {
+        int sizeEsq = size(no->esq);
+        int sizeDir = size(no->dir);
+        return 1 + sizeEsq + sizeDir;
+    }
+}
+```
+
+Repare que o `size` é um percurso em **pós-ordem**: primeiro resolve a esquerda, depois a direita, e só então considera a raiz, somando `1`. É o mesmo padrão do cálculo da **altura** que vimos na página de Árvore Binária: ambos dependem do resultado dos filhos para responder pelo pai.
+
+### Sem recursão: usando uma pilha
+
+Dá para percorrer uma árvore **sem recursão**, trocando-a por uma **pilha** explícita. A pilha guarda ponteiros para nós que ainda faltam visitar:
+
+1. Crie uma **pilha** onde cada elemento é um ponteiro para nó.
+2. Insira o **nó raiz** na pilha.
+3. **Enquanto** a pilha não estiver vazia:
+   - remova um nó da pilha e salve em `aux`;
+   - imprima o valor do nó (para fins de depuração);
+   - faça `size++`;
+   - insira os filhos de `aux` na pilha, caso sejam diferentes de `NULL`: **primeiro o da direita e depois o da esquerda**.
+
+Veja o algoritmo funcionando na árvore pequena com raiz `3` e filhos `5` e `7`:
+
+| Passo | Remove | Imprime | `size` | Pilha depois (topo à direita) |
+| --- | --- | --- | --- | --- |
+| início | | | 0 | `[3]` |
+| 1 | `3` | `3` | 1 | `[7, 5]` |
+| 2 | `5` | `5` | 2 | `[7]` |
+| 3 | `7` | `7` | 3 | `[]` |
+
+Como o topo da pilha é o último que entrou, o filho da **esquerda** (inserido por último) é o próximo a sair.
+
+> 🧩 **Questão 141:** implemente essa versão do `size` em C. **Questão 142:** em que ordem os nós da árvore serão impressos por esse algoritmo? Teste em uma árvore **maior** que a do exemplo e compare com os três percursos desta página.
+
+### Trocando a pilha por uma fila
+
+Uma pequena variação: troque a **pilha** por uma **fila**, mantendo todo o resto. Os filhos de `aux` entram na fila **primeiro o da esquerda e depois o da direita**, e o próximo nó a ser tratado é sempre o que está **há mais tempo** na fila.
+
+> 🧩 **Questão 143:** descreva como serão impressos os nós da árvore nesse algoritmo. (Dica: pense na diferença entre pilha, que é do tipo "último a entrar, primeiro a sair", e fila, "primeiro a entrar, primeiro a sair".)
+
+> 🚀 Essas duas ideias (percorrer com **pilha** e percorrer com **fila**) vão reaparecer quando estudarmos **grafos**, nos algoritmos de busca em profundidade e em largura.
+
+## Quanto custa percorrer?
+
+Em **todos** os percursos, cada nó é visitado **uma vez**, e o trabalho em cada nó é constante. Por isso o custo de tempo é o mesmo, **independente** do formato da árvore.
+
+| Operação | Complexidade | Por quê |
+| --- | --- | --- |
+| `printEmOrdem`, `printPreOrdem`, `printPosOrdem` | <ComplexityBadge>Θ(n)</ComplexityBadge> | visitam cada nó uma vez |
+| `printTreeXML` | <ComplexityBadge>Θ(n)</ComplexityBadge> | visita cada nó uma vez |
+| `liberaMemoria` | <ComplexityBadge>Θ(n)</ComplexityBadge> | um `free` por nó |
+| `size` (recursivo, com pilha ou com fila) | <ComplexityBadge>Θ(n)</ComplexityBadge> | precisa contar todos os nós |
+| `TreeSort` | <ComplexityBadge>O(n · h)</ComplexityBadge> | `n` inserções de custo `O(h)` mais um percurso `Θ(n)` |
+
+> ⚠️ **Memória extra:** nas versões recursivas, cada chamada ainda não terminada fica na pilha de chamadas. Chegam a `h + 2` chamadas empilhadas, no máximo (os nós do caminho mais longo, mais a chamada final com `NULL`), onde `h` é a altura. Em uma árvore **degenerada** com muitos nós, essa pilha pode ficar enorme e estourar. É um dos motivos para preferir árvores balanceadas.
+
+## Erros comuns
+
+1. **Esquecer o caso base `no == NULL`.** Sem ele, a recursão tenta ler `no->esq` de um nó que não existe e o programa falha.
+2. **Trocar a ordem das linhas e esperar a mesma saída.** Mover o `printf` muda o percurso. Confira onde ele está em relação às duas chamadas recursivas.
+3. **Esquecer que o percurso em-ordem só sai ordenado em árvore de busca.** Em uma árvore binária qualquer, ele imprime os valores na ordem do percurso, que pode não ter nada de crescente.
+4. **Dar `free` na raiz antes dos filhos.** Depois do `free`, `no->esq` e `no->dir` ficam inacessíveis, e você vaza a memória do resto da árvore. Use a pós-ordem (ou salve os ponteiros antes).
+5. **Usar a árvore depois de liberá-la.** Ela guarda endereços inválidos. Faça `t->raiz = NULL` ao final.
+6. **Reconstruir a árvore com um só percurso.** Um percurso sozinho (ou pré-ordem com pós-ordem) pode corresponder a **mais de uma** árvore.
+7. **Na versão com pilha, empilhar na ordem errada.** A pilha inverte a ordem: para visitar a esquerda primeiro, ela precisa ser empilhada **por último**.
+8. **Esquecer de fechar as marcas no XML.** Cada `<esq>` aberto precisa do seu `</esq>` **depois** da recursão. Se você fechar antes, o XML fica quebrado.
+
+## Resumo rápido
+
+- **Percorrer** uma árvore é visitar todos os nós, uma vez cada. Os três percursos diferem apenas no momento em que a **raiz** é tratada.
+- **Em-ordem:** esquerda, raiz, direita. **Pré-ordem:** raiz, esquerda, direita. **Pós-ordem:** esquerda, direita, raiz.
+- Funcionam em **qualquer** árvore binária. Em uma árvore de **busca**, o **em-ordem** devolve os valores em **ordem crescente**, o que dá origem ao `TreeSort`.
+- A **pré-ordem** é natural para imprimir em **XML** e a **pós-ordem** para tarefas em que o pai depende dos filhos, como **liberar memória**, calcular o `size` e a altura.
+- Com o **pré-ordem e o em-ordem** (valores distintos) é possível **reconstruir** a árvore: a raiz é o primeiro da pré-ordem, e o em-ordem separa esquerda e direita.
+- É possível percorrer sem recursão usando uma **pilha** (ou uma **fila**, que muda a ordem de visita).
+- Todos os percursos custam <ComplexityBadge>Θ(n)</ComplexityBadge> de tempo.
+
+Agora é com você: na aba **Exercícios**, resolva as Questões 121 a 152 e implemente tudo do zero. 💪

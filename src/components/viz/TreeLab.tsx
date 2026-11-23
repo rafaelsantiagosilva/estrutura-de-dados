@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import TreeSim from "./TreeSim";
+import TreeSim from "./CallTreeSim";
 import { makeMergeTree, makeQuickTree } from "../../viz-data/nlogn";
 
 type Preset = { nome: string; valores: number[] };
