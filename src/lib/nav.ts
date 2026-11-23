@@ -40,12 +40,12 @@ export const nav: Topic[] = [
                 title: "O (ó)"
             },
             {
-                slug: "theta",
-                title: "Θ (theta)"
-            },
-            {
                 slug: "omega",
                 title: "Ω (ômega)"
+            },
+            {
+                slug: "theta",
+                title: "Θ (theta)"
             },
             {
                 slug: "exercicios",
