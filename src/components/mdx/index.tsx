@@ -13,6 +13,7 @@ import { Exercicio, Resposta } from "./Exercicio";
 import BuscaLab from "../viz/BuscaLab";
 import CompareSteps from "../viz/CompareSteps";
 import Grafo from "../viz/Grafo";
+import TreeLab from "../viz/TreeLab";
 
 export const mdxComponents: MDXComponents = {
   blockquote: Callout,
@@ -31,5 +32,6 @@ export const mdxComponents: MDXComponents = {
   Resposta,
   BuscaLab,
   CompareSteps,
-  Grafo
+  Grafo,
+  TreeLab
 };

@@ -32,6 +32,7 @@ import { filaVetorLinear, filaVetorCircular, filaVetorSize, filaVetorCheia } fro
 import { lacoLog } from "./notacao-assintotica/laco-log";
 import { indiceLinear } from "./tempo-de-execucao/indice-linear";
 import { buscaSeqLista, makeBuscaSeq, makeBuscaBin } from "./buscas";
+import { mergeIntercala, makeMergeTree, VETOR_MERGE, quickParticao, makeQuickTree, VETOR_QUICK } from "./nlogn";
 
 // Chave = o que você escreve em <Sim name="..." /> no MDX
 export const sims: Record<string, AnySim> = {
@@ -88,4 +89,9 @@ export const sims: Record<string, AnySim> = {
     buscaBinAchou: makeBuscaBin(12),
     // ordenacao
     selecao, bolha, insercaoA, insercaoIte,
+    // ordenação O(n lg n)
+    mergeIntercala,
+    mergeArvore: makeMergeTree(VETOR_MERGE),
+    quickParticao,
+    quickArvore: makeQuickTree(VETOR_QUICK),
 };

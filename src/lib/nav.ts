@@ -120,7 +120,7 @@ export const nav: Topic[] = [
                 title: "Exercícios O(n²)"
             },
             {
-                slug: "onlogl",
+                slug: "onlogn",
                 title: "O(nlogn)"
             },
             {

@@ -1,0 +1,246 @@
+## Merge Sort
+
+### 🚀 Por que precisamos de algoritmos melhores?
+
+Seleção, Bolha e Inserção são `O(n²)`: servem para **estudar**, mas são lentos demais para a prática. Na vida real usamos algoritmos `O(n lg n)`. Veja a diferença para `n = 1.000.000`, supondo que cada operação leve 1 ns (um bilionésimo de segundo):
+
+<Derivation
+  title="Quanto tempo leva ordenar 1 milhão de elementos?"
+  steps={[
+    { tex: "T_1(n) = n^2 \\cdot 10^{-9}\\ \\text{s}\\qquad T_2(n) = n \\log n \\cdot 10^{-9}\\ \\text{s}", note: "T1 é o algoritmo O(n²) e T2 é o O(n lg n)." },
+    { tex: "T_1(10^6) = 10^{12} \\cdot 10^{-9} = 10^3\\ \\text{s} = 1000\\ \\text{s}", note: "Cerca de 17 minutos." },
+    { tex: "T_2(10^6) = 10^6 \\cdot 6 \\cdot 10^{-9} = 6 \\times 10^{-3}\\ \\text{s} = 0{,}006\\ \\text{s}", note: "A apostila usa o log na base 10 (log 10^6 = 6) para simplificar a conta." },
+    { tex: "\\frac{T_1}{T_2} = \\frac{1000}{0{,}006} \\approx 166\\,667", note: "O algoritmo n² é mais de 166 mil vezes mais lento!" },
+  ]}
+/>
+
+> 📝 Com o `lg` na **base 2**, `lg 1.000.000` vale cerca de **20** (e não 6): o `O(n lg n)` levaria uns 0,02 s e a diferença cairia para cerca de **50 mil vezes**. Continua gigantesca.
+
+Ao melhorar a complexidade, o ganho não é de 30%: é de **10×, 100×, 1000×** ou mais. Veja a distância entre as curvas:
+
+<GrowthChart show={["n", "nlog", "n2"]} defaultN={20} />
+
+### 🔀 MergeSort: dividir, resolver e intercalar
+
+O nome não tem uma boa tradução (algo como *ordenação por intercalação*), então usamos o nome em inglês. A ideia tem **três passos**, e o algoritmo é **naturalmente recursivo**:
+
+1. **Dividir** o vetor ao meio;
+2. **Ordenar** cada metade (com uma chamada recursiva ao próprio `mergeSort`);
+3. **Intercalar** (*merge*) as duas metades ordenadas em um vetor final ordenado.
+
+> 🃏 Pense em duas pilhas de cartas, **cada uma já ordenada**. Para juntar as duas, basta olhar a carta de cima de cada pilha e sempre pegar a **menor**. É exatamente isso que o *merge* faz.
+
+Se o vetor tem `n` elementos, as metades têm `n1 = n / 2` e `n2 = n - n1` (a divisão inteira joga o "resto" para a segunda metade). Se `n` é par, as duas têm `n/2`. Se é ímpar, a primeira tem `(n-1)/2` e a segunda `(n+1)/2`.
+
+### 🧩 O coração: a intercalação (*merge*)
+
+Antes da recursão, vamos entender o `merge`. Ele recebe **dois vetores já ordenados**, `v1` e `v2`, e produz um vetor `v` ordenado. Usamos **três contadores** (os "dedinhos" da apostila):
+
+| Contador | Aponta para |
+| --- | --- |
+| `top1` | o próximo elemento do `v1` ainda não usado |
+| `top2` | o próximo elemento do `v2` ainda não usado |
+| `top` | a próxima posição livre do `v` |
+
+A cada passo: compara `v1[top1]` com `v2[top2]`, **o menor** vai para `v[top]`, e avançam `top` e o contador do vetor de onde saiu o elemento. Repete **enquanto os dois vetores ainda têm elementos**. Quando um deles acaba, o outro tem sobra, e é só **copiar o resto**.
+
+> 🎮 **Como usar as simulações:** **▶** toca sozinho, **⏭ / ⏮** vai passo a passo. 🟡 elementos sendo comparados · 🟢 resultado pronto · posições **apagadas** já foram consumidas · `↑ top1`, `↑ top2` e `↑ top` são os contadores.
+
+<Sim name="mergeIntercala" />
+
+Repare em três detalhes:
+
+- Os dois `2` (um em cada vetor): no empate, a condição `v1[top1] < v2[top2]` é falsa e sai o do `v2`.
+- Cada elemento é copiado **uma única vez**, então o `merge` custa <ComplexityBadge>Θ(n1 + n2)</ComplexityBadge>: **linear**, mesmo que pareça trabalhoso.
+- Quando o `v2` acaba, o `v1` ainda tinha o `9`. Os `while` finais cuidam da sobra.
+
+> 💡 **Curiosidade:** com `<` no empate, o elemento do `v2` sai primeiro, e dois valores iguais podem trocar de ordem entre si. Se usássemos `<=`, o do `v1` sairia primeiro e a ordem relativa dos iguais seria preservada. Isso se chama **estabilidade**, e importa quando ordenamos `structs` (por exemplo, alunos com a mesma nota).
+
+### 🌳 O `mergeSort` completo
+
+Agora juntamos tudo: o `mergeSort` copia cada metade para um vetor novo (`v1` e `v2`, com `malloc`), chama a si mesmo para ordenar cada uma, intercala os resultados de volta em `v` e libera a memória com `free`.
+
+A simulação mostra a **árvore de chamadas** para o vetor da Figura 9.6 da apostila. Cada caixa é um pedaço do vetor:
+
+> 🟡 chamada em execução · 🟢 pedaço já ordenado · a divisão desce, e as intercalações **sobem** pintando de verde.
+
+<Sim name="mergeArvore" />
+
+#### Como a recursão "dá certo"?
+
+Esta é a dúvida clássica: *como a chamada recursiva consegue ordenar a metade se o algoritmo ainda nem terminou?* A resposta: **confie na recursão**. Se ela funciona para vetores menores, depois de `mergeSort(v1, n1)` podemos **assumir** que `v1` está ordenado.
+
+Num vetor de 64 elementos, o processo é:
+
+- **Descendo:** 64 → 32 → 16 → 8 → 4 → 2 → 1. Nada é ordenado ainda; só dividimos.
+- **Base da recursão:** um vetor com **1 elemento já está ordenado** (a condição `n > 1` é falsa e a função não faz nada).
+- **Subindo:** o `merge` junta vetores de 1 em vetores de 2, depois de 4, de 8, de 16, de 32 e, finalmente, de 64.
+
+Ou seja, **quem ordena de verdade é o `merge`**. As chamadas recursivas só organizam, de forma esperta, *quais* vetores serão intercalados.
+
+#### 🧪 Teste outros vetores
+
+Escolha um vetor e veja a árvore. Repare que, **em qualquer caso**, ela tem a mesma forma: o MergeSort divide sempre ao meio, não importa o que há dentro. 👇
+
+<TreeLab
+  algo="merge"
+  presets={[
+    { nome: "Da apostila", valores: [38, 27, 43, 3, 9, 82, 10] },
+    { nome: "Já ordenado", valores: [1, 2, 3, 4, 5, 6, 7] },
+    { nome: "Invertido", valores: [7, 6, 5, 4, 3, 2, 1] },
+    { nome: "Com repetidos", valores: [4, 2, 4, 1, 2, 4, 1] },
+  ]}
+/>
+
+### ⏱️ Complexidade
+
+O tempo obedece a uma **relação de recorrência**:
+
+<Derivation
+  title="Por que o MergeSort é Θ(n lg n)?"
+  steps={[
+    { tex: "T(n) = 2\\,T(n/2) + c\\,n", note: "O tempo com n elementos = duas vezes o tempo com n/2 elementos + o merge, que é linear (c·n)." },
+    { tex: "\\text{nível } k:\\quad 2^k \\text{ problemas} \\times c\\,\\frac{n}{2^k} = c\\,n", note: "A cada nível, o número de problemas dobra, mas o tamanho de cada um cai pela metade. A soma dos merges do nível fica sempre c·n." },
+    { tex: "\\frac{n}{2^k} = 1 \\iff k = \\lg n", note: "Dividindo n por 2 a cada nível até chegar a 1, a árvore tem lg n níveis." },
+    { tex: "T(n) = \\underbrace{c\\,n}_{\\text{cada nível}} \\times \\underbrace{\\lg n}_{\\text{níveis}} = \\Theta(n \\lg n)", note: "Multiplicando o custo de cada nível pelo número de níveis." },
+  ]}
+/>
+
+Para `n = 8`, por exemplo, são 3 níveis de `merge` (`lg 8 = 3`), cada um custando 8 operações: no total **24 = 8 · lg 8**.
+
+| Nível | Quantos `merge` | Tamanho de cada um | Custo do nível |
+| --- | --- | --- | --- |
+| 0 | 1 | 8 | 8 |
+| 1 | 2 | 4 | 8 |
+| 2 | 4 | 2 | 8 |
+
+<ComplexityBadge>Θ(n lg n)</ComplexityBadge> em **todos os casos**: o vetor ser ordenado, invertido ou bagunçado não muda a forma da árvore.
+
+> 💾 **O preço:** os vetores `v1` e `v2` são alocados com `malloc`, então o MergeSort usa **memória extra proporcional a `n`**. Os algoritmos `O(n²)` da aula passada ordenavam o vetor no próprio lugar, sem memória extra.
+
+## Quick Sort
+
+### ⚡ A ideia: escolher um pivô
+
+*Quick* quer dizer *rápido*. O QuickSort escolhe um elemento chamado **pivô** e **arruma o vetor em torno dele**:
+
+- elementos **menores** que o pivô ficam à **esquerda**;
+- elementos **maiores** que o pivô ficam à **direita**.
+
+Depois disso, o pivô está **exatamente na posição final** dele, e nunca mais precisa ser movido. 🎯 Só falta ordenar a parte da esquerda e a da direita, com **chamadas recursivas**.
+
+> ⚖️ A divisão **não** acontece exatamente no meio: ela depende de qual era o pivô. Essa é a grande diferença para o MergeSort, e é a razão de tudo que veremos sobre o pior caso.
+
+### 🧩 O coração: a partição
+
+Toda a "mágica" está na função `particao`. Ela usa o **primeiro elemento** como pivô, `v[p]`, e faz **uma única passada** pelo vetor, com dois marcadores:
+
+- `i`: o elemento que estamos examinando agora;
+- `topo`: a posição do **"buraco"**, onde vai entrar o próximo elemento menor que o pivô.
+
+Como o pivô foi guardado numa variável, a posição `p` fica livre, e esse é o primeiro buraco. A cada instante o vetor tem quatro regiões:
+
+| Região | O que tem |
+| --- | --- |
+| `v[p ... topo-1]` | elementos **menores** que o pivô |
+| `v[topo]` | o **buraco** (valor velho, vai ser sobrescrito) |
+| `v[topo+1 ... i-1]` | elementos **maiores** (ou iguais) que o pivô |
+| `v[i ... r]` | ainda **não examinados** |
+
+Quando `v[i]` é menor que o pivô, ele é copiado para o buraco, o primeiro elemento maior vai ocupar a posição que `i` deixou livre, e o buraco anda uma casa. No fim, o pivô entra no buraco.
+
+> 🎮 🟡 elemento `v[i]` sendo examinado · 🟢 menores que o pivô · posição **apagada** = buraco · `↑ i` e `↑ topo` são os marcadores. A linha `pivo` guarda o pivô fora do vetor.
+
+<Sim name="quickParticao" />
+
+Repare que, ao final, `[1, 2, 3]` ficam à esquerda do `4` e `[6, 7, 8, 5]` à direita: **cada lado ainda está bagunçado**, mas tudo à esquerda é menor e tudo à direita é maior. A partição custa <ComplexityBadge>Θ(n)</ComplexityBadge>: uma única passada.
+
+### 🌳 O `quickSort`
+
+Com a partição pronta, o `quickSort` é curtinho:
+
+1. Se `p < r` (há pelo menos 2 elementos): particiona e recebe `q`, a posição final do pivô;
+2. Chama `quickSort` para a **esquerda** (`p` até `q - 1`);
+3. Chama `quickSort` para a **direita** (`q + 1` até `r`).
+
+Se `p >= r`, há 0 ou 1 elemento e já está ordenado: é a **base da recursão**.
+
+> 🟡 chamada em execução · 🟢 chamada terminada · a célula com **borda verde** é um pivô que já está no lugar certo.
+
+<Sim name="quickArvore" />
+
+#### Dois algoritmos, dois jeitos de trabalhar
+
+| | MergeSort | QuickSort |
+| --- | --- | --- |
+| Onde está o trabalho | **na volta** da recursão (o `merge`) | **na ida** da recursão (a partição) |
+| Como divide | **sempre ao meio** | **onde o pivô cair** |
+| Precisa juntar no final? | sim (`merge`) | **não**: no fim o vetor já está ordenado |
+
+### 🧪 O pior caso, ao vivo
+
+Escolha um vetor e observe a **altura da árvore**. O vetor "Balanceado" divide bem. Agora tente o **"Já ordenado"**: 👇
+
+<TreeLab
+  algo="quick"
+  presets={[
+    { nome: "Balanceado", valores: [4, 2, 6, 1, 3, 5, 7] },
+    { nome: "Da apostila", valores: [38, 27, 43, 3, 9, 82, 10] },
+    { nome: "Já ordenado", valores: [1, 2, 3, 4, 5, 6, 7] },
+    { nome: "Invertido", valores: [7, 6, 5, 4, 3, 2, 1] },
+    { nome: "Todos iguais", valores: [3, 3, 3, 3, 3, 3, 3] },
+  ]}
+/>
+
+O que aconteceu? 🤔 Com o primeiro elemento como pivô, num vetor **já ordenado** o pivô é sempre o **menor**: nada vai para a esquerda, e `n - 1` elementos vão para a direita. A árvore vira uma "escada", com `n` níveis em vez de `lg n`. Com **todos iguais** acontece o mesmo, porque a condição é `v[i] < pivo`, e nenhum elemento é *menor* que um pivô igual a ele.
+
+### ⏱️ Complexidade
+
+| Situação | Como o pivô divide | Complexidade |
+| --- | --- | --- |
+| **Melhor caso** | sempre ao **meio** | <ComplexityBadge>Θ(n lg n)</ComplexityBadge> |
+| **Caso esperado** (pivô aleatório) | em proporções razoáveis | <ComplexityBadge>O(n lg n)</ComplexityBadge> |
+| **Pior caso** | `n - 1` de um lado e `0` do outro, **sempre** | <ComplexityBadge>Θ(n²)</ComplexityBadge> |
+
+No melhor caso, vale a mesma recorrência do MergeSort, `T(n) = 2T(n/2) + cn`, e o resultado é `Θ(n lg n)`. No pior caso:
+
+<Derivation
+  title="Pior caso do QuickSort: Θ(n²)"
+  steps={[
+    { tex: "T(n) = T(n-1) + T(0) + c\\,n", note: "Um lado fica com n-1 elementos e o outro com 0. A partição custa c·n." },
+    { tex: "T(n) = c\\,\\big(n + (n-1) + (n-2) + \\cdots + 1\\big)", note: "Desenrolando a recorrência: cada nível custa um pouco menos que o anterior." },
+    { tex: "T(n) = c\\,\\frac{n\\,(n+1)}{2} = \\Theta(n^2)", note: "Soma de progressão aritmética: o mesmo resultado dos algoritmos simples da aula passada." },
+  ]}
+/>
+
+#### 🎲 Como fugir do pior caso
+
+O pior caso acontece com **entradas comuns** (vetores já ordenados são muito frequentes!). A solução é **escolher o pivô aleatoriamente**: assim nenhuma entrada específica é "ruim" de forma sistemática. Basta trocar o pivô sorteado para a posição `p` antes de particionar:
+
+```c
+int particaoAleatoria(int v[], int p, int r)
+{
+    int k = p + rand() % (r - p + 1); // sorteia uma posição entre p e r
+    int aux = v[p];                   // troca o sorteado com v[p]
+    v[p] = v[k];
+    v[k] = aux;
+
+    return particao(v, p, r);         // a partição de antes continua igual
+}
+```
+
+Com o pivô aleatório, o QuickSort passa a ter **comportamento esperado `O(n lg n)`**. E nem precisa ser perfeito: mesmo uma divisão "ruim" de 10% / 90% em todo nível ainda dá `O(n lg n)`. O problema só aparece com divisões **sempre** extremas.
+
+> 🔁 **Elementos repetidos:** a apostila lembra que também é preciso tratar vetores com muitos valores iguais, como o "Todos iguais" acima. Uma solução comum é a partição em **três regiões** (menores, iguais e maiores), em que os iguais ao pivô não entram em nenhuma chamada recursiva.
+
+### 🏁 Resumo: todos os algoritmos de ordenação
+
+| Algoritmo | Melhor caso | Pior caso | Memória extra |
+| --- | --- | --- | --- |
+| Seleção | `Θ(n²)` | `Θ(n²)` | `O(1)` |
+| Bolha | `Θ(n²)` | `Θ(n²)` | `O(1)` |
+| Inserção | `Θ(n)` | `Θ(n²)` | `O(1)` |
+| **MergeSort** | `Θ(n lg n)` | `Θ(n lg n)` | `O(n)` |
+| **QuickSort** | `Θ(n lg n)` | `Θ(n²)` (ou esperado `O(n lg n)` com pivô aleatório) | `O(1)`, fora a pilha da recursão |
+
+> 🧠 **Qual usar?** O MergeSort **garante** `n lg n`, mas gasta memória extra. O QuickSort com pivô aleatório costuma ser o mais rápido na prática e ordena no próprio vetor, mas o pior caso, embora raro, existe.

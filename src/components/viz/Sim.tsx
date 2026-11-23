@@ -1,6 +1,8 @@
 import { sims } from "../../viz-data";
 import ListSim from "./ListSim";
 import ArraySim from "./ArraySim";
+import RowsSim from "./RowsSim";
+import TreeSim from "./TreeSim";
 
 export default function Sim({ name }: { name: string }) {
   const sim = sims[name];
@@ -15,5 +17,7 @@ export default function Sim({ name }: { name: string }) {
 
   // `kind` decide qual desenho usar. Sem `kind` = lista (compatível com os arquivos antigos)
   if (sim.kind === "array") return <ArraySim sim={sim} />;
+    if (sim.kind === "rows") return <RowsSim sim={sim} />;
+  if (sim.kind === "tree") return <TreeSim sim={sim} />;
   return <ListSim sim={sim} />;
 }
